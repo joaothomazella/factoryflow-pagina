@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IndusOne IA – Assistente Executivo Induscolor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+
+  <style>
+    /* ======================================================
+       RESET & BASE
+    ====================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:    #060c18;
+      --bg-dark:    #0b1426;
+      --bg-card:    rgba(15, 26, 54, 0.75);
+      --bg-card2:   rgba(18, 32, 62, 0.85);
+      --blue:       #1d6ff5;
+      --blue-light: #4d90fe;
+      --blue-glow:  rgba(29, 111, 245, 0.35);
+      --cyan:       #00c6ff;
+      --orange:     #f97316;
+      --red:        #ef4444;
+      --green:      #22c55e;
+      --amber:      #f59e0b;
+      --text:       #f0f4ff;
+      --text2:      #94a3b8;
+      --text3:      #5a6a82;
+      --border:     rgba(255, 255, 255, 0.07);
+      --border2:    rgba(29, 111, 245, 0.25);
+      --radius:     16px;
+      --radius-sm:  10px;
+      --shadow:     0 8px 32px rgba(0, 0, 0, 0.5);
+      --shadow-blue:0 0 40px rgba(29, 111, 245, 0.18);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated background grid ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(29,111,245,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(29,111,245,.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Radial glow top-left */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: -200px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(29,111,245,.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    * { position: relative; z-index: 1; }
+
+    /* ======================================================
+       SCROLLBAR
+    ====================================================== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(29,111,245,.3); border-radius: 10px; }
+
+    /* ======================================================
+       LAYOUT
+    ====================================================== */
+    .app-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.25rem 3rem;
+    }
+
+    /* ======================================================
+       HEADER
+    ====================================================== */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(6, 12, 24, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border2);
+      padding: 0 1.25rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,.4);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+      gap: 1rem;
+    }
+
+    /* Logo */
+    .logo-block {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1d6ff5, #0a3a8a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: #fff;
+      box-shadow: 0 0 20px var(--blue-glow);
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .logo-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -.3px;
+      background: linear-gradient(90deg, #fff, #4d90fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-sub {
+      font-size: .62rem;
+      color: var(--text3);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+
+    /* Header right */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: .85rem;
+    }
+
+    /* API status chip */
+    .api-status {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .28rem .75rem;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      transition: all .3s;
+    }
+    .api-status.online {
+      background: rgba(34,197,94,.12);
+      border: 1px solid rgba(34,197,94,.3);
+      color: #86efac;
+    }
+    .api-status.offline {
+      background: rgba(239,68,68,.12);
+      border: 1px solid rgba(239,68,68,.3);
+      color: #fca5a5;
+    }
+    .api-status.checking {
+      background: rgba(245,158,11,.1);
+      border: 1px solid rgba(245,158,11,.25);
+      color: #fcd34d;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .api-status.online .status-dot { background: #22c55e; animation: dotPulse 2s infinite; }
+    .api-status.offline .status-dot { background: #ef4444; }
+    .api-status.checking .status-dot { background: #f59e0b; animation: dotPulse 1s infinite; }
+    @keyframes dotPulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(1.3); }
+    }
+
+    /* User chip */
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--text2);
+    }
+    .user-chip i { color: var(--blue-light); font-size: .85rem; }
+
+    /* Logout button */
+    .btn-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .38rem .85rem;
+      border-radius: 8px;
+      background: rgba(239,68,68,.1);
+      border: 1px solid rgba(239,68,68,.25);
+      color: #fca5a5;
+      font-size: .75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .btn-logout:hover {
+      background: rgba(239,68,68,.2);
+      border-color: rgba(239,68,68,.5);
+    }
+
+    /* ======================================================
+       PAGE TITLE BANNER
+    ====================================================== */
+    .page-banner {
+      padding: 2.5rem 0 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1.25rem;
+    }
+
+    .banner-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(29,111,245,.3), rgba(0,198,255,.2));
+      border: 1px solid rgba(29,111,245,.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: var(--cyan);
+      flex-shrink: 0;
+      box-shadow: 0 0 30px rgba(29,111,245,.2);
+    }
+
+    .banner-text h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -.4px;
+      line-height: 1.1;
+    }
+
+    .banner-text h1 span {
+      background: linear-gradient(90deg, #1d6ff5, #00c6ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .banner-text p {
+      font-size: .88rem;
+      color: var(--text2);
+      margin-top: .3rem;
+    }
+
+    /* ======================================================
+       GLASS CARD BASE
+    ====================================================== */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(29,111,245,.2);
+      box-shadow: var(--shadow), var(--shadow-blue);
+    }
+
+    /* ======================================================
+       QUESTION AREA
+    ====================================================== */
+    .question-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .question-card {
+      padding: 1.75rem;
+    }
+
+    .question-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--blue-light);
+      margin-bottom: .75rem;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .question-input-row {
+      display: flex;
+      gap: .85rem;
+      align-items: flex-end;
+    }
+
+    textarea#questionInput {
+      flex: 1;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: .95rem;
+      padding: .85rem 1.1rem;
+      resize: none;
+      min-height: 72px;
+      max-height: 180px;
+      transition: border-color .2s, box-shadow .2s;
+      line-height: 1.55;
+    }
+
+    textarea#questionInput::placeholder { color: var(--text3); }
+
+    textarea#questionInput:focus {
+      outline: none;
+      border-color: rgba(29,111,245,.5);
+      box-shadow: 0 0 0 3px rgba(29,111,245,.12);
+      background: rgba(29,111,245,.04);
+    }
+
+    /* Ask button */
+    .btn-ask {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .85rem 1.6rem;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #1d6ff5, #0a52c4);
+      border: 1px solid rgba(29,111,245,.6);
+      color: #fff;
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      box-shadow: 0 4px 20px rgba(29,111,245,.35);
+      height: 72px;
+    }
+
+    .btn-ask:hover {
+      background: linear-gradient(135deg, #2b7fff, #1458d1);
+      box-shadow: 0 6px 28px rgba(29,111,245,.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-ask:active { transform: translateY(0); }
+
+    .btn-ask.loading {
+      opacity: .75;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-ask .fa-spinner { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Quick buttons */
+    .quick-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+      margin-top: 1.1rem;
+    }
+
+    .quick-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .38rem .85rem;
+      border-radius: 20px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.09);
+      color: var(--text2);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .quick-btn:hover {
+      background: rgba(29,111,245,.15);
+      border-color: rgba(29,111,245,.4);
+      color: #93c5fd;
+    }
+
+    .quick-btn i { font-size: .7rem; }
+
+    /* ======================================================
+       RESPONSE AREA
+    ====================================================== */
+    .response-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .response-card {
+      padding: 1.75rem;
+      min-height: 120px;
+    }
+
+    .response-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.1rem;
+    }
+
+    .response-title {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      color: var(--cyan);
+    }
+
+    .response-title i { font-size: .85rem; }
+
+    .response-timestamp {
+      font-size: .68rem;
+      color: var(--text3);
+    }
+
+    /* Response body states */
+    .response-body {
+      font-size: .94rem;
+      line-height: 1.75;
+      color: var(--text);
+    }
+
+    /* Idle / empty state */
+    .response-idle {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .65rem;
+      padding: 2rem 0;
+      color: var(--text3);
+      text-align: center;
+    }
+
+    .response-idle i {
+      font-size: 2.2rem;
+      color: rgba(29,111,245,.3);
+    }
+
+    .response-idle p { font-size: .88rem; }
+
+    /* Loading skeleton */
+    .response-loading {
+      display: flex;
+      flex-direction: column;
+      gap: .7rem;
+      padding: .5rem 0;
+    }
+
+    .skeleton {
+      height: 14px;
+      border-radius: 6px;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,.05) 25%,
+        rgba(255,255,255,.1) 50%,
+        rgba(255,255,255,.05) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    .skeleton.w-full { width: 100%; }
+    .skeleton.w-90 { width: 90%; }
+    .skeleton.w-75 { width: 75%; }
+    .skeleton.w-60 { width: 60%; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* Error state */
+    .response-error {
+      display: flex;
+      align-items: flex-start;
+      gap: .75rem;
+      background: rgba(239,68,68,.07);
+      border: 1px solid rgba(239,68,68,.2);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.1rem;
+      color: #fca5a5;
+      font-size: .88rem;
+    }
+
+    .response-error i { font-size: 1.1rem; margin-top: .1rem; flex-shrink: 0; }
+
+    /* Formatted AI answer */
+    .ai-answer {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .ai-answer strong { color: #93c5fd; }
+
+    /* Response meta */
+    .response-meta {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-top: 1rem;
+      padding-top: .75rem;
+      border-top: 1px solid var(--border);
+      font-size: .7rem;
+      color: var(--text3);
+    }
+
+    .response-meta i { color: var(--blue-light); font-size: .75rem; }
+
+    /* ======================================================
+       SUMMARY CARDS GRID
+    ====================================================== */
+    .summary-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text3);
+      margin-bottom: .85rem;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin-left: .4rem;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: .9rem;
+    }
+
+    .metric-card {
+      padding: 1.25rem 1.1rem 1.1rem;
+      border-radius: var(--radius);
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+      cursor: default;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0,0,0,.4);
+      border-color: var(--accent-color, rgba(29,111,245,.3));
+    }
+
+    .metric-icon-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metric-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .95rem;
+      background: var(--icon-bg, rgba(29,111,245,.15));
+      color: var(--accent-color, #4d90fe);
+    }
+
+    .metric-badge {
+      font-size: .6rem;
+      font-weight: 700;
+      padding: .15rem .42rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      background: rgba(255,255,255,.06);
+      color: var(--text3);
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--text);
+      letter-spacing: -1px;
+    }
+
+    .metric-value.loading-val {
+      height: 32px;
+      width: 60px;
+      border-radius: 6px;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,.06) 25%,
+        rgba(255,255,255,.11) 50%,
+        rgba(255,255,255,.06) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      font-size: 0;
+    }
+
+    .metric-label {
+      font-size: .72rem;
+      color: var(--text2);
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    /* Card color variants */
+    .mc-blue   { --accent-color: #4d90fe; --icon-bg: rgba(77,144,254,.15); }
+    .mc-cyan   { --accent-color: #22d3ee; --icon-bg: rgba(34,211,238,.12); }
+    .mc-purple { --accent-color: #a78bfa; --icon-bg: rgba(167,139,250,.12); }
+    .mc-amber  { --accent-color: #fbbf24; --icon-bg: rgba(251,191,36,.12); }
+    .mc-green  { --accent-color: #4ade80; --icon-bg: rgba(74,222,128,.12); }
+    .mc-orange { --accent-color: #fb923c; --icon-bg: rgba(251,146,60,.12); }
+
+    /* ======================================================
+       HISTORY SECTION
+    ====================================================== */
+    .history-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .history-card {
+      padding: 1.5rem 1.75rem;
+    }
+
+    .history-empty {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      color: var(--text3);
+      font-size: .85rem;
+      padding: .5rem 0;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .65rem .9rem;
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      font-size: .85rem;
+      color: var(--text2);
+    }
+
+    .history-item:hover {
+      background: rgba(29,111,245,.1);
+      border-color: rgba(29,111,245,.3);
+      color: var(--text);
+    }
+
+    .history-item i.fa-history {
+      color: var(--blue-light);
+      font-size: .8rem;
+      flex-shrink: 0;
+    }
+
+    .history-text {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-time {
+      font-size: .67rem;
+      color: var(--text3);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .history-replay {
+      font-size: .72rem;
+      color: var(--blue-light);
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .history-item:hover .history-replay { opacity: 1; }
+
+    /* Clear history */
+    .history-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: .85rem;
+    }
+
+    .btn-clear-hist {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      background: transparent;
+      border: none;
+      color: var(--text3);
+      font-size: .72rem;
+      cursor: pointer;
+      padding: .25rem .5rem;
+      border-radius: 6px;
+      transition: color .15s, background .15s;
+    }
+
+    .btn-clear-hist:hover { color: #fca5a5; background: rgba(239,68,68,.08); }
+
+    /* ======================================================
+       FOOTER
+    ====================================================== */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 1.25rem;
+      text-align: center;
+      font-size: .7rem;
+      color: var(--text3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+    }
+
+    footer span { color: var(--blue-light); font-weight: 600; }
+
+    /* ======================================================
+       TOAST NOTIFICATION
+    ====================================================== */
+    #toastContainer {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      z-index: 9999;
+    }
+
+    .toast {
+      padding: .7rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-size: .82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      animation: toastIn .3s ease;
+      max-width: 320px;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(40px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .toast.success { background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.3); color: #86efac; }
+    .toast.error   { background: rgba(239,68,68,.15);  border: 1px solid rgba(239,68,68,.3);  color: #fca5a5; }
+    .toast.info    { background: rgba(29,111,245,.15); border: 1px solid rgba(29,111,245,.3); color: #93c5fd; }
+
+    /* ======================================================
+       RESPONSIVE
+    ====================================================== */
+    @media (max-width: 768px) {
+      .header-inner { height: 58px; }
+      .logo-sub { display: none; }
+      .user-chip .user-name { display: none; }
+      .btn-logout span { display: none; }
+      .page-banner { padding: 1.5rem 0 1rem; }
+      .banner-text h1 { font-size: 1.35rem; }
+      .question-input-row { flex-direction: column; align-items: stretch; }
+      .btn-ask { height: auto; padding: .8rem; justify-content: center; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .quick-btns { gap: .4rem; }
+      .quick-btn { font-size: .72rem; padding: .32rem .65rem; }
+    }
+
+    /* ======================================================
+       INDUSCOLOR ACCENT LINE (top of page)
+    ====================================================== */
+    .accent-line {
+      height: 3px;
+      background: linear-gradient(90deg, #1d6ff5, #00c6ff, #1d6ff5);
+      background-size: 200% 100%;
+      animation: accentMove 4s linear infinite;
+    }
+
+    @keyframes accentMove { to { background-position: 200% 0; } }
+
+    /* ======================================================
+       DIVIDER
+    ====================================================== */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: .5rem 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP ACCENT LINE -->
+  <div class="accent-line"></div>
+
+  <!-- ══════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════ -->
+  <header>
+    <div class="header-inner">
+
+      <!-- Logo -->
+      <div class="logo-block">
+        <div class="logo-icon">
+          <i class="fas fa-brain"></i>
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">IndusOne IA</span>
+          <span class="logo-sub">Induscolor · Produção</span>
+        </div>
+      </div>
+
+      <!-- Right side -->
+      <div class="header-right">
+
+        <!-- API Status -->
+        <div class="api-status checking" id="apiStatus">
+          <span class="status-dot"></span>
+          <span id="apiStatusText">Verificando…</span>
+        </div>
+
+        <!-- Logged user -->
+        <div class="user-chip">
+          <i class="fas fa-user-tie"></i>
+          <span class="user-name">Diretoria</span>
+        </div>
+
+        <!-- Logout -->
+        <button class="btn-logout" onclick="handleLogout()">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Sair</span>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════════════ -->
+  <main>
+    <div class="app-wrapper">
+
+      <!-- PAGE BANNER -->
+      <div class="page-banner">
+        <div class="banner-icon">
+          <i class="fas fa-microchip"></i>
+        </div>
+        <div class="banner-text">
+          <h1>Assistente <span>Executivo</span> de Produção</h1>
+          <p>Consulte pedidos, lotes, OPs e a situação da fábrica em linguagem natural.</p>
+        </div>
+      </div>
+
+      <!-- ── QUESTION SECTION ── -->
+      <section class="question-section">
+        <div class="glass-card question-card">
+
+          <div class="question-label">
+            <i class="fas fa-comment-dots"></i>
+            Faça uma pergunta
+          </div>
+
+          <div class="question-input-row">
+            <textarea
+              id="questionInput"
+              placeholder="Ex: Onde está o pedido 087153? · Qual a situação da Carbofibras? · Lotes parados hoje…"
+              rows="2"
+              onkeydown="handleInputKeydown(event)"
+            ></textarea>
+            <button class="btn-ask" id="btnAsk" onclick="askQuestion()">
+              <i class="fas fa-paper-plane" id="btnAskIcon"></i>
+              <span id="btnAskText">Perguntar para IA</span>
+            </button>
+          </div>
+
+          <!-- Quick buttons -->
+          <div class="quick-btns">
+            <button class="quick-btn" onclick="quickAsk('Resumo da fábrica agora')">
+              <i class="fas fa-industry"></i> Resumo da fábrica
+            </button>
+            <button class="quick-btn" onclick="quickAsk('Quais são os pedidos urgentes?')">
+              <i class="fas fa-exclamation-triangle"></i> Pedidos urgentes
+            </button>
+            <button class="quick-btn" onclick="quickAsk('Quais lotes estão parados?')">
+              <i class="fas fa-pause-circle"></i> Lotes parados
+            </button>
+            <button class="quick-btn" onclick="quickAsk('O que está pronto para entrega?')">
+              <i class="fas fa-box-open"></i> Prontos para entrega
+            </button>
+            <button class="quick-btn" onclick="quickAsk('Qual é a situação do laboratório agora?')">
+              <i class="fas fa-flask"></i> Laboratório agora
+            </button>
+            <button class="quick-btn" onclick="quickAsk('Quais são as entregas previstas para hoje?')">
+              <i class="fas fa-truck"></i> Entregas de hoje
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── RESPONSE SECTION ── -->
+      <section class="response-section" id="responseSection">
+        <div class="glass-card response-card">
+
+          <div class="response-header">
+            <div class="response-title">
+              <i class="fas fa-robot"></i>
+              Resposta da IA
+            </div>
+            <span class="response-timestamp" id="responseTimestamp"></span>
+          </div>
+
+          <!-- Body: idle / loading / error / answer -->
+          <div class="response-body" id="responseBody">
+            <div class="response-idle">
+              <i class="fas fa-comments"></i>
+              <p>Digite uma pergunta ou use os atalhos acima para consultar a produção.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── SUMMARY CARDS ── -->
+      <section class="summary-section">
+        <div class="section-label"><i class="fas fa-chart-bar"></i> Resumo da produção</div>
+
+        <div class="summary-grid">
+
+          <div class="metric-card mc-blue">
+            <div class="metric-icon-row">
+              <div class="metric-icon"><i class="fas fa-clipboard-list"></i></div>
+              <span class="metric-badge">Pedidos</span>
+            </div>
+            <div class="metric-value loading-val" id="val-pedidos">–</div>
+            <div class="metric-label">Em andamento</div>
+          </div>
+
+          <div class="metric-card mc-purple">
+            <div class="metric-icon-row">
+              <div class="metric-icon"><i class="fas fa-flask"></i></div>
+              <span class="metric-badge">Lab</span>
+            </div>
+            <div class="metric-value loading-val" id="val-lab">–</div>
+            <div class="metric-label">No laboratório</div>
+          </div>
+
+          <div class="metric-card mc-amber">
+            <div class="metric-icon-row">
+              <div class="metric-icon"><i class="fas fa-palette"></i></div>
+              <span class="metric-badge">Coloração</span>
+            </div>
+            <div class="metric-value loading-val" id="val-coloracao">–</div>
+            <div class="metric-label">Em coloração</div>
+          </div>
+
+          <div class="metric-card mc-cyan">
+            <div class="metric-icon-row">
+              <div class="metric-icon"><i class="fas fa-fill-drip"></i></div>
+              <span class="metric-badge">Envase</span>
+            </div>
+            <div class="metric-value loading-val" id="val-envase">–</div>
+            <div class="metric-label">No envase</div>
+          </div>
+
+          <div class="metric-card mc-green">
+            <div class="metric-icon-row">
+              <div class="metric-icon"><i class="fas fa-check-circle"></i></div>
+              <span class="metric-badge">Pronto</span>
+            </div>
+            <div class="metric-value loading-val" id="val-pronto">–</div>
+            <div class="metric-label">Prontos p/ entrega</div>
+          </div>
+
+          <div class="metric-card mc-orange">
+            <div class="metric-icon-row">
+              <div class="metric-icon"><i class="fas fa-truck"></i></div>
+              <span class="metric-badge">Rotas</span>
+            </div>
+            <div class="metric-value loading-val" id="val-rotas">–</div>
+            <div class="metric-label">Rotas em andamento</div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── HISTORY SECTION ── -->
+      <section class="history-section">
+        <div class="section-label"><i class="fas fa-history"></i> Histórico de perguntas</div>
+
+        <div class="glass-card history-card">
+          <div id="historyContainer">
+            <div class="history-empty">
+              <i class="fas fa-clock"></i>
+              <span>Nenhuma pergunta feita ainda nesta sessão.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /.app-wrapper -->
+  </main>
+
+  <!-- ══════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════ -->
+  <footer>
+    <i class="fas fa-shield-alt" style="color:var(--blue-light)"></i>
+    <span>IndusOne IA</span> · Assistente executivo Induscolor ·
+    <span id="footerYear"></span>
+  </footer>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer"></div>
+
+  <!-- ══════════════════════════════════════════════
+       JAVASCRIPT
+  ══════════════════════════════════════════════ -->
+  <script>
+    'use strict';
+
+    // ─────────────────────────────────────────────
+    // CONFIGURAÇÃO
+    // ─────────────────────────────────────────────
+    const API_BASE       = 'https://app-producao-backend-production.up.railway.app';
+    const HISTORY_KEY    = 'indusone_history';
+    const MAX_HISTORY    = 8;
+    const HEALTH_INTERVAL = 30000; // checar status a cada 30s
+
+    // ─────────────────────────────────────────────
+    // ESTADO
+    // ─────────────────────────────────────────────
+    let _isLoading = false;
+
+    // ─────────────────────────────────────────────
+    // INICIALIZAÇÃO
+    // ─────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      // Ano no footer
+      document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+      // Checar saúde da API
+      checkHealth();
+      setInterval(checkHealth, HEALTH_INTERVAL);
+
+      // Carregar resumo de produção
+      loadResumo();
+
+      // Renderizar histórico salvo
+      renderHistory();
+
+      // Foco automático no campo de pergunta
+      setTimeout(() => document.getElementById('questionInput').focus(), 300);
+    });
+
+    // ─────────────────────────────────────────────
+    // HEALTH CHECK
+    // ─────────────────────────────────────────────
+    async function checkHealth() {
+      const statusEl   = document.getElementById('apiStatus');
+      const statusText = document.getElementById('apiStatusText');
+
+      statusEl.className = 'api-status checking';
+      statusText.textContent = 'Verificando…';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/health`, {
+          signal: AbortSignal.timeout(5000)
+        });
+
+        if (res.ok) {
+          statusEl.className = 'api-status online';
+          statusText.textContent = 'Online';
+        } else {
+          throw new Error('Status ' + res.status);
+        }
+      } catch (e) {
+        statusEl.className = 'api-status offline';
+        statusText.textContent = 'Offline';
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // CARREGAR RESUMO (cards de métrica)
+    // ─────────────────────────────────────────────
+    async function loadResumo() {
+      try {
+        const res = await fetch(`${API_BASE}/api/indusone/resumo`, {
+          signal: AbortSignal.timeout(8000)
+        });
+
+        if (!res.ok) throw new Error('Falha na resposta: ' + res.status);
+
+        const json = await res.json();
+
+        if (json.ok && json.dados) {
+          updateMetricCards(json.dados);
+        } else {
+          throw new Error('Resposta sem dados');
+        }
+      } catch (e) {
+        // Se API offline, exibe traços nos cards (sem inventar dados)
+        setMetricCardsOffline();
+      }
+    }
+
+    /**
+     * Preenche os cards de métrica com os dados retornados pelo backend.
+     */
+    function updateMetricCards(dados) {
+      const map = {
+        'val-pedidos':  dados.pedidos_em_andamento ?? '–',
+        'val-lab':      dados.lotes_laboratorio     ?? '–',
+        'val-coloracao':dados.lotes_coloracao        ?? '–',
+        'val-envase':   dados.lotes_envase           ?? '–',
+        'val-pronto':   dados.prontos_entrega        ?? '–',
+        'val-rotas':    dados.rotas_em_andamento     ?? '–',
+      };
+
+      Object.entries(map).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('loading-val');
+        el.textContent = String(val);
+      });
+    }
+
+    /**
+     * Mostra "–" nos cards quando a API está offline.
+     */
+    function setMetricCardsOffline() {
+      ['val-pedidos','val-lab','val-coloracao','val-envase','val-pronto','val-rotas']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.classList.remove('loading-val');
+          el.textContent = '–';
+          el.style.color = 'var(--text3)';
+          el.style.fontSize = '1.4rem';
+        });
+    }
+
+    // ─────────────────────────────────────────────
+    // FAZER PERGUNTA
+    // ─────────────────────────────────────────────
+
+    /**
+     * Disparado pelo botão "Perguntar para IA".
+     */
+    async function askQuestion() {
+      const input = document.getElementById('questionInput');
+      const pergunta = input.value.trim();
+
+      if (!pergunta) {
+        showToast('Digite uma pergunta antes de enviar.', 'info');
+        input.focus();
+        return;
+      }
+
+      if (_isLoading) return;
+
+      await sendQuestion(pergunta);
+    }
+
+    /**
+     * Disparado pelos botões rápidos.
+     * Preenche o campo e envia automaticamente.
+     */
+    function quickAsk(pergunta) {
+      const input = document.getElementById('questionInput');
+      input.value = pergunta;
+      sendQuestion(pergunta);
+    }
+
+    /**
+     * Envia a pergunta ao backend e exibe a resposta.
+     */
+    async function sendQuestion(pergunta) {
+      if (_isLoading) return;
+      _isLoading = true;
+
+      setButtonLoading(true);
+      showResponseLoading();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/indusone/perguntar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pergunta, usuario: 'diretoria' }),
+          signal: AbortSignal.timeout(30000)
+        });
+
+        if (!res.ok) {
+          const errText = await res.text().catch(() => '');
+          throw new Error(`Erro ${res.status}${errText ? ': ' + errText : ''}`);
+        }
+
+        const json = await res.json();
+
+        if (json.ok) {
+          showResponseAnswer(json.resposta || 'Sem resposta do assistente.', pergunta);
+
+          // Atualizar cards se a resposta trouxer dados atualizados
+          if (json.dados) {
+            updateMetricCards(json.dados);
+          }
+
+          // Salvar no histórico
+          saveToHistory(pergunta);
+          renderHistory();
+
+          showToast('Resposta recebida!', 'success');
+        } else {
+          throw new Error(json.erro || 'O backend retornou um erro desconhecido.');
+        }
+
+      } catch (e) {
+        const msg = e.name === 'AbortError' || e.name === 'TimeoutError'
+          ? 'A consulta demorou demais. Verifique a conexão com o backend.'
+          : 'Não foi possível consultar o backend agora. ' + (e.message || '');
+
+        showResponseError(msg);
+        showToast('Falha na consulta à IA.', 'error');
+      } finally {
+        _isLoading = false;
+        setButtonLoading(false);
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // UI – ESTADOS DA ÁREA DE RESPOSTA
+    // ─────────────────────────────────────────────
+
+    function showResponseLoading() {
+      document.getElementById('responseTimestamp').textContent = '';
+      document.getElementById('responseBody').innerHTML = `
+        <div class="response-loading">
+          <div class="skeleton w-full"></div>
+          <div class="skeleton w-90"></div>
+          <div class="skeleton w-75"></div>
+          <div class="skeleton w-60"></div>
+        </div>`;
+    }
+
+    function showResponseAnswer(texto, pergunta) {
+      const now = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+      document.getElementById('responseTimestamp').textContent = 'Hoje às ' + now;
+
+      // Formatação simples: **negrito** → <strong>
+      const htmlTexto = escapeHtml(texto)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
+      document.getElementById('responseBody').innerHTML = `
+        <div class="ai-answer">${htmlTexto}</div>
+        <div class="response-meta">
+          <i class="fas fa-info-circle"></i>
+          Pergunta: "<em>${escapeHtml(pergunta.slice(0, 80))}${pergunta.length > 80 ? '…' : ''}</em>"
+        </div>`;
+    }
+
+    function showResponseError(mensagem) {
+      document.getElementById('responseTimestamp').textContent = '';
+      document.getElementById('responseBody').innerHTML = `
+        <div class="response-error">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>
+            <strong>Não foi possível obter resposta.</strong><br>
+            <span style="font-size:.82rem;opacity:.85">${escapeHtml(mensagem)}</span>
+          </div>
+        </div>`;
+    }
+
+    // ─────────────────────────────────────────────
+    // UI – BOTÃO DE PERGUNTAR
+    // ─────────────────────────────────────────────
+
+    function setButtonLoading(loading) {
+      const btn      = document.getElementById('btnAsk');
+      const icon     = document.getElementById('btnAskIcon');
+      const txtEl    = document.getElementById('btnAskText');
+
+      if (loading) {
+        btn.classList.add('loading');
+        btn.disabled = true;
+        icon.className = 'fas fa-spinner';
+        txtEl.textContent = 'Consultando…';
+      } else {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        icon.className = 'fas fa-paper-plane';
+        txtEl.textContent = 'Perguntar para IA';
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // ENVIAR COM ENTER (Ctrl+Enter ou Cmd+Enter)
+    // ─────────────────────────────────────────────
+
+    function handleInputKeydown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        askQuestion();
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // HISTÓRICO
+    // ─────────────────────────────────────────────
+
+    function saveToHistory(pergunta) {
+      const hist = getHistory();
+
+      // Evitar duplicata consecutiva
+      if (hist.length > 0 && hist[0].texto === pergunta) return;
+
+      hist.unshift({
+        texto: pergunta,
+        ts: Date.now()
+      });
+
+      // Limitar ao máximo definido
+      if (hist.length > MAX_HISTORY) hist.splice(MAX_HISTORY);
+
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+    }
+
+    function getHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function clearHistory() {
+      localStorage.removeItem(HISTORY_KEY);
+      renderHistory();
+      showToast('Histórico limpo.', 'info');
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('historyContainer');
+      const hist = getHistory();
+
+      if (hist.length === 0) {
+        container.innerHTML = `
+          <div class="history-empty">
+            <i class="fas fa-clock"></i>
+            <span>Nenhuma pergunta feita ainda.</span>
+          </div>`;
+        return;
+      }
+
+      const items = hist.map((item, idx) => {
+        const ago = formatTimeAgo(item.ts);
+        const safe = escapeHtml(item.texto);
+        return `
+          <div class="history-item" onclick="quickAsk(${JSON.stringify(item.texto)})">
+            <i class="fas fa-history"></i>
+            <span class="history-text">${safe}</span>
+            <span class="history-time">${ago}</span>
+            <span class="history-replay"><i class="fas fa-redo-alt"></i></span>
+          </div>`;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="history-list">${items}</div>
+        <div class="history-actions">
+          <button class="btn-clear-hist" onclick="clearHistory()">
+            <i class="fas fa-trash-alt"></i> Limpar histórico
+          </button>
+        </div>`;
+    }
+
+    // ─────────────────────────────────────────────
+    // LOGOUT
+    // ─────────────────────────────────────────────
+
+    function handleLogout() {
+      if (confirm('Deseja sair do IndusOne IA?')) {
+        showToast('Saindo…', 'info');
+        setTimeout(() => { window.location.href = 'index.html'; }, 700);
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // TOAST
+    // ─────────────────────────────────────────────
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+
+      const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+      const icon  = icons[type] || icons.info;
+
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fas ${icon}"></i> ${escapeHtml(msg)}`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.transition = 'opacity .3s, transform .3s';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(40px)';
+        setTimeout(() => toast.remove(), 320);
+      }, 3000);
+    }
+
+    // ─────────────────────────────────────────────
+    // UTILITÁRIOS
+    // ─────────────────────────────────────────────
+
+    /** Sanitização básica contra XSS */
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    /** Formata timestamp relativo ("há 2 min", "há 1h") */
+    function formatTimeAgo(ts) {
+      const diff = Date.now() - ts;
+      const min  = Math.floor(diff / 60000);
+      if (min < 1) return 'agora';
+      if (min < 60) return `há ${min} min`;
+      const h = Math.floor(min / 60);
+      if (h < 24) return `há ${h}h`;
+      return `há ${Math.floor(h / 24)}d`;
+    }
+
+  </script>
+
+</body>
+</html>

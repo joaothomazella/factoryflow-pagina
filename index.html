@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FactoryFlow – Controle de Produção</title>
+  <link rel="stylesheet" href="css/style.css?v=5610" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ===== LOGIN 3D FUTURÍSTICO ===== -->
+<div id="loginPage" class="login-page">
+
+  <!-- Canvas 3D background -->
+  <canvas id="loginCanvas" class="login-canvas"></canvas>
+
+  <!-- Holographic grid overlay -->
+  <div class="login-grid-overlay"></div>
+
+  <!-- Floating 3D industrial objects -->
+  <div class="login-3d-scene" id="login3DScene">
+    <!-- Rotating cube - Gear -->
+    <div class="obj3d obj-cube" style="--ox:12%;--oy:20%;--sz:70px;--delay:0s">
+      <div class="cube-face cube-front"><i class="fas fa-cogs"></i></div>
+      <div class="cube-face cube-back"><i class="fas fa-cogs"></i></div>
+      <div class="cube-face cube-right"></div>
+      <div class="cube-face cube-left"></div>
+      <div class="cube-face cube-top"></div>
+      <div class="cube-face cube-bottom"></div>
+    </div>
+    <!-- Rotating cube - Flask -->
+    <div class="obj3d obj-cube" style="--ox:82%;--oy:15%;--sz:55px;--delay:1.2s;--col:#10b981">
+      <div class="cube-face cube-front"><i class="fas fa-flask"></i></div>
+      <div class="cube-face cube-back"><i class="fas fa-flask"></i></div>
+      <div class="cube-face cube-right"></div>
+      <div class="cube-face cube-left"></div>
+      <div class="cube-face cube-top"></div>
+      <div class="cube-face cube-bottom"></div>
+    </div>
+    <!-- Rotating cube - Paint -->
+    <div class="obj3d obj-cube" style="--ox:8%;--oy:75%;--sz:60px;--delay:2.4s;--col:#f59e0b">
+      <div class="cube-face cube-front"><i class="fas fa-paint-roller"></i></div>
+      <div class="cube-face cube-back"><i class="fas fa-paint-roller"></i></div>
+      <div class="cube-face cube-right"></div>
+      <div class="cube-face cube-left"></div>
+      <div class="cube-face cube-top"></div>
+      <div class="cube-face cube-bottom"></div>
+    </div>
+    <!-- Rotating cube - Truck -->
+    <div class="obj3d obj-cube" style="--ox:85%;--oy:80%;--sz:65px;--delay:0.8s;--col:#ef4444">
+      <div class="cube-face cube-front"><i class="fas fa-truck"></i></div>
+      <div class="cube-face cube-back"><i class="fas fa-truck"></i></div>
+      <div class="cube-face cube-right"></div>
+      <div class="cube-face cube-left"></div>
+      <div class="cube-face cube-top"></div>
+      <div class="cube-face cube-bottom"></div>
+    </div>
+    <!-- Floating ring torus left -->
+    <div class="obj3d obj-torus" style="--ox:3%;--oy:48%;--delay:0.3s"></div>
+    <!-- Floating ring torus right -->
+    <div class="obj3d obj-torus" style="--ox:94%;--oy:52%;--delay:1.8s;--col:#8b5cf6"></div>
+    <!-- Hexagonal plates -->
+    <div class="obj3d obj-hex" style="--ox:45%;--oy:5%;--delay:0.6s"></div>
+    <div class="obj3d obj-hex" style="--ox:55%;--oy:92%;--delay:2s;--col:#06b6d4"></div>
+    <!-- Floating particles -->
+    <div class="login-particles">
+      <span class="lp" style="--px:15%;--py:35%;--d:0s"></span>
+      <span class="lp" style="--px:75%;--py:25%;--d:0.5s"></span>
+      <span class="lp" style="--px:30%;--py:80%;--d:1s"></span>
+      <span class="lp" style="--px:65%;--py:65%;--d:1.5s"></span>
+      <span class="lp" style="--px:50%;--py:45%;--d:0.3s"></span>
+      <span class="lp" style="--px:20%;--py:60%;--d:0.9s"></span>
+      <span class="lp" style="--px:88%;--py:40%;--d:0.2s"></span>
+      <span class="lp" style="--px:40%;--py:15%;--d:1.7s"></span>
+      <span class="lp" style="--px:70%;--py:88%;--d:0.4s"></span>
+      <span class="lp" style="--px:5%;--py:10%;--d:1.3s"></span>
+      <span class="lp" style="--px:92%;--py:20%;--d:0.7s"></span>
+      <span class="lp" style="--px:58%;--py:55%;--d:1.9s"></span>
+    </div>
+    <!-- Scanning line -->
+    <div class="login-scan-line"></div>
+    <!-- Data streams -->
+    <div class="data-stream" style="--dsx:20%">10110100110</div>
+    <div class="data-stream" style="--dsx:40%;--dsd:0.7s">01001101010</div>
+    <div class="data-stream" style="--dsx:60%;--dsd:1.4s">11010110001</div>
+    <div class="data-stream" style="--dsx:80%;--dsd:0.3s">00110101101</div>
+  </div>
+
+  <!-- Login card -->
+  <div class="login-scene">
+    <div class="login-card-3d" id="loginCard3D">
+      <!-- Animated border -->
+      <div class="card-border-anim"></div>
+      <!-- Corner decorations -->
+      <div class="card-corner card-corner-tl"></div>
+      <div class="card-corner card-corner-tr"></div>
+      <div class="card-corner card-corner-bl"></div>
+      <div class="card-corner card-corner-br"></div>
+
+      <div class="login-logo-3d">
+        <!-- 3D spinning logo -->
+        <div class="logo-3d-container">
+          <div class="logo-3d-cube">
+            <div class="logo-face logo-front"><i class="fas fa-industry"></i></div>
+            <div class="logo-face logo-back"><i class="fas fa-cogs"></i></div>
+            <div class="logo-face logo-right"><i class="fas fa-flask"></i></div>
+            <div class="logo-face logo-left"><i class="fas fa-paint-roller"></i></div>
+            <div class="logo-face logo-top"><i class="fas fa-boxes"></i></div>
+            <div class="logo-face logo-bottom"><i class="fas fa-truck"></i></div>
+          </div>
+        </div>
+        <h1 class="login-title-glitch" data-text="FactoryFlow">FactoryFlow</h1>
+        <p class="login-subtitle">Sistema de Controle de Produção</p>
+        <div class="login-version-badge">v3.0 · ULTRA</div>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group-3d">
+          <div class="input-icon-3d"><i class="fas fa-user-circle"></i></div>
+          <input type="text" id="loginUsername" placeholder="Identificação do usuário" required autocomplete="username" />
+          <div class="input-line-anim"></div>
+        </div>
+        <div class="form-group-3d">
+          <div class="input-icon-3d"><i class="fas fa-lock"></i></div>
+          <input type="password" id="loginPassword" placeholder="Chave de acesso" required autocomplete="current-password" />
+          <div class="input-line-anim"></div>
+        </div>
+        <div id="loginError" class="login-error" style="display:none">
+          <i class="fas fa-exclamation-triangle"></i> Credenciais inválidas – acesso negado
+        </div>
+        <button type="submit" class="btn-login-3d">
+          <span class="btn-login-text"><i class="fas fa-fingerprint"></i> Autenticar</span>
+          <span class="btn-login-glow"></span>
+          <span class="btn-scan-line"></span>
+        </button>
+      </form>
+
+      <div class="login-footer-hint">
+        <span class="status-dot-green"></span>
+        <span>Sistema Online &nbsp;·&nbsp; <i class="fas fa-shield-alt"></i> Acesso seguro</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 3D CANVAS BACKGROUND FOR LOGIN =====
+(function initLoginCanvas() {
+  const canvas = document.getElementById('loginCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], lines = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Create 3D-like perspective grid particles
+  for (let i = 0; i < 80; i++) {
+    particles.push({
+      x: Math.random() * 2000 - 1000,
+      y: Math.random() * 2000 - 1000,
+      z: Math.random() * 2000,
+      vz: 0.8 + Math.random() * 1.5,
+      r: 1 + Math.random() * 2,
+      color: `hsl(${190 + Math.random()*60},80%,60%)`
+    });
+  }
+
+  function project(x, y, z) {
+    const fl = 600;
+    const scale = fl / (fl + z);
+    return {
+      sx: x * scale + W / 2,
+      sy: y * scale + H / 2,
+      scale
+    };
+  }
+
+  function drawFrame() {
+    ctx.fillStyle = 'rgba(15,23,42,0.15)';
+    ctx.fillRect(0, 0, W, H);
+
+    // Draw 3D perspective grid lines
+    ctx.strokeStyle = 'rgba(59,130,246,0.08)';
+    ctx.lineWidth = 1;
+    const cx = W/2, cy = H/2;
+    for (let i = -8; i <= 8; i++) {
+      const t = i / 8;
+      const p1 = project(t*1200, -600, 0);
+      const p2 = project(t*200,  600, 1800);
+      ctx.beginPath(); ctx.moveTo(p1.sx, p1.sy); ctx.lineTo(p2.sx, p2.sy); ctx.stroke();
+    }
+    for (let j = 0; j < 8; j++) {
+      const z = j * 250;
+      const p1 = project(-1200, -600, z);
+      const p2 = project(1200, -600, z);
+      const p3 = project(1200, 600, z);
+      const p4 = project(-1200, 600, z);
+      ctx.beginPath(); ctx.moveTo(p1.sx, p1.sy); ctx.lineTo(p2.sx, p2.sy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(p3.sx, p3.sy); ctx.lineTo(p4.sx, p4.sy); ctx.stroke();
+    }
+
+    // Draw particles traveling through the tunnel
+    particles.forEach(p => {
+      p.z -= p.vz * 4;
+      if (p.z < 1) p.z = 2000;
+      const proj = project(p.x, p.y, p.z);
+      if (proj.sx < 0 || proj.sx > W || proj.sy < 0 || proj.sy > H) return;
+      ctx.beginPath();
+      ctx.arc(proj.sx, proj.sy, p.r * proj.scale, 0, Math.PI*2);
+      ctx.fillStyle = p.color.replace('60%', `${40+proj.scale*30}%`);
+      ctx.globalAlpha = proj.scale * 0.8;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  function animate() {
+    drawFrame();
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// Parallax on login card
+document.addEventListener('mousemove', function(e) {
+  const card = document.getElementById('loginCard3D');
+  if (!card) return;
+  const xPct = (e.clientX / window.innerWidth - 0.5) * 2;
+  const yPct = (e.clientY / window.innerHeight - 0.5) * 2;
+  card.style.transform = `perspective(1200px) rotateY(${xPct*6}deg) rotateX(${-yPct*4}deg) translateZ(0)`;
+});
+</script>
+
+<!-- ===== MAIN APP ===== -->
+<div id="appPage" style="display:none">
+
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <i class="fas fa-industry"></i>
+      <span>FactoryFlow</span>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-info" id="sidebarUserInfo"></div>
+
+      <div id="expedienteBox" class="expediente-box" style="display:none">
+        <div id="expedienteStatus" class="expediente-status">
+          <span class="dot off"></span> Expediente pausado
+        </div>
+        <button id="btnExpedienteSetor" onclick="toggleExpedienteSetor()" class="btn-expediente is-closed">
+          <i class="fas fa-play-circle"></i> Iniciar expediente
+        </button>
+      </div>
+
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="btn-theme-toggle">
+        <i class="fas fa-sun"></i> Tema Claro
+      </button>
+      <button id="btnTVMode" onclick="openTVMode()" class="btn-tv-mode" style="display:none">
+        <i class="fas fa-tv"></i> Modo TV
+      </button>
+      <button id="btnTVStats" onclick="openTVStats()" class="btn-tv-mode" style="display:none;background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.3);color:var(--purple)">
+        <i class="fas fa-cube"></i> TV Ultra 3D
+      </button>
+      <button onclick="handleLogout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content" id="mainContent">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <span id="liveDot" title="Atualização automática ativa" style="display:none">
+          <span class="live-dot"></span>
+          <small class="text-muted" style="font-size:.72rem">Ao vivo</small>
+        </span>
+        <button id="btnCriarLoteManual" onclick="abrirModalLoteManual()" class="btn btn-primary btn-lote-manual-topbar" title="Criar lote manual" style="display:none">
+          <i class="fas fa-plus-circle"></i> Lote Manual
+        </button>
+        <div class="alert-bell" onclick="toggleAlerts()">
+          <i class="fas fa-bell"></i>
+          <span class="badge" id="alertBadge" style="display:none">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert dropdown -->
+    <div id="alertDropdown" class="alert-dropdown" style="display:none">
+      <div class="alert-header"><i class="fas fa-exclamation-triangle"></i> Alertas de Atraso</div>
+      <div id="alertList"></div>
+    </div>
+
+    <!-- Pages -->
+    <div id="pageDashboard" class="page active"></div>
+    <div id="pageKanban"    class="page"></div>
+    <div id="pageLots"      class="page"></div>
+    <div id="pageOrders"    class="page"></div>
+    <div id="pageDeliveries"class="page"></div>
+    <div id="pageDrivers"   class="page"></div>
+    <div id="pageUsers"     class="page"></div>
+    <div id="pageReports"   class="page"></div>
+    <div id="pageFactory"   class="page"></div>
+    <div id="pageImport"    class="page"></div>
+    <div id="pagePedidosNovos" class="page"></div>
+    <div id="pageProgramacaoEntregas" class="page"></div>
+    <div id="pageMeuSetor" class="page"></div>
+    <div id="pageRelatorioTempos"  class="page"></div>
+    <div id="pageSimuladorEntrega" class="page"></div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
+
+  <!-- Modal: New Order (with multiple lots) -->
+  <div id="modalNewOrder" class="modal modal-large" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-plus-circle"></i> Novo Pedido</h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="formNewOrder" onsubmit="submitNewOrder(event)">
+        <!-- ORDER FIELDS -->
+        <h4 style="margin-bottom:.75rem;color:var(--blue)"><i class="fas fa-clipboard-list"></i> Dados do Pedido</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Número do Pedido *</label>
+            <input type="text" id="orderNumber" placeholder="Ex: PED-2024-001" required />
+          </div>
+          <div class="form-group">
+            <label>Nome do Cliente *</label>
+            <input type="text" id="orderClient" placeholder="Nome do cliente" required />
+          </div>
+          <div class="form-group">
+            <label>Cidade de Entrega</label>
+            <input type="text" id="orderCity" placeholder="Cidade" />
+          </div>
+          <div class="form-group">
+            <label>Endereço de Entrega</label>
+            <input type="text" id="orderAddress" placeholder="Rua, número, bairro" />
+          </div>
+          <div class="form-group">
+            <label>Data Prevista de Entrega *</label>
+            <input type="date" id="orderDeliveryDate" required />
+          </div>
+          <div class="form-group">
+            <label>Prioridade *</label>
+            <select id="orderPriority" required>
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgente</option>
+              <option value="sameday">Entrega no mesmo dia</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Observações do Pedido</label>
+          <textarea id="orderNotes" rows="2" placeholder="Observações..."></textarea>
+        </div>
+
+        <!-- LOTS FIELDS -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:1.25rem 0 .75rem">
+          <h4 style="color:var(--purple)"><i class="fas fa-boxes"></i> Lotes do Pedido</h4>
+          <button type="button" onclick="addLotRow()" class="btn btn-sm btn-outline">
+            <i class="fas fa-plus"></i> Adicionar Lote
+          </button>
+        </div>
+        <div id="lotRowsContainer">
+          <!-- Lot rows added dynamically -->
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Criar Pedido</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Lot Detail -->
+  <div id="modalLotDetail" class="modal modal-large" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modalLotDetailTitle"><i class="fas fa-box"></i> Detalhes do Lote</h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modalLotDetailBody"></div>
+  </div>
+
+  <!-- Modal: Order Detail -->
+  <div id="modalOrderDetail" class="modal modal-large" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modalOrderDetailTitle"><i class="fas fa-clipboard-list"></i> Detalhes do Pedido</h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modalOrderDetailBody"></div>
+  </div>
+
+  <!-- Modal: New User -->
+  <div id="modalNewUser" class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-plus"></i> <span id="modalUserTitle">Novo Usuário</span></h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="formNewUser" onsubmit="submitNewUser(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nome Completo *</label>
+            <input type="text" id="userName" required autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label>Login *</label>
+            <input type="text" id="userLogin" required autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label>Senha *</label>
+            <input type="password" id="userPassword" required autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label>Tipo de Acesso *</label>
+            <select id="userRole" onchange="updateSectorVisibility()" required>
+              <option value="sector">Usuário de Setor</option>
+              <option value="driver">Motorista</option>
+              <option value="viewer">Visualizador de Dashboards</option>
+              <option value="tv">TV / Painel</option>
+              <option value="pcp">PCP</option>
+              <option value="pcp_lib">PCP (Liberação)</option>
+              <option value="manager">Gerente</option>
+              <option value="diretoria">Diretoria</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+          <div class="form-group" id="sectorField">
+            <label>Setor *</label>
+            <select id="userSector">
+              <option value="coloracao_revisao">Coloração (Revisão)</option>
+              <option value="laboratorio_revisao">Laboratório (Revisão)</option>
+              <option value="pcp_liberacao">PCP (Liberação)</option>
+              <option value="pesagem">Pesagem</option>
+              <option value="producao">Produção</option>
+              <option value="coloracao">Coloração</option>
+              <option value="laboratorio">Laboratório</option>
+              <option value="envase">Envase</option>
+            </select>
+          </div>
+        </div>
+        <input type="hidden" id="editUserId" value="" />
+        <div class="modal-footer">
+          <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: New Driver Route -->
+  <div id="modalNewRoute" class="modal modal-large" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-route"></i> Nova Rota de Entrega</h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modalRouteBody"></div>
+  </div>
+
+  <!-- Modal: Send to sector -->
+  <div id="modalSendSector" class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-arrow-right"></i> Enviar para Próximo Setor</h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p id="modalSendSectorText"></p>
+      <div id="modalSendSectorOptions"></div>
+      <div class="form-group" style="margin-top:1rem">
+        <label>Observação (opcional)</label>
+        <textarea id="sendSectorNote" rows="2" placeholder="Adicione uma observação..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancelar</button>
+        <button type="button" id="btnConfirmSend" onclick="confirmSendToSector()" class="btn btn-primary">
+          <i class="fas fa-paper-plane"></i> Confirmar Envio
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Import External Orders -->
+  <div id="modalImport" class="modal modal-large" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-file-import"></i> Importar Pedidos Externos</h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modalImportBody">
+      <p style="margin-bottom:1rem;color:var(--text2)">
+        Cole os dados no formato JSON abaixo para importar pedidos do sistema externo.
+        Os lotes serão criados automaticamente com o fluxo correto por tipo de produto.
+      </p>
+      <div class="form-group">
+        <label>JSON do Pedido</label>
+        <textarea id="importJson" rows="12" placeholder='Exemplo:
+{
+  "orderNumber": "PED-001",
+  "client": "Construtora ABC",
+  "city": "Campinas",
+  "address": "Av. Brasil, 100",
+  "deliveryDate": "2024-12-20",
+  "priority": "urgent",
+  "notes": "Entregar pela manhã",
+  "lots": [
+    {
+      "lotNumber": "084501",
+      "productCode": "TIN-001",
+      "paint": "Branco Neve",
+      "productType": "tinta",
+      "qty": 200,
+      "unit": "Kg"
+    },
+    {
+      "lotNumber": "084502",
+      "productCode": "DIL-001",
+      "paint": "Diluente Padrão",
+      "productType": "diluente",
+      "qty": 50,
+      "unit": "L"
+    }
+  ]
+}'></textarea>
+      </div>
+      <div id="importResult" style="display:none"></div>
+      <div class="modal-footer">
+        <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancelar</button>
+        <button type="button" onclick="executeImport()" class="btn btn-primary">
+          <i class="fas fa-file-import"></i> Importar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REPROVAR LOTE -->
+  <div id="modalRejectLot" class="modal" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="modal-header">
+      <h3 id="modalRejectTitle"><i class="fas fa-ban" style="color:#ef4444"></i> Reprovar Lote</h3>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:.8rem 1rem;margin-bottom:1rem;">
+        <p id="modalRejectInfo" style="font-size:.88rem;color:#fca5a5;font-weight:600;"></p>
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-comment-alt"></i> Justificativa da Reprovação *</label>
+        <textarea id="rejectReason" rows="4" class="form-control"
+          placeholder="Descreva o motivo da reprovação (ex: produto fora de especificação, contaminação, erro de formulação...)"
+          style="resize:vertical;min-height:90px"
+          required></textarea>
+        <small style="color:var(--text3)">Mínimo 10 caracteres. Esta informação ficará registrada no histórico.</small>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="closeModal()" class="btn btn-secondary">
+        <i class="fas fa-times"></i> Cancelar
+      </button>
+      <button type="button" id="btnConfirmRejectStep2" onclick="openRejectConfirmation()" class="btn" 
+        style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.5);color:#fca5a5;">
+        <i class="fas fa-arrow-right"></i> Próximo
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAR REPROVAÇÃO -->
+  <div id="modalRejectConfirm" class="modal" onclick="event.stopPropagation()" style="max-width:460px">
+    <div class="modal-header">
+      <h3><i class="fas fa-exclamation-triangle" style="color:#ef4444"></i> Confirmar Reprovação</h3>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:1rem 0;">
+        <div style="font-size:3rem;margin-bottom:.8rem;">⛔</div>
+        <h4 style="color:#fca5a5;margin-bottom:.5rem" id="modalRejectConfirmLot"></h4>
+        <p style="font-size:.88rem;color:var(--text2);margin-bottom:1rem" id="modalRejectConfirmReason"></p>
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:.8rem;font-size:.82rem;color:#fca5a5;">
+          ⚠️ Esta ação é <strong>irreversível</strong>. O lote será marcado como reprovado e removido de todos os setores de produção.
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="backToRejectForm()" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </button>
+      <button type="button" id="btnFinalReject" onclick="confirmRejectLot()" class="btn"
+        style="background:rgba(239,68,68,.2);border:1px solid #ef4444;color:#fca5a5;font-weight:700;">
+        <i class="fas fa-ban"></i> Reprovar Definitivamente
+      </button>
+    </div>
+  </div>
+
+</div>
+
+
+
+<!-- MODAL: LOTE MANUAL – permite 1, 2 ou mais lotes para o mesmo cliente -->
+<div id="modalLoteManual" class="ff-manual-overlay" onclick="_loteManualOverlayClick(event)" style="display:none">
+  <div class="ff-manual-modal" onclick="event.stopPropagation()">
+    <div class="ff-manual-header">
+      <div>
+        <div class="ff-manual-kicker"><i class="fas fa-wand-magic-sparkles"></i> FactoryFlow</div>
+        <h3><i class="fas fa-plus-circle"></i> Criar Lote Manual</h3>
+        <p>Use para saídas/lotes lançados manualmente que não chegam pelo ERP. Você pode lançar vários lotes para o mesmo cliente de uma vez.</p>
+      </div>
+      <button class="ff-manual-close" onclick="fecharModalLoteManual()" title="Fechar"><i class="fas fa-times"></i></button>
+    </div>
+
+    <form id="formLoteManual" onsubmit="salvarLoteManual(event)">
+      <div class="ff-manual-section-title"><i class="fas fa-building"></i> Dados do cliente / saída</div>
+      <div class="ff-manual-grid">
+        <div class="form-group">
+          <label>Pedido / Saída</label>
+          <input type="text" id="lm_pedido" placeholder="Ex: SAIDA-001" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label>Prioridade</label>
+          <select id="lm_prioridade">
+            <option value="normal">Normal</option>
+            <option value="urgent">Urgente</option>
+            <option value="sameday">Entrega no mesmo dia</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Código do Cliente</label>
+          <input type="text" id="lm_cliente_codigo" placeholder="Digite o código e aperte Tab/Enter" autocomplete="off" onblur="buscarClienteLoteManual()" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarClienteLoteManual();}" />
+          <small id="lm_cliente_hint" class="ff-manual-hint">Se o código existir no MySQL, o nome/endereço serão preenchidos automaticamente.</small>
+        </div>
+        <div class="form-group">
+          <label>Cliente *</label>
+          <input type="text" id="lm_cliente_nome" placeholder="Nome do cliente" required autocomplete="off" />
+        </div>
+      </div>
+
+      <input type="hidden" id="lm_cliente_endereco" />
+      <input type="hidden" id="lm_cliente_bairro" />
+      <input type="hidden" id="lm_cliente_cidade" />
+      <input type="hidden" id="lm_cliente_cep" />
+      <input type="hidden" id="lm_cliente_estado" />
+
+      <div class="ff-manual-lotes-head">
+        <div class="ff-manual-section-title"><i class="fas fa-boxes"></i> Lotes da saída</div>
+        <button type="button" class="btn btn-secondary" onclick="adicionarLinhaLoteManual()"><i class="fas fa-plus"></i> Adicionar outro lote</button>
+      </div>
+
+      <div id="lm_lotes_container" class="ff-manual-lotes-container"></div>
+
+      <div id="lm_status" class="ff-manual-status" style="display:none"></div>
+
+      <div class="ff-manual-footer">
+        <button type="button" onclick="fecharModalLoteManual()" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</button>
+        <button type="submit" id="btnSalvarLoteManual" class="btn btn-primary"><i class="fas fa-save"></i> Salvar lote(s)</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.expediente-box{margin:.75rem 0;padding:.75rem;border-radius:16px;background:rgba(15,23,42,.58);border:1px solid rgba(148,163,184,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.expediente-status{display:flex;align-items:center;gap:.45rem;margin-bottom:.6rem;font-size:.72rem;font-weight:800;line-height:1.25;color:var(--text2,#94a3b8);text-transform:uppercase;letter-spacing:.035em}
+.expediente-status .dot{width:9px;height:9px;border-radius:50%;display:inline-block;box-shadow:0 0 0 3px rgba(148,163,184,.12)}
+.expediente-status .dot.on{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18),0 0 18px rgba(34,197,94,.55)}
+.expediente-status .dot.off{background:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.18),0 0 18px rgba(239,68,68,.45)}
+.btn-expediente{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;border:0;border-radius:13px;padding:.72rem .75rem;font-size:.82rem;font-weight:900;cursor:pointer;transition:.18s ease;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.btn-expediente.is-closed{color:#052e16;background:linear-gradient(135deg,#86efac,#22c55e)}
+.btn-expediente.is-open{color:#450a0a;background:linear-gradient(135deg,#fca5a5,#ef4444)}
+.btn-expediente:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.kanban-expediente-badge{display:inline-flex;align-items:center;border-radius:999px;padding:.16rem .42rem;margin-left:.25rem;font-size:.58rem;font-weight:900;letter-spacing:.035em;white-space:nowrap}
+.kanban-expediente-badge.open{background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.28)}
+.kanban-expediente-badge.closed{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+.shift-closed-chip{display:inline-flex;align-items:center;gap:.35rem;border-radius:10px;padding:.42rem .55rem;background:rgba(239,68,68,.11);border:1px solid rgba(239,68,68,.25);color:#fca5a5;font-size:.72rem;font-weight:800}
+.btn-lote-manual-topbar{display:inline-flex;align-items:center;gap:.45rem;white-space:nowrap;box-shadow:0 12px 30px rgba(59,130,246,.22)}
+.ff-manual-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.2rem;background:rgba(2,6,23,.74);backdrop-filter:blur(16px)}
+.ff-manual-modal{width:min(1100px,96vw);max-height:92vh;overflow:auto;border:1px solid rgba(59,130,246,.28);border-radius:24px;background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.96));box-shadow:0 26px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);padding:1.2rem}
+.ff-manual-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1rem 1rem 1.15rem;margin-bottom:1rem;border-radius:18px;background:radial-gradient(circle at top left,rgba(59,130,246,.24),transparent 38%),rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}
+.ff-manual-kicker{font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#38bdf8;margin-bottom:.35rem}
+.ff-manual-header h3{margin:0;color:#e5f3ff;font-size:1.35rem}.ff-manual-header p{margin:.35rem 0 0;color:var(--text2,#94a3b8);font-size:.9rem}
+.ff-manual-close{width:40px;height:40px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#cbd5e1;cursor:pointer}
+.ff-manual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.ff-manual-modal input,.ff-manual-modal select{width:100%}
+.ff-manual-section-title{margin:.25rem 0 .8rem;font-weight:800;color:#dbeafe;display:flex;align-items:center;gap:.45rem}.ff-manual-hint{display:block;margin-top:.35rem;color:#94a3b8;font-size:.76rem}
+.ff-manual-lotes-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:1.25rem 0 .75rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.08)}
+.ff-manual-lotes-container{display:flex;flex-direction:column;gap:.85rem}.ff-manual-lote-row{border:1px solid rgba(148,163,184,.18);border-radius:18px;background:rgba(15,23,42,.52);padding:1rem}.ff-manual-lote-top{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.8rem}.ff-manual-lote-title{font-weight:800;color:#bfdbfe}.ff-manual-remove{border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.1);color:#fca5a5;border-radius:12px;padding:.45rem .7rem;cursor:pointer}
+.ff-manual-lote-grid{display:grid;grid-template-columns:1fr 1.35fr .75fr .9fr 1fr;gap:.85rem}.ff-manual-status{margin-top:1rem;padding:.85rem 1rem;border-radius:14px;font-weight:700;font-size:.9rem;border:1px solid rgba(255,255,255,.1)}
+.ff-manual-status.ok{background:rgba(16,185,129,.12);color:#86efac;border-color:rgba(16,185,129,.32)}.ff-manual-status.err{background:rgba(239,68,68,.12);color:#fca5a5;border-color:rgba(239,68,68,.35)}.ff-manual-status.warn{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.35)}
+.ff-manual-footer{display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.08)}
+@media(max-width:980px){.ff-manual-lote-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:760px){.ff-manual-grid,.ff-manual-lote-grid{grid-template-columns:1fr}.btn-lote-manual-topbar{font-size:.82rem;padding:.55rem .7rem}.ff-manual-lotes-head{align-items:flex-start;flex-direction:column}}
+</style>
+<!-- MODAL: PEDIDOS NOVOS – Classificar / Liberar (fora do app para não ficar preso no layout) -->
+<div id="pnModalOverlay" class="pn-modal-overlay" onclick="_pnOverlayClick(event)" style="display:none">
+  <div class="pn-modal" onclick="event.stopPropagation()">
+    <div class="pn-modal-header">
+      <div class="pn-modal-title">
+        <i class="fas fa-clipboard-check"></i>
+        <span id="pnModalTitle">Classificar Pedido</span>
+      </div>
+      <button class="pn-modal-close" onclick="closePnModal()" title="Fechar">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="pn-modal-body" id="pnModalBody"></div>
+    <div class="pn-modal-footer" id="pnModalFooter">
+      <button class="btn btn-secondary" onclick="closePnModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js?v=9026"></script>
+<script src="js/pedidos-novos.js?v=7012"></script>
+<script src="js/programacao-entregas.js?v=1000"></script>
+<!-- SheetJS – exportação Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<!-- jsPDF + autoTable – exportação PDF -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="js/relatorio-tempos.js?v=110"></script>
+<script src="js/simulador-entrega.js?v=3"></script>
+<script src="js/auth.js?v=5010"></script>
+<script src="js/ui.js"></script>
+<script src="js/lots.js?v=21"></script>
+<script src="js/kanban.js?v=18"></script>
+<script src="js/meu-setor.js?v=4"></script>
+<script src="js/deliveries.js?v=4"></script>
+<script src="js/dashboard.js?v=10"></script>
+<script src="js/reports.js"></script>
+<script src="js/expediente-alerts.js?v=1"></script>
+<script src="js/app.js?v=10"></script>
+</body>
+</html>

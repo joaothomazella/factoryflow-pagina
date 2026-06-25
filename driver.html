@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FactoryFlow – Motorista</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0f172a; --bg2:#1e293b; --bg3:#263249; --border:#334155;
+      --text:#f1f5f9; --text2:#94a3b8; --blue:#3b82f6; --green:#22c55e;
+      --yellow:#f59e0b; --red:#ef4444; --orange:#f97316; --radius:12px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* LOGIN */
+    #driverLogin {
+      display:flex; align-items:center; justify-content:center;
+      min-height:100vh;
+      background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);
+      padding:1.5rem;
+    }
+    .login-card {
+      background:var(--bg2); border:1px solid var(--border);
+      border-radius:20px; padding:2rem; width:100%; max-width:380px;
+      box-shadow:0 4px 24px rgba(0,0,0,.5);
+    }
+    .login-logo { text-align:center; margin-bottom:1.5rem; }
+    .login-logo i { font-size:3rem; color:var(--orange); }
+    .login-logo h1 { font-size:1.75rem; font-weight:800; margin-top:.5rem; }
+    .login-logo p  { color:var(--text2); margin-top:.25rem; }
+    .form-group { margin-bottom:1rem; }
+    .form-group label { display:block; font-size:.8rem; font-weight:600; color:var(--text2); margin-bottom:.375rem; text-transform:uppercase; }
+    .form-group input {
+      width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text);
+      padding:.875rem 1rem; border-radius:var(--radius); font-size:1rem;
+    }
+    .form-group input:focus { outline:none; border-color:var(--orange); }
+    .btn-login {
+      width:100%; background:var(--orange); color:white; border:none;
+      padding:1rem; border-radius:var(--radius); font-size:1rem; font-weight:700;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.5rem;
+    }
+    .btn-login:disabled { opacity:.6; }
+    .login-error { background:rgba(239,68,68,.1); border:1px solid var(--red); color:var(--red); padding:.75rem; border-radius:8px; margin-bottom:1rem; font-size:.875rem; }
+
+    /* APP */
+    #driverApp { display:none; flex-direction:column; min-height:100vh; }
+    .driver-header {
+      background:var(--bg2); border-bottom:1px solid var(--border);
+      padding:1rem 1.25rem;
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:100;
+    }
+    .driver-header-name { font-size:1.1rem; font-weight:700; }
+    .driver-header-greeting { font-size:.8rem; color:var(--text2); }
+    .header-right { display:flex; align-items:center; gap:.75rem; }
+    .live-dot-small {
+      width:8px; height:8px; background:var(--green); border-radius:50%;
+      animation:pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .btn-logout-driver {
+      background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3);
+      color:var(--red); padding:.5rem .75rem; border-radius:8px;
+      font-size:.8rem; cursor:pointer; font-weight:600;
+    }
+
+    .driver-content { padding:1.25rem; max-width:480px; margin:0 auto; flex:1; }
+
+    /* Route selector */
+    .route-selector { margin-bottom:1.25rem; }
+    .route-selector label { font-size:.8rem; font-weight:600; color:var(--text2); text-transform:uppercase; margin-bottom:.5rem; display:block; }
+    .route-selector select {
+      width:100%; background:var(--bg2); border:1px solid var(--border); color:var(--text);
+      padding:.875rem 1rem; border-radius:var(--radius); font-size:1rem;
+    }
+
+    /* Status bar */
+    .route-status-bar {
+      background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius);
+      padding:1rem; margin-bottom:1.5rem; display:flex; justify-content:space-around;
+    }
+    .route-stat { text-align:center; }
+    .route-stat-num { font-size:1.75rem; font-weight:800; }
+    .route-stat-label { font-size:.72rem; color:var(--text2); text-transform:uppercase; margin-top:.2rem; }
+
+    /* Stops */
+    .stops-list { display:flex; flex-direction:column; gap:.875rem; }
+    .stop-card {
+      background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+      transition:border-color .2s;
+    }
+    .stop-card.stop-next { border-color:var(--orange); }
+    .stop-card.stop-done { opacity:.6; }
+    .stop-header { padding:.875rem 1rem; display:flex; align-items:center; gap:.875rem; }
+    .stop-sequence {
+      width:40px; height:40px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.1rem; font-weight:800; flex-shrink:0;
+      background:var(--blue); color:white;
+    }
+    .stop-card.stop-next .stop-sequence { background:var(--orange); }
+    .stop-card.stop-done .stop-sequence { background:var(--green); }
+    .stop-header-info { flex:1; }
+    .stop-client { font-size:1rem; font-weight:700; }
+    .stop-card.stop-next .stop-client { color:var(--orange); }
+    .stop-city { font-size:.85rem; color:var(--text2); margin-top:.15rem; }
+    .next-badge { background:var(--orange); color:white; font-size:.7rem; font-weight:700; padding:.2rem .6rem; border-radius:10px; }
+
+    .stop-body { padding:0 1rem 1rem; }
+    .stop-details { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-bottom:.875rem; }
+    .stop-detail { background:var(--bg3); border-radius:8px; padding:.625rem .75rem; }
+    .stop-detail-label { font-size:.7rem; color:var(--text2); text-transform:uppercase; margin-bottom:.2rem; }
+    .stop-detail-value { font-size:.9rem; font-weight:600; }
+    .stop-address { display:flex; align-items:flex-start; gap:.5rem; background:var(--bg3); border-radius:8px; padding:.625rem .75rem; font-size:.875rem; margin-bottom:.875rem; }
+    .stop-address i { color:var(--red); margin-top:.1rem; flex-shrink:0; }
+    .stop-actions { display:flex; gap:.625rem; }
+    .btn-maps {
+      flex:1; background:rgba(59,130,246,.15); border:1px solid rgba(59,130,246,.4);
+      color:var(--blue); padding:.75rem; border-radius:var(--radius);
+      font-size:.875rem; font-weight:600; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:.5rem; text-decoration:none;
+    }
+    .btn-confirm {
+      flex:2; background:var(--green); border:none; color:white;
+      padding:.75rem; border-radius:var(--radius); font-size:.875rem; font-weight:700;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.5rem;
+    }
+    .btn-confirm:disabled { opacity:.6; }
+    .stop-done-badge {
+      background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.3); color:var(--green);
+      padding:.75rem; border-radius:var(--radius); text-align:center;
+      font-size:.875rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:.5rem;
+    }
+    .no-routes { text-align:center; padding:3rem; color:var(--text2); }
+    .no-routes i { font-size:3.5rem; opacity:.3; margin-bottom:1rem; display:block; }
+    .route-complete { text-align:center; padding:2rem 1rem; }
+    .route-complete i { font-size:4rem; color:var(--green); margin-bottom:1rem; display:block; }
+    .route-complete h2 { font-size:1.5rem; font-weight:800; margin-bottom:.5rem; }
+    .route-complete p { color:var(--text2); }
+
+    /* Loading */
+    #loadingOverlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,.7);
+      z-index:9999; align-items:center; justify-content:center;
+    }
+    .loading-box { text-align:center; }
+    .loading-spinner {
+      width:48px; height:48px; border:4px solid rgba(255,255,255,.2);
+      border-top-color:var(--orange); border-radius:50%;
+      animation:spin .8s linear infinite; margin:0 auto 1rem;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loading-text { color:white; font-weight:600; }
+  </style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Carregando...</div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="driverLogin">
+  <div class="login-card">
+    <div class="login-logo">
+      <i class="fas fa-truck"></i>
+      <h1>FactoryFlow</h1>
+      <p>Painel do Motorista</p>
+    </div>
+    <div id="driverLoginError" class="login-error" style="display:none">
+      <i class="fas fa-exclamation-triangle"></i> Usuário ou senha inválidos
+    </div>
+    <form onsubmit="loginDriver(event)">
+      <div class="form-group">
+        <label><i class="fas fa-user"></i> Usuário</label>
+        <input type="text" id="driverLoginUser" placeholder="Seu login" required autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-lock"></i> Senha</label>
+        <input type="password" id="driverLoginPass" placeholder="Sua senha" required autocomplete="current-password" />
+      </div>
+      <button type="submit" id="btnLoginDriver" class="btn-login">
+        <i class="fas fa-sign-in-alt"></i> Entrar
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="driverApp">
+  <div class="driver-header">
+    <div>
+      <div class="driver-header-greeting">Olá,</div>
+      <div class="driver-header-name" id="driverName">Motorista</div>
+    </div>
+    <div class="header-right">
+      <div class="live-dot-small" title="Atualização automática"></div>
+      <button onclick="logoutDriver()" class="btn-logout-driver"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    </div>
+  </div>
+  <div class="driver-content">
+    <div id="driverContent"></div>
+  </div>
+</div>
+
+<script>
+// ===================================================
+// DRIVER.JS – Painel do Motorista (via API compartilhada)
+// ===================================================
+
+let driverUser = null;
+let _driverPollInterval = null;
+
+const DRIVER_AUTH_API = 'https://paintlab-backend-production.up.railway.app';
+const DRIVER_DATA_API = 'https://app-producao-backend-production.up.railway.app';
+
+// Token fixo do backend FactoryFlow/Produção.
+// Esse backend usa FACTORYFLOW_API_TOKEN, não o JWT do PaintLab.
+const FACTORYFLOW_API_TOKEN = 'INDUSCOLORSECURE9xA82kLmP2026';
+
+function getDriverHeaders(extra = {}) {
+  const jwt = sessionStorage.getItem('ff_token') || localStorage.getItem('ff_token') || '';
+  return {
+    ...extra,
+    'Authorization': `Bearer ${jwt || FACTORYFLOW_API_TOKEN}`,
+    'X-API-Key': FACTORYFLOW_API_TOKEN
+  };
+}
+
+// ---- API helpers ----
+async function driverApiGet(table, params = {}) {
+  const qs = new URLSearchParams({ limit: 500, ...params }).toString();
+
+  const res = await fetch(`${DRIVER_DATA_API}/api/tables/${table}?${qs}`, {
+    headers: getDriverHeaders()
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`GET ${table} falhou (${res.status}) ${txt}`);
+  }
+
+  const json = await res.json();
+  return json.data || [];
+}
+
+async function driverApiPut(table, id, data) {
+  const res = await fetch(`${DRIVER_DATA_API}/api/tables/${table}/${id}`, {
+    method: 'PUT',
+    headers: getDriverHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(data)
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`PUT ${table}/${id} falhou (${res.status}) ${txt}`);
+  }
+
+  return await res.json();
+}
+
+
+// ---- Produção/MySQL bridge helpers ----
+// Os lotes manuais não ficam em ff_lots; eles vêm da tabela producao_lotes.
+// Por isso, quando o motorista confirma entrega, precisamos atualizar também /api/producao/:id.
+async function driverProductionGet(params = {}) {
+  const qs = new URLSearchParams({ limit: 2000, ...params }).toString();
+  const res = await fetch(`${DRIVER_DATA_API}/api/producao?${qs}`, {
+    headers: getDriverHeaders()
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`GET producao falhou (${res.status}) ${txt}`);
+  }
+
+  const json = await res.json().catch(() => ({}));
+  return json.data || [];
+}
+
+async function driverProductionPatch(id, data) {
+  const res = await fetch(`${DRIVER_DATA_API}/api/producao/${id}`, {
+    method: 'PATCH',
+    headers: getDriverHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(data)
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`PATCH producao/${id} falhou (${res.status}) ${txt}`);
+  }
+
+  return await res.json().catch(() => ({}));
+}
+
+function deserializeProductionLot(row) {
+  const setor = String(row.setor_atual || '').trim().toLowerCase() || 'pronto';
+  return {
+    id: 'bridge_' + row.id,
+    _source: 'mysql',
+    _bridgeId: row.id,
+    number: String(row.op || row.numero_pedido || ''),
+    op: String(row.op || ''),
+    orderId: 'bridge_order_' + String(row.numero_pedido || ''),
+    orderNumber: String(row.numero_pedido || ''),
+    pedido: String(row.numero_pedido || ''),
+    pits_numero: String(row.numero_pedido || ''),
+    client: String(row.cliente_nome || ''),
+    cliente: String(row.cliente_nome || ''),
+    city: String(row.cliente_cidade || ''),
+    address: [row.cliente_endereco, row.cliente_bairro].filter(Boolean).join(', '),
+    productCode: String(row.produto_codigo || ''),
+    productType: String(row.tipo_lote || 'tinta').toLowerCase(),
+    paint: String(row.produto_nome || row.produto_codigo || ''),
+    qty: Number(row.quantidade) || 0,
+    unit: 'Kg',
+    priority: String(row.prioridade || 'normal').toLowerCase(),
+    sector: setor,
+    lotStatus: String(row.ff_lotStatus || '').trim() || (setor === 'entregue' ? 'finalizado' : 'idle'),
+    deliveredAt: row.deliveredAt || null,
+    history: []
+  };
+}
+
+function showLoading(v) {
+  document.getElementById('loadingOverlay').style.display = v ? 'flex' : 'none';
+}
+
+function deserializeRoute(row) {
+  let lots = [];
+  try { lots = typeof row.lots === 'string' ? JSON.parse(row.lots) : (row.lots || []); } catch(e) {}
+  return { ...row, lots, createdAt: Number(row.createdAt)||0, departureTime: row.departureTime ? Number(row.departureTime) : null };
+}
+
+function deserializeLot(row) {
+  let history = [];
+  try { history = typeof row.history === 'string' ? JSON.parse(row.history) : (row.history || []); } catch(e) {}
+  return { ...row, history, skipColor: row.skipColor===true||row.skipColor==='true', qty: Number(row.qty)||0 };
+}
+
+// ---- LOGIN ----
+async function loginDriver(e) {
+  e.preventDefault();
+
+  const login = document.getElementById('driverLoginUser').value.trim().toLowerCase();
+  const pass  = document.getElementById('driverLoginPass').value;
+  const btn   = document.getElementById('btnLoginDriver');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+  showLoading(true);
+
+  try {
+    const res = await fetch(`${DRIVER_AUTH_API}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario: login, senha: pass })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.ok || !data.user) {
+      document.getElementById('driverLoginError').innerHTML =
+        '<i class="fas fa-exclamation-triangle"></i> Usuário ou senha inválidos';
+      document.getElementById('driverLoginError').style.display = 'block';
+      return;
+    }
+
+    const user = data.user;
+    const acesso = String(user.acesso_factoryflow || user.role || '').toLowerCase();
+
+    if (acesso !== 'motorista' && acesso !== 'driver') {
+      document.getElementById('driverLoginError').innerHTML =
+        '<i class="fas fa-exclamation-triangle"></i> Este usuário não tem acesso ao painel do motorista.';
+      document.getElementById('driverLoginError').style.display = 'block';
+      return;
+    }
+
+    sessionStorage.setItem('ff_token', data.token || '');
+    sessionStorage.setItem('ff_user', JSON.stringify(user));
+    sessionStorage.setItem('ff_driver', JSON.stringify(user));
+
+    document.getElementById('driverLoginError').style.display = 'none';
+
+    driverUser = {
+      id: user.id,
+      name: user.nome || user.name || user.usuario || 'Motorista',
+      login: user.usuario || login,
+      role: 'driver'
+    };
+
+    showDriverApp();
+
+  } catch(err) {
+    alert('Erro de conexão: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+    showLoading(false);
+  }
+}
+
+function logoutDriver() {
+  if (_driverPollInterval) clearInterval(_driverPollInterval);
+
+  try {
+    sessionStorage.removeItem('ff_user');
+    sessionStorage.removeItem('ff_token');
+    sessionStorage.removeItem('ff_driver');
+  } catch (_) {}
+
+  driverUser = null;
+  document.getElementById('driverApp').style.display = 'none';
+  document.getElementById('driverLogin').style.display = 'flex';
+}
+
+async function showDriverApp() {
+  document.getElementById('driverLogin').style.display = 'none';
+  document.getElementById('driverApp').style.display = 'flex';
+  document.getElementById('driverName').textContent = driverUser.name;
+  await renderDriverContent();
+  startDriverPolling();
+}
+
+// ---- POLLING em tempo real ----
+function startDriverPolling() {
+  if (_driverPollInterval) clearInterval(_driverPollInterval);
+  _driverPollInterval = setInterval(async () => {
+    try {
+      await renderDriverContent(true); // silent = true
+    } catch(e) {}
+  }, 8000);
+}
+
+// ---- RENDER ----
+async function renderDriverContent(silent = false) {
+  if (!silent) showLoading(true);
+  try {
+    const [routesRaw] = await Promise.all([
+      driverApiGet('ff_routes')
+    ]);
+    const routes = routesRaw
+  .map(deserializeRoute)
+  .filter(r => {
+    const sameId =
+      String(r.driverId || '') === String(driverUser.id || '');
+
+    const sameName =
+      String(r.driverName || '').trim().toLowerCase() ===
+      String(driverUser.name || '').trim().toLowerCase();
+
+    return (sameId || sameName) && r.status !== 'completed';
+  });
+
+    const content = document.getElementById('driverContent');
+
+    if (routes.length === 0) {
+      const completedCount = routesRaw
+        .map(deserializeRoute)
+        .filter(r => {
+          const sameId =
+            String(r.driverId || '') === String(driverUser.id || '');
+
+          const sameName =
+            String(r.driverName || '').trim().toLowerCase() ===
+            String(driverUser.name || '').trim().toLowerCase();
+
+          return (sameId || sameName) && r.status === 'completed';
+        }).length;
+      content.innerHTML = `
+        <div class="no-routes">
+          <i class="fas fa-truck"></i>
+          <h3>Nenhuma entrega para hoje</h3>
+          <p style="margin-top:.5rem">Você não possui rotas ativas no momento.</p>
+          ${completedCount > 0 ? `<p style="margin-top:1rem;color:var(--green)"><i class="fas fa-check-circle"></i> ${completedCount} rota(s) concluída(s)</p>` : ''}
+        </div>`;
+      return;
+    }
+
+    // Guarda rotas em memória para usar em confirmDelivery
+    window._driverRoutes = routes;
+
+    let html = '';
+    if (routes.length > 1) {
+      html += `<div class="route-selector">
+        <label><i class="fas fa-route"></i> Selecionar Rota</label>
+        <select id="routeSelect" onchange="renderRouteDetail(this.value)">
+          ${routes.map(r=>`<option value="${r.id}">Rota de ${formatDT(r.createdAt)} – ${r.lots.length} pedido(s)</option>`).join('')}
+        </select>
+      </div>`;
+    }
+    html += `<div id="routeDetail"></div>`;
+    content.innerHTML = html;
+    renderRouteDetail(routes[0].id);
+
+  } catch(err) {
+    if (!silent) alert('Erro ao carregar entregas: ' + err.message);
+  } finally {
+    if (!silent) showLoading(false);
+  }
+}
+
+function htmlSafe(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function getStopKey(stop) {
+  return String(stop.orderKey || stop.orderNumber || stop.lotId || stop.number || '').trim();
+}
+
+function getStopLotIds(stop) {
+  if (Array.isArray(stop.lotIds)) return stop.lotIds.map(String);
+  if (typeof stop.lotIds === 'string' && stop.lotIds.trim()) {
+    try {
+      const parsed = JSON.parse(stop.lotIds);
+      if (Array.isArray(parsed)) return parsed.map(String);
+    } catch (_) {
+      return stop.lotIds.split(',').map(x => x.trim()).filter(Boolean).map(String);
+    }
+  }
+  if (stop.lotId) return [String(stop.lotId)];
+  return [];
+}
+
+function sameTextDriver(a, b) {
+  return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+}
+
+function lotBelongsToStop(lot, stop) {
+  const lotIds = getStopLotIds(stop);
+  if (lotIds.length && lotIds.includes(String(lot.id))) return true;
+
+  const orderKeys = [stop.orderKey, stop.orderNumber, stop.number]
+    .map(v => String(v || '').trim())
+    .filter(Boolean);
+
+  const lotOrderKeys = [lot.orderNumber, lot.pedido, lot.pits_numero, lot.orderId, lot.pedidoNumero]
+    .map(v => String(v || '').trim())
+    .filter(Boolean);
+
+  if (orderKeys.length && lotOrderKeys.some(k => orderKeys.includes(k))) return true;
+
+  // Fallback para rotas antigas: mesmo cliente em entrega/pronto, quando não veio lotIds.
+  if (!lotIds.length && sameTextDriver(lot.client || lot.cliente, stop.client) && ['entrega','pronto'].includes(String(lot.sector || '').toLowerCase())) {
+    return true;
+  }
+
+  return false;
+}
+
+function getStopLotNumbers(stop) {
+  if (Array.isArray(stop.lotNumbers) && stop.lotNumbers.length) return stop.lotNumbers.map(String);
+  if (stop.number) return [String(stop.number)];
+  return [];
+}
+
+function renderRouteDetail(routeId) {
+  const routes = window._driverRoutes || [];
+  const route  = routes.find(r => r.id === routeId);
+  if (!route) return;
+
+  const div     = document.getElementById('routeDetail');
+  const stops   = Array.isArray(route.lots) ? route.lots : [];
+  const total   = stops.length;
+  const isDeliveredStop = (s) => String(s.status || '').toLowerCase() === 'delivered' || !!s.deliveredAt;
+  const done    = stops.filter(isDeliveredStop).length;
+  const pending = stops.filter(s => !isDeliveredStop(s));
+  const nextKey = pending.length ? getStopKey(pending[0]) : '';
+
+  if (done === total && total > 0) {
+    div.innerHTML = `
+      <div class="route-complete">
+        <i class="fas fa-check-circle"></i>
+        <h2>Rota Concluída!</h2>
+        <p>Todos os ${total} pedido(s) foram entregues com sucesso.</p>
+      </div>`;
+    return;
+  }
+
+  div.innerHTML = `
+    <div class="route-status-bar">
+      <div class="route-stat"><div class="route-stat-num" style="color:var(--blue)">${total}</div><div class="route-stat-label">Pedidos</div></div>
+      <div class="route-stat"><div class="route-stat-num" style="color:var(--green)">${done}</div><div class="route-stat-label">Entregues</div></div>
+      <div class="route-stat"><div class="route-stat-num" style="color:var(--orange)">${total-done}</div><div class="route-stat-label">Pendentes</div></div>
+    </div>
+    <div class="stops-list">
+      ${stops.map(stop => buildStopCard(stop, nextKey, route.id)).join('')}
+    </div>`;
+}
+
+function buildStopCard(stop, nextKey, routeId) {
+  const stopKey = getStopKey(stop);
+  const isStopDelivered = String(stop.status || '').toLowerCase() === 'delivered' || !!stop.deliveredAt;
+  const isNext = !isStopDelivered && stopKey === nextKey;
+  const isDone = isStopDelivered;
+  const pColors = { normal:'var(--green)', urgent:'var(--yellow)', sameday:'var(--red)' };
+  const pLabels = { normal:'Normal', urgent:'Urgente', sameday:'Mesmo Dia' };
+  const lotNumbers = getStopLotNumbers(stop);
+  const lotIds = getStopLotIds(stop);
+  const orderNumber = stop.orderNumber || stop.orderKey || stop.number || stopKey;
+  const mapsUrl = stop.address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((stop.address||'')+', '+(stop.city||''))}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.city||'')}`;
+
+  return `
+    <div class="stop-card ${isNext?'stop-next':isDone?'stop-done':''}">
+      <div class="stop-header">
+        <div class="stop-sequence">
+          ${isDone ? '<i class="fas fa-check"></i>' : stop.sequence}
+        </div>
+        <div class="stop-header-info">
+          <div class="stop-client">Pedido #${htmlSafe(orderNumber)} – ${htmlSafe(stop.client)}</div>
+          <div class="stop-city"><i class="fas fa-map-pin" style="color:var(--red)"></i> ${htmlSafe(stop.city||'–')}</div>
+        </div>
+        ${isNext ? '<span class="next-badge">PRÓXIMO</span>' : ''}
+        ${isDone ? '<i class="fas fa-check-circle" style="color:var(--green);font-size:1.5rem"></i>' : ''}
+      </div>
+      <div class="stop-body">
+        <div class="stop-details">
+          <div class="stop-detail">
+            <div class="stop-detail-label">Produtos</div>
+            <div class="stop-detail-value">${htmlSafe(stop.paint || 'Pedido completo')}</div>
+          </div>
+          <div class="stop-detail">
+            <div class="stop-detail-label">Quantidade total</div>
+            <div class="stop-detail-value">${htmlSafe(String(stop.qty || 0))} ${htmlSafe(stop.unit || 'Kg')}</div>
+          </div>
+          <div class="stop-detail">
+            <div class="stop-detail-label">Pedido</div>
+            <div class="stop-detail-value">#${htmlSafe(orderNumber)}</div>
+          </div>
+          <div class="stop-detail">
+            <div class="stop-detail-label">Lotes do pedido</div>
+            <div class="stop-detail-value">${htmlSafe(lotNumbers.join(', ') || `${lotIds.length} lote(s)`)}</div>
+          </div>
+          <div class="stop-detail">
+            <div class="stop-detail-label">Prioridade</div>
+            <div class="stop-detail-value" style="color:${pColors[stop.priority]||'inherit'}">${pLabels[stop.priority]||'–'}</div>
+          </div>
+        </div>
+        <div class="stop-address">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>${htmlSafe(stop.address || stop.city || 'Endereço não informado')}</span>
+        </div>
+        ${isDone
+          ? `<div class="stop-done-badge"><i class="fas fa-check-circle"></i> Pedido entregue em ${formatDT(stop.deliveredAt)}</div>`
+          : `<div class="stop-actions">
+              <a href="${mapsUrl}" target="_blank" class="btn-maps"><i class="fas fa-map"></i> Abrir no Maps</a>
+              <button id="btnConfirm_${htmlSafe(stopKey)}" onclick="confirmDeliveryOrder('${htmlSafe(routeId)}','${htmlSafe(stopKey)}')" class="btn-confirm">
+                <i class="fas fa-check"></i> Confirmar Pedido Entregue
+              </button>
+            </div>`
+        }
+      </div>
+    </div>`;
+}
+
+function driverGetBridgeIdsFromStop(stop) {
+  const ids = getStopLotIds(stop);
+  return ids
+    .map(id => String(id || '').replace(/^bridge_/, '').trim())
+    .filter(id => /^\d+$/.test(id));
+}
+
+async function confirmDeliveryOrder(routeId, stopKey) {
+  const btn = document.getElementById(`btnConfirm_${stopKey}`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirmando...';
+  }
+
+  const routes = window._driverRoutes || [];
+  let route = routes.find(r => String(r.id) === String(routeId));
+
+  try {
+    // Usa primeiro a rota que já está carregada na tela.
+    // Isso evita buscar ff_routes antes de mudar o visual para o motorista.
+    if (!route) {
+      const routesRaw = await driverApiGet('ff_routes');
+      route = routesRaw.map(deserializeRoute).find(r => String(r.id) === String(routeId));
+    }
+
+    if (!route) throw new Error('Rota não encontrada');
+
+    const stop = (route.lots || []).find(s => String(getStopKey(s)) === String(stopKey));
+    if (!stop) throw new Error('Pedido/parada não encontrado na rota');
+
+    const now = Date.now();
+
+    // 1) Atualização visual imediata.
+    // O motorista não precisa esperar todos os PATCHs dos lotes para ver o pedido concluído.
+    stop.status = 'delivered';
+    stop.deliveredAt = now;
+    stop.deliveredBy = driverUser.name;
+    stop.deliveredById = driverUser.id;
+
+    const allStopsDelivered = (route.lots || []).length > 0 && (route.lots || []).every(s =>
+      String(s.status || '').toLowerCase() === 'delivered' || !!s.deliveredAt
+    );
+
+    if (allStopsDelivered) {
+      route.status = 'completed';
+      route.completedAt = route.completedAt || now;
+    } else {
+      route.status = route.status || 'in_progress';
+    }
+
+    // Atualiza a memória local e redesenha na hora.
+    window._driverRoutes = routes.map(r => String(r.id) === String(route.id) ? route : r);
+    renderRouteDetail(route.id);
+
+    // 2) Persistência em segundo plano.
+    // Primeiro salva ff_routes, que é o que tira o pedido/rota da tela do motorista e atualiza a aba Entregas.
+    const persistPromise = (async () => {
+      await driverApiPut('ff_routes', route.id, {
+        ...route,
+        lots: JSON.stringify(route.lots || []),
+        status: route.status,
+        completedAt: route.completedAt || null,
+        createdAt: Number(route.createdAt) || Date.now(),
+        departureTime: route.departureTime ? Number(route.departureTime) : null
+      });
+
+      // 3) Atualiza producao_lotes.
+      // Caminho rápido: usa stop.lotIds, sem buscar /api/producao inteiro.
+      let bridgeIds = driverGetBridgeIdsFromStop(stop);
+
+      // Fallback para rotas antigas sem lotIds: só aí busca a produção.
+      if (!bridgeIds.length) {
+        const productionRows = await driverProductionGet().catch(() => []);
+        const allLots = productionRows.map(deserializeProductionLot);
+        const lotsToUpdate = allLots.filter(l => lotBelongsToStop(l, stop));
+
+        stop.lotIds = lotsToUpdate.map(l => String(l.id));
+        stop.lotNumbers = lotsToUpdate.map(l => String(l.number || l.op || '')).filter(Boolean);
+        bridgeIds = lotsToUpdate
+          .map(l => String(l._bridgeId || '').trim())
+          .filter(id => /^\d+$/.test(id));
+      }
+
+      const patchPayload = {
+        setor_atual: 'entregue',
+        status: 'finalizado',
+        ff_lotStatus: 'finalizado',
+        ff_sectorEnteredAt: now,
+        ff_expedientePausedStatus: '',
+        ff_workSessions: JSON.stringify([])
+      };
+
+      const results = await Promise.allSettled(
+        bridgeIds.map(id => driverProductionPatch(id, patchPayload))
+      );
+
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length) {
+        console.warn('Alguns lotes não foram finalizados na produção:', failed);
+      }
+    })();
+
+    // Não trava a tela esperando todos os lotes. Quando terminar, sincroniza silenciosamente.
+    persistPromise
+      .then(() => {
+        setTimeout(() => renderDriverContent(true), 700);
+      })
+      .catch(err => {
+        console.error('Erro ao persistir confirmação de entrega:', err);
+        alert('A entrega apareceu como concluída na tela, mas houve erro ao salvar no servidor: ' + err.message);
+        renderDriverContent(true).catch(() => {});
+      });
+
+  } catch(err) {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check"></i> Confirmar Pedido Entregue';
+    }
+    alert('Erro ao confirmar entrega do pedido: ' + err.message);
+  }
+}
+
+// Compatibilidade: se existir rota antiga por lote, ainda permite confirmar.
+async function confirmDelivery(lotId, routeId) {
+  return confirmDeliveryOrder(routeId, lotId);
+}
+
+// ---- UTILS ----
+function formatDT(ts) {
+  if (!ts) return '–';
+  const dt = new Date(Number(ts));
+  return dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ---- STARTUP: reaproveita sessão criada no login principal ----
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const raw = sessionStorage.getItem('ff_driver') || sessionStorage.getItem('ff_user');
+    const token = sessionStorage.getItem('ff_token');
+
+    if (raw && token) {
+      const user = JSON.parse(raw);
+      const acesso = String(user.acesso_factoryflow || user.role || '').toLowerCase();
+
+      if (acesso === 'motorista' || acesso === 'driver') {
+        driverUser = {
+          id: user.id,
+          name: user.nome || user.name || user.usuario || 'Motorista',
+          login: user.usuario || '',
+          role: 'driver'
+        };
+        showDriverApp();
+        return;
+      }
+    }
+  } catch (_) {}
+
+  document.getElementById('driverLogin').style.display = 'flex';
+  document.getElementById('driverApp').style.display = 'none';
+});
+</script>
+</body>
+</html>
