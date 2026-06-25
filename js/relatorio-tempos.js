@@ -1556,7 +1556,9 @@ function _rtNormalizeRow(r) {
     efficiency,
     _tsValid:     tsOk,
     // Mantém o status do lote para badge, mas preserva status da linha para saída.
-    lotStatus:    r.status_atual_lote || r.lotStatus || r.status || 'idle',
+    // Prioridade: ff_lot_status (FactoryFlow) > lotStatus (já vem do ff_lotStatus no
+    // fallback local) > status_atual_lote/status (coluna legada, usada só como fallback).
+    lotStatus:    r.ff_lot_status || r.lotStatus || r.status_atual_lote || r.status || 'idle',
     rowStatus:    r.status || '',
     setor_atual:  r.setor_atual_lote || r.setor_atual || r.setor || '',
     observations: _rtUniqueTextJoin([

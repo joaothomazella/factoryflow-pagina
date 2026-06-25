@@ -2273,7 +2273,9 @@ function deserializeBridgeLot(row) {
   };
   const fallbackLotStatus = statusMap[String(row.status || 'aguardando').toLowerCase()] || 'idle';
   const lotStatus = String(row.ff_lotStatus || '').trim() || fallbackLotStatus;
-  const rejected  = String(row.status).toLowerCase() === 'rejeitado';
+  // Prioriza ff_lotStatus (fonte de verdade operacional); status (legado) é fallback.
+  const rejected  = String(row.ff_lotStatus || '').toLowerCase() === 'rejected'
+    || String(row.status || '').toLowerCase() === 'rejeitado';
 
   const createdAt = row.data_criacao ? new Date(row.data_criacao).getTime() : Date.now();
   const updatedAt = row.updated_at ? new Date(row.updated_at).getTime() : createdAt;
