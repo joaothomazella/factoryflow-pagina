@@ -221,16 +221,13 @@ let _driverPollInterval = null;
 const DRIVER_AUTH_API = 'https://paintlab-backend-production.up.railway.app';
 const DRIVER_DATA_API = 'https://app-producao-backend-production.up.railway.app';
 
-// Token fixo do backend FactoryFlow/Produção.
-// Esse backend usa FACTORYFLOW_API_TOKEN, não o JWT do PaintLab.
-const FACTORYFLOW_API_TOKEN = 'INDUSCOLORSECURE9xA82kLmP2026';
-
+// Autenticação do backend FactoryFlow/Produção via JWT salvo no login
+// (mesmo token emitido pelo backend do PaintLab e validado pelo FactoryFlow).
 function getDriverHeaders(extra = {}) {
   const jwt = sessionStorage.getItem('ff_token') || localStorage.getItem('ff_token') || '';
   return {
     ...extra,
-    'Authorization': `Bearer ${jwt || FACTORYFLOW_API_TOKEN}`,
-    'X-API-Key': FACTORYFLOW_API_TOKEN
+    ...(jwt ? { 'Authorization': `Bearer ${jwt}` } : {})
   };
 }
 

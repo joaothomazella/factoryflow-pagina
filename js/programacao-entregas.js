@@ -508,15 +508,6 @@ function _peGetAuthHeaders() {
 
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  // Mantém compatibilidade com seu padrão antigo, se existir.
-  const apiKey =
-    window.FACTORYFLOW_API_KEY ||
-    localStorage.getItem('FACTORYFLOW_API_KEY') ||
-    localStorage.getItem('ff_api_key') ||
-    '';
-
-  if (apiKey) headers['X-API-Key'] = apiKey;
-
   return headers;
 }
 

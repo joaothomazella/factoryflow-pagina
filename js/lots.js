@@ -1295,11 +1295,11 @@ const FACTORYFLOW_BACKEND_API = (typeof PEDIDOS_API !== 'undefined' && PEDIDOS_A
 
 async function carregarMotoristasFactoryFlow() {
   try {
+    const _motoristasToken = (typeof ffLotsRouteResolveToken === 'function') ? ffLotsRouteResolveToken() : '';
     const res = await fetch(`${FACTORYFLOW_BACKEND_API}/api/motoristas`, {
-      headers: {
-        'Authorization': `Bearer ${FACTORYFLOW_API_TOKEN}`,
-        'X-API-Key': FACTORYFLOW_API_TOKEN
-      }
+      headers: _motoristasToken
+        ? { 'Authorization': `Bearer ${_motoristasToken}` }
+        : {}
     });
 
     const json = await res.json().catch(() => ({}));
@@ -1346,10 +1346,6 @@ function ffLotsRouteResolveApiBase() {
 }
 
 function ffLotsRouteResolveToken() {
-  if (typeof FACTORYFLOW_API_TOKEN !== 'undefined' && FACTORYFLOW_API_TOKEN) return FACTORYFLOW_API_TOKEN;
-  if (typeof API_TOKEN !== 'undefined' && API_TOKEN) return API_TOKEN;
-  if (window.FACTORYFLOW_API_TOKEN) return window.FACTORYFLOW_API_TOKEN;
-  if (window.API_TOKEN) return window.API_TOKEN;
   return sessionStorage.getItem('ff_token')
     || localStorage.getItem('ff_token')
     || localStorage.getItem('factoryflow_token')
@@ -1364,7 +1360,6 @@ function ffLotsRouteHeaders(json = true) {
   const headers = json ? { 'Content-Type': 'application/json' } : {};
   if (token) {
     headers.Authorization = `Bearer ${token}`;
-    headers['X-API-Key'] = token;
   }
   return headers;
 }

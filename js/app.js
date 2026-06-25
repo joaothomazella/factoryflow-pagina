@@ -255,10 +255,7 @@ function ffResolveApiToken() {
     || localStorage.getItem('ff_api_token')
     || localStorage.getItem('api_token')
     || localStorage.getItem('token')
-    || (typeof FACTORYFLOW_API_TOKEN !== 'undefined' && FACTORYFLOW_API_TOKEN ? FACTORYFLOW_API_TOKEN : '')
-    || (typeof API_TOKEN !== 'undefined' && API_TOKEN ? API_TOKEN : '')
-    || (window.FACTORYFLOW_API_TOKEN || '')
-    || (window.API_TOKEN || '');
+    || '';
 }
 
 function ffAuthHeaders(json = true) {
@@ -266,7 +263,6 @@ function ffAuthHeaders(json = true) {
   const headers = json ? { 'Content-Type': 'application/json' } : {};
   if (token) {
     headers.Authorization = `Bearer ${token}`;
-    headers['X-API-Key'] = token;
   }
   return headers;
 }

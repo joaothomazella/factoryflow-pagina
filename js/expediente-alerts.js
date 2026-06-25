@@ -326,8 +326,8 @@ async function ffConfirmarEncerrarExpedienteGeral(btn) {
 
     if (base) {
       const headers = { 'Content-Type': 'application/json' };
-      if (user?.token)                   headers['Authorization'] = `Bearer ${user.token}`;
-      if (typeof API_KEY !== 'undefined' && API_KEY) headers['X-API-Key'] = API_KEY;
+      const jwt = user?.token || sessionStorage.getItem('ff_token') || localStorage.getItem('ff_token') || '';
+      if (jwt) headers['Authorization'] = `Bearer ${jwt}`;
 
       const res = await fetch(`${base}/api/expediente/encerrar-geral`, {
         method: 'POST',

@@ -157,7 +157,6 @@ window.STATE = STATE;
 // API HELPERS
 // ===================================================
 const FACTORYFLOW_DATA_API_BASE = 'https://app-producao-backend-production.up.railway.app';
-const FACTORYFLOW_FALLBACK_API_TOKEN = 'INDUSCOLORSECURE9xA82kLmP2026';
 
 function resolveFactoryFlowApiBase() {
   if (typeof PEDIDOS_API !== 'undefined' && PEDIDOS_API) return String(PEDIDOS_API).replace(/\/$/, '');
@@ -178,11 +177,7 @@ function resolveFactoryFlowApiToken() {
     || localStorage.getItem('ff_api_token')
     || localStorage.getItem('api_token')
     || localStorage.getItem('token')
-    || (typeof FACTORYFLOW_API_TOKEN !== 'undefined' && FACTORYFLOW_API_TOKEN ? FACTORYFLOW_API_TOKEN : '')
-    || (typeof API_TOKEN !== 'undefined' && API_TOKEN ? API_TOKEN : '')
-    || (window.FACTORYFLOW_API_TOKEN || '')
-    || (window.API_TOKEN || '')
-    || FACTORYFLOW_FALLBACK_API_TOKEN;
+    || '';
 }
 
 function resolveFactoryFlowSessionToken() {
@@ -194,10 +189,12 @@ function resolveFactoryFlowSessionToken() {
 
 function factoryFlowAuthHeaders(json = true) {
   const sessionToken = resolveFactoryFlowSessionToken();
-  const apiToken = FACTORYFLOW_FALLBACK_API_TOKEN;
+  const apiToken = resolveFactoryFlowApiToken();
+  const token = sessionToken || apiToken;
   const headers = json ? { 'Content-Type': 'application/json' } : {};
-  headers.Authorization = `Bearer ${sessionToken || apiToken}`;
-  headers['X-API-Key'] = apiToken;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   return headers;
 }
 
@@ -890,16 +887,13 @@ async function apiUpdateLot(lot) {
       ? PEDIDOS_API
       : 'https://app-producao-backend-production.up.railway.app';
 
-    const token = typeof FACTORYFLOW_API_TOKEN !== 'undefined'
-      ? FACTORYFLOW_API_TOKEN
-      : FACTORYFLOW_FALLBACK_API_TOKEN;
+    const token = resolveFactoryFlowSessionToken() || resolveFactoryFlowApiToken();
 
     const res = await fetch(`${baseUrl}/api/producao/${bridgeId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'X-API-Key': token
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
       body: JSON.stringify(payload)
     });
@@ -2142,12 +2136,11 @@ function setBridgeUrl(url) {
 }
 
 function bridgeAuthHeaders(json = false) {
-  const token = (typeof FACTORYFLOW_API_TOKEN !== 'undefined' && FACTORYFLOW_API_TOKEN)
-    ? FACTORYFLOW_API_TOKEN
-    : (window.FACTORYFLOW_API_TOKEN || FACTORYFLOW_FALLBACK_API_TOKEN);
+  const token = resolveFactoryFlowSessionToken() || resolveFactoryFlowApiToken();
   const headers = json ? { 'Content-Type': 'application/json' } : {};
-  headers.Authorization = `Bearer ${token}`;
-  headers['X-API-Key'] = token;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   return headers;
 }
 

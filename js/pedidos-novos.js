@@ -9,11 +9,6 @@
 // ── Configuração da API do backend ───────────────────
 const PEDIDOS_API = 'https://app-producao-backend-production.up.railway.app';
 
-// Token exigido pelo backend seguro.
-// IMPORTANTE: em frontend estático isso fica visível no F12.
-// Para segurança profissional, o ideal depois é trocar por login + JWT.
-const FACTORYFLOW_API_TOKEN = 'INDUSCOLORSECURE9xA82kLmP2026';
-
 // Cache em memória (limpo a cada navegação para a aba)
 let _pedidosCache      = [];   // lista resumida de pedidos
 let _pedidosLoading    = false;
@@ -850,8 +845,7 @@ async function _pnFetch(url, options = {}) {
   const jwt = sessionStorage.getItem('ff_token') || localStorage.getItem('ff_token') || '';
   const headers = {
     ...(options.headers || {}),
-    ...(jwt ? { 'Authorization': `Bearer ${jwt}` } : { 'Authorization': `Bearer ${FACTORYFLOW_API_TOKEN}` }),
-    'X-API-Key': FACTORYFLOW_API_TOKEN,
+    ...(jwt ? { 'Authorization': `Bearer ${jwt}` } : {}),
   };
 
   try {

@@ -363,14 +363,12 @@ function ffDashResolveApiBase() {
 
 function ffDashResolveToken() {
   if (typeof ffDeliveriesResolveToken === 'function') return ffDeliveriesResolveToken();
-  if (typeof FACTORYFLOW_API_TOKEN !== 'undefined' && FACTORYFLOW_API_TOKEN) return FACTORYFLOW_API_TOKEN;
-  if (typeof API_TOKEN !== 'undefined' && API_TOKEN) return API_TOKEN;
-  if (window.FACTORYFLOW_API_TOKEN) return window.FACTORYFLOW_API_TOKEN;
-  return localStorage.getItem('factoryflow_token')
+  return sessionStorage.getItem('ff_token')
+    || localStorage.getItem('ff_token')
+    || localStorage.getItem('factoryflow_token')
     || localStorage.getItem('ff_api_token')
     || localStorage.getItem('api_token')
-    || sessionStorage.getItem('ff_token')
-    || 'INDUSCOLORSECURE9xA82kLmP2026';
+    || '';
 }
 
 async function ffDashApiGet(table) {
@@ -378,7 +376,6 @@ async function ffDashApiGet(table) {
   const headers = {};
   if (token) {
     headers.Authorization = `Bearer ${token}`;
-    headers['X-API-Key'] = token;
   }
 
   const res = await fetch(`${ffDashResolveApiBase()}/api/tables/${table}?limit=1000`, { headers });

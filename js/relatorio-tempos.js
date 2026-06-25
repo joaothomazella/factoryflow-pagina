@@ -1051,8 +1051,7 @@ async function _rtFetchBackend() {
     const url = `${base}/api/producao/relatorio-tempos?${params.toString()}`;
     console.log('[Relatório de Tempos] Buscando backend:', url);
 
-    // Monta headers igual aos testes manuais que funcionaram no F12.
-    const fallbackApiKey = 'INDUSCOLORSECURE9xA82kLmP2026';
+    // Autenticação: somente o JWT salvo no login. Sem token fixo, sem X-API-Key.
     const sessionToken =
       (typeof resolveFactoryFlowSessionToken === 'function' ? resolveFactoryFlowSessionToken() : '') ||
       sessionStorage.getItem('ff_token') ||
@@ -1061,20 +1060,8 @@ async function _rtFetchBackend() {
       localStorage.getItem('token') ||
       '';
 
-    const apiKey =
-      (typeof FACTORYFLOW_API_TOKEN !== 'undefined' && FACTORYFLOW_API_TOKEN ? FACTORYFLOW_API_TOKEN : '') ||
-      (typeof API_TOKEN !== 'undefined' && API_TOKEN ? API_TOKEN : '') ||
-      (typeof API_KEY !== 'undefined' && API_KEY ? API_KEY : '') ||
-      (window.FACTORYFLOW_API_TOKEN || '') ||
-      (window.API_TOKEN || '') ||
-      (window.API_KEY || '') ||
-      fallbackApiKey;
-
-    const headers = {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${sessionToken || apiKey}`,
-      'X-API-Key': apiKey
-    };
+    const headers = { 'Accept': 'application/json' };
+    if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
 
     // Content-Type em GET não é necessário e pode atrapalhar preflight em alguns ambientes.
     const controller = new AbortController();
