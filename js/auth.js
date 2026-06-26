@@ -516,7 +516,7 @@ const PAGE_MAP = {
 
   relatorio_tempos:    { el:'pageRelatorioTempos',   label:'Relatório de Tempos',   icon:'fas fa-clock',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'relatorios' },
   reports:    { el:'pageReports',    label:'Relatórios',        icon:'fas fa-chart-bar',      roles:['admin','diretoria','pcp','pcp_lib','manager','viewer'], group:'relatorios' },
-  factory:    { el:'pageFactory',    label:'Painel Geral',      icon:'fas fa-industry',       roles:['admin','diretoria','pcp','manager'], group:'relatorios' },
+  factory:    { el:'pageFactory',    label:'Painel Geral',      icon:'fas fa-industry',       roles:['admin','diretoria','pcp','manager'], group:'relatorios', hidden:true },
 
   simulador_entrega:   { el:'pageSimuladorEntrega',  label:'Simulador',             icon:'fas fa-route',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'ferramentas' },
   import:        { el:'pageImport',        label:'Importar Pedidos',  icon:'fas fa-file-import',    roles:['admin','pcp'], group:'ferramentas' },
