@@ -259,21 +259,23 @@ function ffInjectEncerrarExpedienteButton() {
   const adminRoles = ['admin', 'manager', 'gerente', 'diretoria'];
   if (!adminRoles.includes(String(user.role || '').toLowerCase())) return;
 
-  // Cria o botão e adiciona após o botão de logout ou no fim da sidebar
+  // Cria o botão e adiciona dentro do sidebar-footer, logo após o botão de logout
+  // (precisa ficar dentro do footer para não vazar/cortar no fim da tela em telas
+  // pequenas — ver .sidebar-footer com overflow-y:auto).
   const btn = document.createElement('button');
   btn.id        = 'ffEncerrarExpBtn';
-  btn.className = 'btn btn-danger btn-sm';
+  btn.className = 'btn-logout';
   btn.innerHTML = '<i class="fas fa-power-off"></i> Encerrar Exp. Geral';
   btn.title     = 'Encerrar expediente de todos os setores';
-  btn.style.cssText = 'margin:8px 12px;width:calc(100% - 24px);font-size:.78rem;';
+  btn.style.cssText = 'margin-top:.5rem;';
   btn.onclick = ffOpenEncerrarExpedienteGeral;
 
   // Tenta inserir na sidebar após o último nav-item ou antes do logout
-  const sidebar  = document.querySelector('.sidebar, #sidebar, nav.side-nav');
-  const logoutEl = document.getElementById('logoutBtn') || document.querySelector('[onclick*="logout"]');
+  const sidebar  = document.querySelector('.sidebar-footer') || document.querySelector('.sidebar, #sidebar, nav.side-nav');
+  const logoutEl = document.getElementById('logoutBtn') || document.querySelector('.btn-logout, [onclick*="Logout"], [onclick*="logout"]');
 
   if (logoutEl && logoutEl.parentNode) {
-    logoutEl.parentNode.insertBefore(btn, logoutEl);
+    logoutEl.insertAdjacentElement('afterend', btn);
   } else if (sidebar) {
     sidebar.appendChild(btn);
   }

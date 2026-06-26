@@ -2561,11 +2561,13 @@
   </div>
 </div>
 
+<script src="js/data.js"></script>
 <script>
 // ===================================================
 // TV MODE – setores atualizados + envase separado + amostras + tempos
+// Dados reais de produção: usa o mesmo backend/bridge MySQL do Kanban
+// (js/data.js → loadBridgeLots / apiGet), sem depender de tabelas locais.
 // ===================================================
-const TV_API_BASE = 'tables/';
 let tvState = { lots: [], routes: [], orders: [], currentUser: null };
 let tvUpdateInterval = null;
 let tvAutoScrollInterval = null;
@@ -2655,10 +2657,11 @@ function updateClock() {
 }
 
 // ===== API =====
+// Tabelas auxiliares (rotas/pedidos/usuários) continuam vindo da API genérica
+// /api/tables/:nome, igual ao restante do app. Os lotes em si vêm do bridge
+// MySQL real (/api/producao/ativos), a mesma fonte oficial do Kanban.
 async function tvApiGet(table) {
-  const res = await fetch(`${TV_API_BASE}${table}?limit=500`);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return (await res.json()).data || [];
+  return apiGet(table, { limit: 500 });
 }
 
 
@@ -2706,32 +2709,21 @@ function tvNormalizeLot(lot) {
   return lot;
 }
 
-function tvDeserializeLot(row) {
-  let history=[], workSessions=[];
-  try { history = typeof row.history==='string' ? JSON.parse(row.history) : (row.history||[]); } catch(e){}
-  try { workSessions = typeof row.workSessions==='string' ? JSON.parse(row.workSessions) : (row.workSessions||[]); } catch(e){}
-  const sea = Number(row.sectorEnteredAt) || (history.length>0 ? Number(history[history.length-1].timestamp) : Number(row.createdAt)) || Date.now();
-  return tvNormalizeLot({
-    ...row, history, workSessions,
-    skipColor: row.skipColor===true||row.skipColor==='true',
-    rejected: row.rejected===true||row.rejected==='true',
-    qty: Number(row.qty)||0,
-    createdAt: Number(row.createdAt)||0,
-    sectorEnteredAt: sea,
-    productType: row.productType||'tinta',
-    lotStatus: row.lotStatus||'idle'
-  });
-}
-
 async function tvLoadData() {
-  const [lotsRaw, routesRaw, ordersRaw] = await Promise.all([
-    tvApiGet('ff_lots'),
+  // Lotes reais: producao_lotes via bridge MySQL (mesma fonte do Kanban principal).
+  await loadBridgeLots({ limit: 500, force: true, timeout: 12000 });
+
+  const [routesRaw, ordersRaw] = await Promise.all([
     tvApiGet('ff_routes').catch(()=>[]),
     // Algumas instalações não têm tabela ff_orders; nesse caso o TV monta os pedidos agrupando os lotes.
     tvApiGet('ff_orders').catch(()=>[])
   ]);
 
-  tvState.lots   = lotsRaw.map(tvDeserializeLot).filter(l => !l.rejected);
+  if (!STATE._bridgeConnected) {
+    throw new Error('Não foi possível conectar à produção (bridge MySQL indisponível).');
+  }
+
+  tvState.lots   = (STATE.lots || []).map(tvNormalizeLot).filter(l => !l.rejected);
   tvState.orders = Array.isArray(ordersRaw) ? ordersRaw : [];
   tvState.routes = routesRaw.map(r => {
     let lots=[];
@@ -3628,6 +3620,7 @@ async function tvHandleLogin(e) {
     }
     document.getElementById('tvAuthError').style.display = 'none';
     tvState.currentUser = user;
+    sessionStorage.setItem('ff_tv', JSON.stringify(user));
     await tvInit();
   } catch(err) { alert('Erro ao conectar: '+err.message); }
 }

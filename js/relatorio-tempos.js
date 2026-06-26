@@ -2347,12 +2347,15 @@ function _rtRenderDetailedByLot(area, normalized) {
 
   const totalEff = totals.totalMs > 0 && totals.workedMs > 0 ? Math.round((totals.workedMs / totals.totalMs) * 100) : 0;
   const totalEffColor = totalEff >= 70 ? '#4ade80' : totalEff >= 40 ? '#fbbf24' : totals.totalMs > 0 ? '#f87171' : '#64748b';
+  const groupsTotalKg = groups.reduce((sum, g) => sum + _rtParseKgFromQty(g.qty), 0);
 
   const totalRow = `
     <tr class="rt-tr-totals" style="background:rgba(59,130,246,.08);font-weight:700;border-top:2px solid rgba(59,130,246,.3)">
-      <td class="rt-td" colspan="7" style="color:var(--blue);letter-spacing:.03em">
+      <td class="rt-td" colspan="5" style="color:var(--blue);letter-spacing:.03em">
         <i class="fas fa-sigma" style="margin-right:.4rem"></i>TOTAIS (${groups.length} lote${groups.length !== 1 ? 's' : ''})
       </td>
+      <td class="rt-td rt-td-center" style="color:var(--blue)">${groupsTotalKg > 0 ? groupsTotalKg.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' Kg' : '–'}</td>
+      <td class="rt-td"></td>
       <td class="rt-td rt-td-center" style="color:#60a5fa">${rtFormatMs(totals.totalMs)}</td>
       <td class="rt-td rt-td-center" style="color:#4ade80">${rtFormatMs(totals.workedMs)}</td>
       <td class="rt-td rt-td-center" style="color:#fbbf24">${rtFormatMs(totals.pausedMs)}</td>
