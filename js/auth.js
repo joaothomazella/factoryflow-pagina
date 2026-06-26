@@ -576,9 +576,8 @@ function buildSidebar() {
   const themeBtn = document.getElementById('themeToggleBtn');
   if (themeBtn) {
     const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    themeBtn.innerHTML = current === 'dark'
-      ? '<i class="fas fa-sun"></i> Tema Claro'
-      : '<i class="fas fa-moon"></i> Tema Escuro';
+    themeBtn.innerHTML = (typeof FF_THEME_BTN_LABEL === 'object' && FF_THEME_BTN_LABEL[current])
+      || '<i class="fas fa-sun"></i> Tema Claro';
   }
 
   // Botão Modo TV – visível para admin, diretoria, pcp, manager

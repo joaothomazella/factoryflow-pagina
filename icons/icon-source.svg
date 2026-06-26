@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a52ad"/>
+      <stop offset="1" stop-color="#0d2f6e"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- chaminé com fumaça -->
+  <rect x="338" y="146" width="26" height="70" fill="#fff000"/>
+  <circle cx="351" cy="132" r="11" fill="#fff000" opacity=".55"/>
+  <circle cx="366" cy="116" r="9"  fill="#fff000" opacity=".4"/>
+
+  <!-- corpo do galpão -->
+  <rect x="120" y="248" width="272" height="148" rx="10" fill="#fff000"/>
+
+  <!-- telhado serrilhado (estilo fábrica) -->
+  <path d="M120 248 L168 200 L216 248 Z" fill="#fff000"/>
+  <path d="M216 248 L264 200 L312 248 Z" fill="#fff000"/>
+  <path d="M312 248 L360 200 L392 232 L392 248 Z" fill="#fff000"/>
+
+  <!-- porta -->
+  <rect x="240" y="320" width="56" height="76" rx="6" fill="#0d2f6e"/>
+
+  <!-- janelas -->
+  <rect x="148" y="288" width="40" height="40" rx="6" fill="#0d2f6e"/>
+  <rect x="324" y="288" width="40" height="40" rx="6" fill="#0d2f6e"/>
+
+  <!-- base -->
+  <rect x="104" y="396" width="304" height="18" rx="4" fill="#fff000" opacity=".85"/>
+</svg>

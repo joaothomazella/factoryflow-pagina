@@ -140,6 +140,29 @@ a { text-decoration: none; color: inherit; }
 .sidebar.collapsed .sidebar-header { justify-content: center; }
 .sidebar.collapsed .nav-item { justify-content: center; padding: .75rem; }
 
+/* Botões do rodapé da sidebar (tema, modo TV, sair, encerrar expediente) –
+   o texto não fica em <span>, então usamos font-size:0 no botão e
+   restauramos o tamanho só no ícone, evitando o texto vazar para fora. */
+.sidebar.collapsed .sidebar-footer button,
+.sidebar.collapsed .sidebar-footer .btn-expediente {
+  font-size: 0;
+  padding: .65rem .4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.sidebar.collapsed .sidebar-footer button i,
+.sidebar.collapsed .sidebar-footer .btn-expediente i {
+  font-size: 1rem;
+}
+.sidebar.collapsed .expediente-status,
+.sidebar.collapsed .expediente-alert {
+  display: none;
+}
+
 .sidebar-header {
   display: flex;
   align-items: center;
@@ -4838,9 +4861,11 @@ body {
 .rt-filters-card {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-top: 3px solid var(--blue);
   border-radius: 14px;
-  padding: 1.25rem 1.4rem 1rem;
+  padding: 1.25rem 1.4rem 1.15rem;
   margin-bottom: 1.4rem;
+  box-shadow: 0 4px 18px rgba(0,0,0,.18);
 }
 
 .rt-filters-card h3 {
@@ -4850,6 +4875,8 @@ body {
   text-transform: uppercase;
   letter-spacing: .05em;
   margin: 0 0 1rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   gap: .45rem;
@@ -4882,12 +4909,13 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
-  padding: .45rem .75rem;
+  padding: .52rem .75rem;
   font-size: .82rem;
   outline: none;
   transition: border-color .2s, box-shadow .2s;
   width: 100%;
 }
+.rt-filter-input:hover { border-color: rgba(59,130,246,.35); }
 .rt-filter-input:focus {
   border-color: rgba(59,130,246,.5);
   box-shadow: 0 0 0 3px rgba(59,130,246,.1);
@@ -4905,6 +4933,9 @@ body {
   flex-wrap: wrap;
   gap: .55rem;
   align-items: center;
+  margin-top: .35rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
 }
 
 /* ── Grid de cards de resumo ── */
@@ -6202,4 +6233,58 @@ body {
 [data-theme="purple"] .kanban-card:hover,
 [data-theme="purple"] .lot-card:hover {
   border-color: #c084fc;
+}
+
+/* =====================================================
+   TEMA INDUSCOLOR – Azul PANTONE 661 C + Amarelo PRO Yellow C
+   ===================================================== */
+
+[data-theme="induscolor"] {
+  --bg: #0a1f3d;
+  --bg2: #0f2a52;
+  --bg3: #163766;
+
+  --surface: #0f2a52;
+  --surface2: #14315e;
+
+  --border: rgba(255, 240, 0, 0.25);
+
+  --text: #f8fbff;
+  --text2: #bcd2f0;
+  --text3: #7e9cc9;
+
+  --blue: #144196;
+  --green: #22c55e;
+  --yellow: #fff000;
+  --red: #ef4444;
+  --orange: #f97316;
+  --purple: #144196;
+  --cyan: #67e8f9;
+
+  --radius: 10px;
+  --shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="induscolor"] .sidebar,
+[data-theme="induscolor"] .topbar,
+[data-theme="induscolor"] .modal-header {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="induscolor"] .nav-item.active {
+  background: rgba(255, 240, 0, 0.14);
+  color: #fff000;
+  border-right-color: #144196;
+}
+
+[data-theme="induscolor"] .btn-primary,
+[data-theme="induscolor"] .tab-btn.active {
+  background: #144196;
+  color: #fff000;
+}
+
+[data-theme="induscolor"] .kanban-card:hover,
+[data-theme="induscolor"] .lot-card:hover {
+  border-color: #fff000;
 }

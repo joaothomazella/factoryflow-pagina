@@ -119,7 +119,7 @@ function injectRelatorioTemposHorizontalScrollFix() {
 
     #pageRelatorioTempos .rt-summary-grid {
       display: grid !important;
-      grid-template-columns: repeat(5, minmax(170px, 1fr)) !important;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
       gap: 16px !important;
       width: 100% !important;
       min-width: 1280px !important;
@@ -1298,6 +1298,15 @@ function renderRelatorioTemposSummary(rows) {
       ? Math.round(eficRows.reduce((a, r) => a + (Number(r.efficiency) || 0), 0) / eficRows.length)
       : 0;
 
+  // Soma de Kg uma vez por lote (um lote pode ter várias linhas, uma por setor/passagem).
+  const kgByLot = new Map();
+  summaryRows.forEach(r => {
+    const lotKey = String(r.lotNumber || r.op || r.id || '').trim();
+    const kg = _rtParseKgFromQty(r.qty);
+    if (lotKey && kg > 0 && !kgByLot.has(lotKey)) kgByLot.set(lotKey, kg);
+  });
+  const totalKg = Array.from(kgByLot.values()).reduce((a, b) => a + b, 0);
+
   const effColor = avgEff >= 70 ? '#4ade80' : avgEff >= 40 ? '#fbbf24' : '#f87171';
 
   area.innerHTML = `
@@ -1309,6 +1318,15 @@ function renderRelatorioTemposSummary(rows) {
         <div class="rt-sum-body">
           <div class="rt-sum-val">${totalLinhas}</div>
           <div class="rt-sum-lbl">Total de linhas</div>
+        </div>
+      </div>
+      <div class="rt-summary-card">
+        <div class="rt-sum-icon" style="background:rgba(139,92,246,.12);color:#c4b5fd">
+          <i class="fas fa-weight-hanging"></i>
+        </div>
+        <div class="rt-sum-body">
+          <div class="rt-sum-val" style="color:#c4b5fd">${totalKg.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} Kg</div>
+          <div class="rt-sum-lbl">Quantidade</div>
         </div>
       </div>
       <div class="rt-summary-card">

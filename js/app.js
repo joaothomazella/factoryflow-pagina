@@ -202,6 +202,13 @@ function applyThemeFromStorage() {
   applyTheme(theme, false);
 }
 
+const FF_THEME_CYCLE = ['dark', 'light', 'induscolor'];
+const FF_THEME_BTN_LABEL = {
+  dark:       '<i class="fas fa-sun"></i> Tema Claro',
+  light:      '<i class="fas fa-palette"></i> Tema Induscolor',
+  induscolor: '<i class="fas fa-moon"></i> Tema Escuro',
+};
+
 function applyTheme(theme, save = true) {
   document.documentElement.setAttribute('data-theme', theme);
   if (save) {
@@ -217,15 +224,15 @@ function applyTheme(theme, save = true) {
   }
   const btn = document.getElementById('themeToggleBtn');
   if (btn) {
-    btn.innerHTML = theme === 'dark'
-      ? '<i class="fas fa-sun"></i> Tema Claro'
-      : '<i class="fas fa-moon"></i> Tema Escuro';
+    btn.innerHTML = FF_THEME_BTN_LABEL[theme] || FF_THEME_BTN_LABEL.dark;
   }
 }
 
 function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') || 'dark';
-  applyTheme(current === 'dark' ? 'light' : 'dark');
+  const idx = FF_THEME_CYCLE.indexOf(current);
+  const next = FF_THEME_CYCLE[(idx === -1 ? 0 : idx + 1) % FF_THEME_CYCLE.length];
+  applyTheme(next);
 }
 
 // ===================================================
