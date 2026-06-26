@@ -498,38 +498,70 @@ async function showApp() {
 // NAVEGAÇÃO E SIDEBAR
 // ===================================================
 
+// "group" só controla agrupamento visual na sidebar (buildSidebar). "hidden" esconde o item
+// do menu sem remover a rota/o código por trás — usado para Usuários e Motoristas, que hoje
+// não têm render function implementada (renderUsers/renderDriversPage não existem) e por isso
+// ficam fora do menu até serem implementadas ou removidas de verdade.
 const PAGE_MAP = {
-  dashboard:  { el:'pageDashboard',  label:'Dashboard',        icon:'fas fa-tachometer-alt', roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'] },
-  kanban:     { el:'pageKanban',     label:'Kanban',            icon:'fas fa-columns',        roles:['admin','diretoria','pcp','pcp_lib','manager','sector'] },
-  lots:       { el:'pageLots',       label:'Lotes',             icon:'fas fa-boxes',          roles:['admin','diretoria','pcp','pcp_lib','manager','sector'] },
-  orders:     { el:'pageOrders',     label:'Pedidos',           icon:'fas fa-clipboard-list', roles:['admin','diretoria','pcp','pcp_lib','manager'] },
-  deliveries: { el:'pageDeliveries', label:'Entregas',          icon:'fas fa-truck',          roles:['admin','diretoria','pcp','manager'] },
-  drivers:    { el:'pageDrivers',    label:'Motoristas',        icon:'fas fa-id-card',        roles:['admin','diretoria','pcp','manager'] },
-  factory:    { el:'pageFactory',    label:'Painel Geral',      icon:'fas fa-industry',       roles:['admin','diretoria','pcp','manager'] },
-  reports:    { el:'pageReports',    label:'Relatórios',        icon:'fas fa-chart-bar',      roles:['admin','diretoria','pcp','pcp_lib','manager','viewer'] },
-  import:        { el:'pageImport',        label:'Importar Pedidos',  icon:'fas fa-file-import',    roles:['admin','pcp'] },
-  pedidos_novos: { el:'pagePedidosNovos', label:'Pedidos Novos',     icon:'fas fa-inbox',          roles:['admin','diretoria','pcp','pcp_lib','manager'] },
-  programacao_entregas: { el:'pageProgramacaoEntregas', label:'Programação de Entregas', icon:'fas fa-calendar-alt', roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'] },
-  meu_setor:        { el:'pageMeuSetor',          label:'Meu Setor',             icon:'fas fa-hard-hat',       roles:['sector'] },
-  relatorio_tempos:    { el:'pageRelatorioTempos',   label:'Relatório de Tempos',   icon:'fas fa-clock',          roles:['admin','diretoria','pcp','pcp_lib','manager'] },
-  simulador_entrega:   { el:'pageSimuladorEntrega',  label:'Simulador',             icon:'fas fa-route',          roles:['admin','diretoria','pcp','pcp_lib','manager'] },
-  users:               { el:'pageUsers',             label:'Usuários',              icon:'fas fa-users-cog',      roles:['admin'] },
+  dashboard:  { el:'pageDashboard',  label:'Dashboard',        icon:'fas fa-tachometer-alt', roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'], group:'principal' },
+  kanban:     { el:'pageKanban',     label:'Kanban',            icon:'fas fa-columns',        roles:['admin','diretoria','pcp','pcp_lib','manager','sector'], group:'principal' },
+  meu_setor:        { el:'pageMeuSetor',          label:'Meu Setor',             icon:'fas fa-hard-hat',       roles:['sector'], group:'principal' },
+
+  pedidos_novos: { el:'pagePedidosNovos', label:'Pedidos Novos',     icon:'fas fa-inbox',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'pedidos' },
+  lots:       { el:'pageLots',       label:'Lotes',             icon:'fas fa-boxes',          roles:['admin','diretoria','pcp','pcp_lib','manager','sector'], group:'pedidos' },
+  orders:     { el:'pageOrders',     label:'Pedidos',           icon:'fas fa-clipboard-list', roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'pedidos' },
+
+  programacao_entregas: { el:'pageProgramacaoEntregas', label:'Programação de Entregas', icon:'fas fa-calendar-alt', roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'], group:'entregas' },
+  deliveries: { el:'pageDeliveries', label:'Entregas',          icon:'fas fa-truck',          roles:['admin','diretoria','pcp','manager'], group:'entregas' },
+
+  relatorio_tempos:    { el:'pageRelatorioTempos',   label:'Relatório de Tempos',   icon:'fas fa-clock',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'relatorios' },
+  reports:    { el:'pageReports',    label:'Relatórios',        icon:'fas fa-chart-bar',      roles:['admin','diretoria','pcp','pcp_lib','manager','viewer'], group:'relatorios' },
+  factory:    { el:'pageFactory',    label:'Painel Geral',      icon:'fas fa-industry',       roles:['admin','diretoria','pcp','manager'], group:'relatorios' },
+
+  simulador_entrega:   { el:'pageSimuladorEntrega',  label:'Simulador',             icon:'fas fa-route',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'ferramentas' },
+  import:        { el:'pageImport',        label:'Importar Pedidos',  icon:'fas fa-file-import',    roles:['admin','pcp'], group:'ferramentas' },
+
+  drivers:    { el:'pageDrivers',    label:'Motoristas',        icon:'fas fa-id-card',        roles:['admin','diretoria','pcp','manager'], group:'administracao', hidden:true },
+  users:               { el:'pageUsers',             label:'Usuários',              icon:'fas fa-users-cog',      roles:['admin'], group:'administracao', hidden:true },
 };
+
+// Ordem e rótulo dos grupos na sidebar. "principal" não tem cabeçalho (fica no topo, solto).
+const SIDEBAR_GROUPS = [
+  { key:'principal',      label:null },
+  { key:'pedidos',        label:'Pedidos e Produção' },
+  { key:'entregas',       label:'Entregas' },
+  { key:'relatorios',     label:'Relatórios' },
+  { key:'ferramentas',    label:'Ferramentas' },
+  { key:'administracao',  label:'Administração' },
+];
 
 function buildSidebar() {
   const user = STATE.currentUser;
   const nav  = document.getElementById('sidebarNav');
   nav.innerHTML = '';
 
-  Object.entries(PAGE_MAP).forEach(([key, cfg]) => {
-    if (!cfg.roles.includes(user.role)) return;
-    const a = document.createElement('a');
-    a.href = '#';
-    a.className = 'nav-item';
-    a.dataset.page = key;
-    a.innerHTML = `<i class="${cfg.icon}"></i><span>${cfg.label}</span>`;
-    a.onclick = (e) => { e.preventDefault(); navigateTo(key); };
-    nav.appendChild(a);
+  SIDEBAR_GROUPS.forEach(group => {
+    const entries = Object.entries(PAGE_MAP).filter(([, cfg]) =>
+      (cfg.group || 'principal') === group.key && !cfg.hidden && cfg.roles.includes(user.role)
+    );
+    if (!entries.length) return;
+
+    if (group.label) {
+      const heading = document.createElement('div');
+      heading.className = 'nav-group-label';
+      heading.textContent = group.label;
+      nav.appendChild(heading);
+    }
+
+    entries.forEach(([key, cfg]) => {
+      const a = document.createElement('a');
+      a.href = '#';
+      a.className = 'nav-item';
+      a.dataset.page = key;
+      a.innerHTML = `<i class="${cfg.icon}"></i><span>${cfg.label}</span>`;
+      a.onclick = (e) => { e.preventDefault(); navigateTo(key); };
+      nav.appendChild(a);
+    });
   });
 
   const info = document.getElementById('sidebarUserInfo');
