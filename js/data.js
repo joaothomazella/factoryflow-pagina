@@ -2785,50 +2785,129 @@ async function resumeLotsForShiftOpen(group, openMs, lastCloseMs) {
   await persistLotsQuietly(lots);
 }
 
+// Evita disparar dois toggles em paralelo (duplo clique, Enter repetido) enquanto a API
+// ainda não respondeu o clique anterior.
+let _expedienteToggleBusy = false;
+
+function ffFormatHora(ms) {
+  if (!Number.isFinite(ms)) return null;
+  return new Date(ms).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Verifica se algum dia entre startMs e endMs cai num sábado/domingo, para reforçar o
+// alerta de "expediente aberto há muito tempo" quando ele atravessa o fim de semana
+// (foi exatamente esse cenário — fechar a sexta, reabrir por engano e ficar aberto até
+// segunda — que motivou esta funcionalidade).
+function ffRangeIncludesWeekend(startMs, endMs) {
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return false;
+  const cursor = new Date(startMs);
+  cursor.setHours(0, 0, 0, 0);
+  let guard = 0;
+  while (cursor.getTime() <= endMs && guard < 14) {
+    const day = cursor.getDay();
+    if (day === 0 || day === 6) return true;
+    cursor.setDate(cursor.getDate() + 1);
+    guard++;
+  }
+  return false;
+}
+
 async function iniciarExpedienteSetor() {
+  if (_expedienteToggleBusy) return;
   const setor = getCurrentUserShiftGroup();
   if (!setor) return alert('Não consegui identificar o setor deste usuário.');
+  const label = SECTOR_LABELS[setor] || setor;
+
+  // Estado já aberto na tela: avisa e não deixa abrir de novo (o backend também bloqueia,
+  // isto é só para dar feedback imediato sem round-trip).
+  if (isExpedienteAbertoForSector(setor)) {
+    const openedAt = ffFormatHora(getShiftIniciadoMs(setor));
+    showToast(`⚠️ O expediente deste setor já está aberto${openedAt ? ' desde ' + openedAt : ''}.`, 'error');
+    updateExpedienteButton();
+    return;
+  }
 
   const previous = STATE.sectorShifts?.[setor] || null;
   const lastCloseMs = parseFactoryFlowDateMs(previous?.finalizado_em || previous?.finalizadoEm || previous?.closedAt || previous?.closed_at);
 
+  // Reabertura acidental pouco depois de fechar (o incidente que motivou esta melhoria):
+  // exige confirmação mais forte, mas não bloqueia — pode ser intencional.
+  const minutesSinceClose = Number.isFinite(lastCloseMs) ? (Date.now() - lastCloseMs) / 60000 : null;
+  if (minutesSinceClose !== null && minutesSinceClose >= 0 && minutesSinceClose < 10) {
+    const ok = confirm(`Este setor (${label}) foi fechado há poucos minutos. Tem certeza que deseja reabrir o expediente?`);
+    if (!ok) return;
+  } else {
+    const ok = confirm(`Deseja iniciar o expediente do setor ${label} agora?`);
+    if (!ok) return;
+  }
+
+  _expedienteToggleBusy = true;
+  updateExpedienteButton();
   try {
     const json = await expedienteApiPost('/api/expediente/toggle', { setor, expediente_aberto: 1 });
     const savedShift = { ...(json.data || json), setor };
     STATE.sectorShifts[setor] = savedShift;
 
-    const openMs = parseFactoryFlowDateMs(savedShift.iniciado_em || savedShift.iniciadoEm || savedShift.openedAt || savedShift.opened_at) || Date.now();
-    await resumeLotsForShiftOpen(setor, openMs, Number.isFinite(lastCloseMs) ? lastCloseMs : null);
+    if (json.unchanged) {
+      showToast(`⚠️ O expediente deste setor já está aberto.`, 'error');
+    } else {
+      const openMs = parseFactoryFlowDateMs(savedShift.iniciado_em || savedShift.iniciadoEm || savedShift.openedAt || savedShift.opened_at) || Date.now();
+      await resumeLotsForShiftOpen(setor, openMs, Number.isFinite(lastCloseMs) ? lastCloseMs : null);
+      showToast(`✅ Expediente iniciado – ${label}`);
+    }
 
-    showToast(`✅ Expediente iniciado – ${SECTOR_LABELS[setor] || setor}`);
     updateExpedienteButton();
     refreshActiveFactoryFlowPage();
   } catch (e) {
     alert('Erro ao iniciar expediente: ' + e.message);
+  } finally {
+    _expedienteToggleBusy = false;
+    updateExpedienteButton();
   }
 }
 
 async function finalizarExpedienteSetor() {
+  if (_expedienteToggleBusy) return;
   const setor = getCurrentUserShiftGroup();
   if (!setor) return alert('Não consegui identificar o setor deste usuário.');
+  const label = SECTOR_LABELS[setor] || setor;
 
+  if (!isExpedienteAbertoForSector(setor)) {
+    showToast(`⚠️ O expediente deste setor já está fechado.`, 'error');
+    updateExpedienteButton();
+    return;
+  }
+
+  const ok = confirm(`Deseja fechar o expediente do setor ${label} agora (${ffFormatHora(Date.now())})?`);
+  if (!ok) return;
+
+  _expedienteToggleBusy = true;
+  updateExpedienteButton();
   try {
     const json = await expedienteApiPost('/api/expediente/toggle', { setor, expediente_aberto: 0 });
     const savedShift = { ...(json.data || json), setor };
     STATE.sectorShifts[setor] = savedShift;
 
-    const closeMs = parseFactoryFlowDateMs(savedShift.finalizado_em || savedShift.finalizadoEm || savedShift.closedAt || savedShift.closed_at) || Date.now();
-    await freezeLotsForShiftClose(setor, closeMs);
+    if (json.unchanged) {
+      showToast(`⚠️ O expediente deste setor já está fechado.`, 'error');
+    } else {
+      const closeMs = parseFactoryFlowDateMs(savedShift.finalizado_em || savedShift.finalizadoEm || savedShift.closedAt || savedShift.closed_at) || Date.now();
+      await freezeLotsForShiftClose(setor, closeMs);
+      showToast(`⏸️ Expediente finalizado – ${label}`);
+    }
 
-    showToast(`⏸️ Expediente finalizado – ${SECTOR_LABELS[setor] || setor}`);
     updateExpedienteButton();
     refreshActiveFactoryFlowPage();
   } catch (e) {
     alert('Erro ao finalizar expediente: ' + e.message);
+  } finally {
+    _expedienteToggleBusy = false;
+    updateExpedienteButton();
   }
 }
 
 async function toggleExpedienteSetor() {
+  if (_expedienteToggleBusy) return;
   const setor = getCurrentUserShiftGroup();
   if (!setor) return alert('Usuário sem setor vinculado.');
   const aberto = isExpedienteAbertoForSector(setor);
@@ -2840,6 +2919,7 @@ function updateExpedienteButton() {
   const box = document.getElementById('expedienteBox');
   const btn = document.getElementById('btnExpedienteSetor');
   const status = document.getElementById('expedienteStatus');
+  const alertBox = document.getElementById('expedienteAlert');
   if (!box || !btn || !status) return;
 
   const setor = getCurrentUserShiftGroup();
@@ -2851,14 +2931,45 @@ function updateExpedienteButton() {
   box.style.display = 'block';
   const aberto = isExpedienteAbertoForSector(setor);
   const label = SECTOR_LABELS[setor] || (setor === 'pcp_liberacao' ? 'PCP (Liberação)' : setor);
+
+  btn.disabled = _expedienteToggleBusy;
   btn.classList.toggle('is-open', aberto);
   btn.classList.toggle('is-closed', !aberto);
-  btn.innerHTML = aberto
-    ? '<i class="fas fa-stop-circle"></i> Finalizar expediente'
-    : '<i class="fas fa-play-circle"></i> Iniciar expediente';
+  if (_expedienteToggleBusy) {
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+  } else {
+    btn.innerHTML = aberto
+      ? '<i class="fas fa-stop-circle"></i> Finalizar expediente'
+      : '<i class="fas fa-play-circle"></i> Iniciar expediente';
+  }
+
+  const openedAt = ffFormatHora(getShiftIniciadoMs(setor));
+  const closedAt = ffFormatHora(getShiftFinalizadoMs(setor));
+  const lastTimeLine = aberto
+    ? (openedAt ? `<small>Aberto desde ${openedAt}</small>` : '')
+    : (closedAt ? `<small>Fechado às ${closedAt}</small>` : '');
+
   status.innerHTML = aberto
-    ? `<span class="dot on"></span> ${label}: contando tempos`
-    : `<span class="dot off"></span> ${label}: tempos pausados`;
+    ? `<span class="dot on"></span> Expediente aberto – ${label}${lastTimeLine}`
+    : `<span class="dot off"></span> Expediente fechado – ${label}${lastTimeLine}`;
+
+  if (!alertBox) return;
+  if (aberto) {
+    const openMs = getShiftIniciadoMs(setor);
+    const openHours = Number.isFinite(openMs) ? (Date.now() - openMs) / 3600000 : 0;
+    if (Number.isFinite(openMs) && openHours >= 12) {
+      const crossesWeekend = ffRangeIncludesWeekend(openMs, Date.now());
+      alertBox.style.display = 'block';
+      alertBox.className = `expediente-alert ${crossesWeekend ? 'danger' : 'warn'}`;
+      alertBox.textContent = crossesWeekend
+        ? `Atenção: expediente aberto há mais de ${Math.floor(openHours)}h e atravessando um fim de semana. Verifique se não foi esquecido aberto.`
+        : `Atenção: expediente aberto há mais de ${Math.floor(openHours)}h. Verifique se não foi esquecido aberto.`;
+    } else {
+      alertBox.style.display = 'none';
+    }
+  } else {
+    alertBox.style.display = 'none';
+  }
 }
 
 function refreshActiveFactoryFlowPage() {
