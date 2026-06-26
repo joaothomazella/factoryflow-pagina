@@ -463,8 +463,8 @@ OP/Lote · Pedido · Código Produto · Nome Produto · Cliente · Quantidade ·
 - ⏳ **Endpoint backend ainda não implementado** — aguarda criação futura
 
 #### Exportação
-- ✅ `exportRelatorioTemposExcel()` – usa **SheetJS (XLSX)** se disponível; fallback para CSV com download automático
-- ✅ `exportRelatorioTemposPDF()` – usa **jsPDF + autoTable** se disponível; fallback para `window.print()`
+- ✅ `exportRelatorioTemposExcel()` – gera planilha via tabela HTML reconhecida pelo Excel (`.xls`), sem depender de biblioteca externa; não precisa de fallback
+- ✅ `exportRelatorioTemposPDF()` – usa **jsPDF + autoTable**; se a biblioteca não estiver disponível ou a geração falhar, aciona `exportRelatorioTemposCSV()` como fallback real (download de CSV simples). Nunca usa `window.print()`
 
 #### Melhoria no Modal de Lote – Seção "Tempos por Setor"
 - ✅ `renderLotSectorTimesHistory(lot)` injetado em `js/lots.js` dentro de `openLotDetail()`

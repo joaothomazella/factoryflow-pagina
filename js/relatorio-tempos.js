@@ -2719,7 +2719,10 @@ function buildRelatorioTemposMediaPorCodigo(rows) {
 /**
  * Exporta relatório para Excel (XLSX pivot por OP/lote).
  * Cada OP/lote = 1 linha; setores = colunas.
- * Fallback: CSV simples.
+ * Formato de download: HTML reconhecido pelo Excel (.xls), sem fallback —
+ * funciona em qualquer navegador, sem depender de biblioteca externa.
+ * (O fallback CSV real do Relatório de Tempos existe para a exportação em PDF,
+ * ver exportRelatorioTemposCSV/exportRelatorioTemposPDF mais abaixo.)
  */
 
 function _rtExportEscape(value) {
@@ -3137,7 +3140,8 @@ function exportRelatorioTemposExcel() {
  * Exporta relatório para PDF (jsPDF + autoTable).
  * Formato: tabela por OP/lote com colunas essenciais + resumo geral no topo.
  * Faz download direto — nunca abre nova aba nem chama window.print().
- * Se jsPDF/autoTable não existirem, mostra toast e para.
+ * Se jsPDF/autoTable não existirem, ou se a geração do PDF falhar por
+ * qualquer motivo, aciona o fallback real em CSV (exportRelatorioTemposCSV).
  */
 function exportRelatorioTemposPDF() {
   const rawRows    = _rtFromBackend ? _rtData : _rtApplyFilters(_rtData);
@@ -3154,13 +3158,15 @@ function exportRelatorioTemposPDF() {
                  || null;
 
   if (!jsPDFCtor) {
-    showToast('Biblioteca de PDF não encontrada. Adicione jsPDF e autoTable no index.html.', 'error');
+    showToast('Biblioteca de PDF não encontrada. Exportando em CSV no lugar.', 'error');
+    exportRelatorioTemposCSV();
     return;
   }
 
   const testDoc = new jsPDFCtor();
   if (typeof testDoc.autoTable !== 'function') {
-    showToast('Biblioteca de PDF não encontrada. Adicione jsPDF e autoTable no index.html.', 'error');
+    showToast('Biblioteca de PDF não encontrada. Exportando em CSV no lugar.', 'error');
+    exportRelatorioTemposCSV();
     return;
   }
 
@@ -3300,7 +3306,8 @@ function exportRelatorioTemposPDF() {
 
   } catch (e) {
     console.error('[relatorio-tempos] exportRelatorioTemposPDF erro:', e);
-    showToast(`Erro ao gerar PDF: ${e.message}`, 'error');
+    showToast(`Erro ao gerar PDF (${e.message}). Exportando em CSV no lugar.`, 'error');
+    exportRelatorioTemposCSV();
   }
 }
 
@@ -3308,6 +3315,85 @@ function exportRelatorioTemposPDF() {
 function _rtTrunc(str, maxLen) {
   const s = String(str || '');
   return s.length > maxLen ? s.slice(0, maxLen) + '…' : s;
+}
+
+/**
+ * Escapa um valor para uma célula CSV (delimitador ';', padrão pt-BR/Excel).
+ * Envolve em aspas e duplica aspas internas quando o valor contém
+ * ';', '"' ou quebra de linha; quebras de linha internas são normalizadas para espaço.
+ */
+function _rtCsvEscape(value) {
+  const s = String(value ?? '').replace(/\r?\n/g, ' ').trim();
+  if (/[;"]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+/**
+ * Exporta o Relatório de Tempos atual (respeitando os filtros aplicados na tela)
+ * em CSV simples — uma linha por OP/lote/setor, igual aos registros normalizados
+ * usados na visão atual (mesma fonte de dados do Excel/PDF: _rtData + filtros).
+ *
+ * Fallback real para quando jsPDF/autoTable não estiverem disponíveis ou a
+ * geração do PDF falhar (ver exportRelatorioTemposPDF). Não recalcula nenhum
+ * tempo: usa os mesmos campos já calculados por _rtNormalizeRow (totalMs,
+ * workedMs, pausedMs, idleMs, efficiency).
+ */
+function exportRelatorioTemposCSV() {
+  const rawRows    = _rtFromBackend ? _rtData : _rtApplyFilters(_rtData);
+  const normalized = _rtFilterReportRows(rawRows.map(_rtNormalizeRow).filter(Boolean));
+
+  if (normalized.length === 0) {
+    showToast('Nenhum dado para exportar. Execute a busca primeiro.', 'info');
+    return false;
+  }
+
+  const headers = [
+    'OP', 'Pedido', 'Cliente', 'Código do Produto', 'Produto', 'Setor', 'Status',
+    'Entrada', 'Saída', 'Tempo Total', 'Trabalhado', 'Pausado', 'Ocioso',
+    'Eficiência (%)', 'Observações / Motivo da Pausa'
+  ];
+
+  const lines = [headers.map(_rtCsvEscape).join(';')];
+
+  normalized.forEach(r => {
+    const entrada = r.enteredAt ? rtFormatDateTime(r.enteredAt) : '';
+    const saida   = r.exitAt ? rtFormatDateTime(r.exitAt) : (r.totalMs > 0 ? 'Em andamento' : '');
+    const obs     = [r.observations, r.pauseReason].filter(Boolean).join(' | ');
+
+    lines.push([
+      r.lotNumber,
+      r.orderNumber,
+      r.client,
+      r.productCode,
+      r.productName,
+      r.sectorLabel || r.sector,
+      r.lotStatus,
+      entrada,
+      saida,
+      rtFormatMs(r.totalMs),
+      rtFormatMs(r.workedMs),
+      rtFormatMs(r.pausedMs),
+      rtFormatMs(r.idleMs),
+      r.totalMs > 0 ? `${r.efficiency}%` : '-',
+      obs
+    ].map(_rtCsvEscape).join(';'));
+  });
+
+  const csvContent = '﻿' + lines.join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `relatorio-tempos-${_rtDateStr()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast(`CSV exportado! ${normalized.length} registro(s).`, 'success');
+  return true;
 }
 
 // ─────────────────────────────────────────────────────────────────
