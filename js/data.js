@@ -2812,6 +2812,23 @@ function ffRangeIncludesWeekend(startMs, endMs) {
   return false;
 }
 
+// Aplica o estado otimista (antes da API responder) e devolve uma função de reconciliação.
+// O backend continua sendo a fonte da verdade: o estado otimista é só visual e é substituído
+// pelo retorno real do POST /toggle (ou desfeito, em caso de erro).
+function ffApplyOptimisticShift(setor, aberto) {
+  const previous = STATE.sectorShifts?.[setor] || null;
+  const now = new Date();
+  STATE.sectorShifts[setor] = {
+    ...(previous || {}),
+    setor,
+    expediente_aberto: aberto ? 1 : 0,
+    iniciado_em: aberto ? now : (previous?.iniciado_em ?? previous?.iniciadoEm ?? null),
+    finalizado_em: aberto ? null : now
+  };
+  updateExpedienteButton();
+  return previous;
+}
+
 async function iniciarExpedienteSetor() {
   if (_expedienteToggleBusy) return;
   const setor = getCurrentUserShiftGroup();
@@ -2842,27 +2859,33 @@ async function iniciarExpedienteSetor() {
   }
 
   _expedienteToggleBusy = true;
-  updateExpedienteButton();
+  // Atualização otimista: a tela já mostra "aberto" e o horário antes da API responder.
+  // O botão em si mostra "Salvando..." (via _expedienteToggleBusy) até a confirmação do backend.
+  const previousForRevert = ffApplyOptimisticShift(setor, true);
+
   try {
     const json = await expedienteApiPost('/api/expediente/toggle', { setor, expediente_aberto: 1 });
     const savedShift = { ...(json.data || json), setor };
     STATE.sectorShifts[setor] = savedShift;
+    _expedienteToggleBusy = false;
+    updateExpedienteButton();
 
     if (json.unchanged) {
       showToast(`⚠️ O expediente deste setor já está aberto.`, 'error');
     } else {
-      const openMs = parseFactoryFlowDateMs(savedShift.iniciado_em || savedShift.iniciadoEm || savedShift.openedAt || savedShift.opened_at) || Date.now();
-      await resumeLotsForShiftOpen(setor, openMs, Number.isFinite(lastCloseMs) ? lastCloseMs : null);
       showToast(`✅ Expediente iniciado – ${label}`);
+      // Congelamento/retomada de sessões dos lotes não precisa travar a atualização visual
+      // do botão: roda em segundo plano e só então atualiza Kanban/relatório em tela.
+      const openMs = parseFactoryFlowDateMs(savedShift.iniciado_em || savedShift.iniciadoEm || savedShift.openedAt || savedShift.opened_at) || Date.now();
+      resumeLotsForShiftOpen(setor, openMs, Number.isFinite(lastCloseMs) ? lastCloseMs : null)
+        .then(refreshActiveFactoryFlowPage)
+        .catch(e => console.warn('Falha ao retomar lotes após abrir expediente:', e.message));
     }
-
-    updateExpedienteButton();
-    refreshActiveFactoryFlowPage();
   } catch (e) {
-    alert('Erro ao iniciar expediente: ' + e.message);
-  } finally {
+    STATE.sectorShifts[setor] = previousForRevert;
     _expedienteToggleBusy = false;
     updateExpedienteButton();
+    alert('Erro ao iniciar expediente: ' + e.message);
   }
 }
 
@@ -2882,27 +2905,29 @@ async function finalizarExpedienteSetor() {
   if (!ok) return;
 
   _expedienteToggleBusy = true;
-  updateExpedienteButton();
+  const previousForRevert = ffApplyOptimisticShift(setor, false);
+
   try {
     const json = await expedienteApiPost('/api/expediente/toggle', { setor, expediente_aberto: 0 });
     const savedShift = { ...(json.data || json), setor };
     STATE.sectorShifts[setor] = savedShift;
+    _expedienteToggleBusy = false;
+    updateExpedienteButton();
 
     if (json.unchanged) {
       showToast(`⚠️ O expediente deste setor já está fechado.`, 'error');
     } else {
-      const closeMs = parseFactoryFlowDateMs(savedShift.finalizado_em || savedShift.finalizadoEm || savedShift.closedAt || savedShift.closed_at) || Date.now();
-      await freezeLotsForShiftClose(setor, closeMs);
       showToast(`⏸️ Expediente finalizado – ${label}`);
+      const closeMs = parseFactoryFlowDateMs(savedShift.finalizado_em || savedShift.finalizadoEm || savedShift.closedAt || savedShift.closed_at) || Date.now();
+      freezeLotsForShiftClose(setor, closeMs)
+        .then(refreshActiveFactoryFlowPage)
+        .catch(e => console.warn('Falha ao congelar lotes após fechar expediente:', e.message));
     }
-
-    updateExpedienteButton();
-    refreshActiveFactoryFlowPage();
   } catch (e) {
-    alert('Erro ao finalizar expediente: ' + e.message);
-  } finally {
+    STATE.sectorShifts[setor] = previousForRevert;
     _expedienteToggleBusy = false;
     updateExpedienteButton();
+    alert('Erro ao finalizar expediente: ' + e.message);
   }
 }
 
