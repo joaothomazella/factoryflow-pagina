@@ -644,7 +644,13 @@ function navigateTo(page) {
     case 'simulador_entrega':
       if (typeof renderSimuladorEntrega === 'function') renderSimuladorEntrega();
       break;
-    case 'users':             renderUsers();               break;
+    case 'users':
+      if (typeof renderUsers === 'function') {
+        renderUsers();
+      } else {
+        console.warn('renderUsers não definido');
+      }
+      break;
   }
 }
 
