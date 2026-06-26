@@ -605,6 +605,8 @@ function ffDashRenderManagerDashboard(page) {
   const readyOrders = ffDashReadyOrders(8);
   const newOrders = ffDashNewOrders(6);
   const recentRoutes = ffDashLatestRoutesByDriver(STATE.routes, STATE.lots, 3);
+  const sectorSituationRoles = ['admin', 'diretoria', 'pcp', 'manager'];
+  const showSectorSituation = sectorSituationRoles.includes(String(STATE.currentUser?.role || '').toLowerCase());
 
   page.innerHTML = `
     <div class="dash-clean">
@@ -642,6 +644,8 @@ function ffDashRenderManagerDashboard(page) {
           <div class="dash-list">${newOrders.length ? newOrders.map(ffDashOrderCard).join('') : '<div class="dash-empty">Nenhum pedido novo/revisão.</div>'}</div>
         </div>
       </div>
+
+      ${showSectorSituation ? ffDashBuildSectorSituationHtml(inProd) : ''}
     </div>
   `;
 }
@@ -690,20 +694,7 @@ function ffDashRenderFactoryPanel(page) {
       </div>
 
       <div class="dash-factory-grid">
-        <div class="dash-panel">
-          <div class="dash-panel-title"><h3><i class="fas fa-sitemap"></i> Situação por setor</h3></div>
-          <div class="dash-sector-list">
-            ${(SECTORS || []).map(s => {
-              const count = inProd.filter(l => l.sector === s).length;
-              const pct = Math.round((count / maxCount) * 100);
-              return `<div class="dash-sector-row">
-                <div class="dash-sector-label" style="color:${(SECTOR_COLORS || {})[s] || '#93c5fd'}">${ffDashText((SECTOR_LABELS || {})[s] || s)}</div>
-                <div class="dash-sector-bar"><span style="width:${pct}%;background:${(SECTOR_COLORS || {})[s] || '#3b82f6'}"></span></div>
-                <div class="dash-sector-count">${count}</div>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>
+        ${ffDashBuildSectorSituationHtml(inProd)}
 
         <div class="dash-panel orange">
           <div class="dash-panel-title"><h3><i class="fas fa-route"></i> Rotas recentes</h3><span class="dash-count">${recentRoutes.length}</span></div>
@@ -712,4 +703,26 @@ function ffDashRenderFactoryPanel(page) {
       </div>
     </div>
   `;
+}
+
+// ===================================================
+// SITUAÇÃO POR SETOR (reutilizado por Painel Geral e Dashboard)
+// ===================================================
+function ffDashBuildSectorSituationHtml(inProd) {
+  const maxCount = Math.max(...(SECTORS || []).map(s => inProd.filter(l => l.sector === s).length), 1);
+  return `
+    <div class="dash-panel">
+      <div class="dash-panel-title"><h3><i class="fas fa-sitemap"></i> Situação por setor</h3></div>
+      <div class="dash-sector-list">
+        ${(SECTORS || []).map(s => {
+          const count = inProd.filter(l => l.sector === s).length;
+          const pct = Math.round((count / maxCount) * 100);
+          return `<div class="dash-sector-row">
+            <div class="dash-sector-label" style="color:${(SECTOR_COLORS || {})[s] || '#93c5fd'}">${ffDashText((SECTOR_LABELS || {})[s] || s)}</div>
+            <div class="dash-sector-bar"><span style="width:${pct}%;background:${(SECTOR_COLORS || {})[s] || '#3b82f6'}"></span></div>
+            <div class="dash-sector-count">${count}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
 }
