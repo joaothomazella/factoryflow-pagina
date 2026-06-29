@@ -65,7 +65,11 @@ async function ffDeliveriesApiPut(table, id, data) {
 
 async function ffDeliveriesProductionGet(params = {}) {
   const api = ffDeliveriesResolveApiBase();
-  const qs = new URLSearchParams({ limit: 2000, ...params }).toString();
+  // Entregas só precisa de lotes prontos/em rota/entregues — filtrar por setor evita
+  // que o backend faça o join pesado (cli_pedidos_itens/cli_clientes) sobre TODOS os
+  // lotes de produção (pesagem, produção, coloração etc.), que é o que tornava a aba lenta.
+  const setoresEntrega = 'pronto,entrega,entregue,finalizado,finalizada,concluido,concluído,cancelado,cancelada,rejeitado,rejeitada';
+  const qs = new URLSearchParams({ limit: 2000, setor: setoresEntrega, ...params }).toString();
   const res = await fetch(`${api}/api/producao?${qs}`, { headers: ffDeliveriesHeaders(false) });
   if (!res.ok) {
     const txt = await res.text().catch(() => '');
