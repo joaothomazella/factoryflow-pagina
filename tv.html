@@ -1,3631 +1,1526 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FactoryFlow – Modo TV Atualizado</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:      #020818;
-      --bg2:     #071028;
-      --surface: #0d1f3c;
-      --border:  #1a3a6e;
-      --text:    #e2f0ff;
-      --text2:   #7eb8f7;
-      --blue:    #3b82f6;
-      --green:   #22c55e;
-      --yellow:  #f59e0b;
-      --red:     #ef4444;
-      --orange:  #f97316;
-      --purple:  #8b5cf6;
-      --cyan:    #06b6d4;
-      --fuchsia: #e879f9;
-      --teal:    #2dd4bf;
-      --rose:    #f43f5e;
-      --glow:    rgba(59,130,246,0.3);
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow: hidden;
-      cursor: none;
-    }
-
-    /* ===== ANIMATED BACKGROUND ===== */
-    .tv-bg {
-      position: fixed; inset: 0; z-index: 0;
-      background:
-        radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse at 50% 80%, rgba(6,182,212,0.05) 0%, transparent 60%);
-    }
-    .tv-grid-lines {
-      position: fixed; inset: 0; z-index: 0;
-      background-image:
-        linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
-      background-size: 60px 60px;
-      animation: gridScroll 20s linear infinite;
-    }
-    @keyframes gridScroll {
-      from { transform: translateY(0); }
-      to   { transform: translateY(60px); }
-    }
-
-    /* ===== LAYOUT ===== */
-    .tv-wrapper {
-      position: relative; z-index: 1;
-      display: flex; flex-direction: column;
-      height: 100vh;
-    }
-
-    /* ===== TOP BAR ===== */
-    .tv-topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: .5rem 1.2rem;
-      background: rgba(7,16,40,0.97);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(20px);
-      flex-shrink: 0;
-    }
-    .tv-brand { display: flex; align-items: center; gap: .6rem; }
-    .tv-brand-icon {
-      width: 34px; height: 34px;
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1rem;
-      box-shadow: 0 0 16px var(--glow);
-    }
-    .tv-brand h1 {
-      font-size: 1.1rem; font-weight: 800;
-      background: linear-gradient(90deg, #60a5fa, #a78bfa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      letter-spacing: 1px;
-    }
-    .tv-brand p { font-size: .62rem; color: var(--text2); letter-spacing: 2px; text-transform: uppercase; }
-    .tv-topbar-center { display: flex; align-items: center; gap: 1.5rem; }
-    .tv-clock {
-      font-size: 1.6rem; font-weight: 700; color: var(--text);
-      font-variant-numeric: tabular-nums;
-      text-shadow: 0 0 20px rgba(59,130,246,0.5);
-    }
-    .tv-date { font-size: .72rem; color: var(--text2); text-align: center; }
-    .tv-topbar-right { display: flex; align-items: center; gap: 1rem; }
-    .tv-live-badge {
-      display: flex; align-items: center; gap: .4rem;
-      background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.4);
-      border-radius: 20px; padding: .25rem .7rem;
-      font-size: .7rem; color: var(--green); font-weight: 600;
-    }
-    .tv-live-dot {
-      width: 7px; height: 7px; background: var(--green); border-radius: 50%;
-      animation: livePulse 1.5s ease-in-out infinite;
-    }
-    @keyframes livePulse {
-      0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(34,197,94,.7); }
-      50%      { opacity:.7; box-shadow: 0 0 0 5px rgba(34,197,94,0); }
-    }
-
-    /* ===== METRICS BAR ===== */
-    .tv-metrics-bar { display: flex; gap: .5rem; flex-wrap: wrap; }
-    .tv-metric-chip {
-      display: flex; align-items: center; gap: .35rem;
-      padding: .25rem .6rem; border-radius: 7px;
-      font-size: .72rem; font-weight: 600; border: 1px solid transparent;
-    }
-    .tv-metric-chip.blue   { background:rgba(59,130,246,.15); border-color:rgba(59,130,246,.3); color:#60a5fa; }
-    .tv-metric-chip.green  { background:rgba(34,197,94,.15);  border-color:rgba(34,197,94,.3);  color:#4ade80; }
-    .tv-metric-chip.yellow { background:rgba(245,158,11,.15); border-color:rgba(245,158,11,.3); color:#fbbf24; }
-    .tv-metric-chip.red    { background:rgba(239,68,68,.15);  border-color:rgba(239,68,68,.3);  color:#f87171; }
-    .tv-metric-chip.orange { background:rgba(249,115,22,.15); border-color:rgba(249,115,22,.3); color:#fb923c; }
-    .tv-metric-chip.purple { background:rgba(139,92,246,.15); border-color:rgba(139,92,246,.3); color:#a78bfa; }
-    .tv-metric-chip i { font-size: .65rem; }
-
-    /* ===== SECTOR COLUMNS ===== */
-    .tv-columns-wrapper {
-      display: flex; flex: 1; gap: 0;
-      overflow: hidden; min-height: 0;
-    }
-    .tv-column {
-      flex: 1 1 0; display: flex; flex-direction: column;
-      border-right: 1px solid var(--border);
-      overflow: hidden; position: relative;
-      min-width: 0;
-    }
-    .tv-column:last-child { border-right: none; }
-
-    .tv-col-header {
-      padding: .5rem .6rem;
-      display: flex; align-items: center; justify-content: space-between;
-      flex-shrink: 0; position: relative;
-    }
-    .tv-col-header::after {
-      content: ''; position: absolute; bottom:0; left:0; right:0; height: 2px;
-    }
-    .tv-col-title {
-      display: flex; align-items: center; gap: .4rem;
-      font-size: .68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .8px;
-      min-width: 0;
-    }
-    .tv-col-icon {
-      width: 22px; height: 22px; border-radius: 5px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .62rem; flex-shrink: 0;
-    }
-    .tv-col-count {
-      font-size: 1rem; font-weight: 800;
-      padding: .1rem .4rem; border-radius: 5px;
-      min-width: 26px; text-align: center; flex-shrink: 0;
-    }
-    .tv-col-body {
-      flex: 1; overflow-y: auto; padding: .4rem;
-      display: flex; flex-direction: column; gap: .35rem;
-    }
-    .tv-col-body::-webkit-scrollbar { width: 2px; }
-    .tv-col-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    /* ===== LOT CARDS ===== */
-    .tv-lot-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 7px; padding: .5rem .6rem;
-      position: relative; overflow: hidden;
-      transition: transform .3s ease, box-shadow .3s ease;
-      animation: cardSlideIn .4s ease;
-    }
-    @keyframes cardSlideIn {
-      from { opacity:0; transform: translateY(-8px) scale(.97); }
-      to   { opacity:1; transform: translateY(0) scale(1); }
-    }
-    .tv-lot-card::before {
-      content: ''; position: absolute; top:0; left:0; right:0; height: 2px;
-    }
-    .tv-lot-card.priority-urgent { border-color: rgba(245,158,11,.5); }
-    .tv-lot-card.priority-urgent::before { background: var(--yellow); }
-    .tv-lot-card.priority-sameday {
-      border-color: rgba(239,68,68,.5);
-      animation: cardSlideIn .4s ease, redPulse 2s ease-in-out infinite;
-    }
-    .tv-lot-card.priority-sameday::before { background: var(--red); }
-    @keyframes redPulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
-      50%      { box-shadow: 0 0 0 4px rgba(239,68,68,0.2); }
-    }
-    .tv-lot-card.priority-normal::before { background: var(--green); }
-    .tv-lot-card.late-lot { border-color: rgba(239,68,68,.6); background: rgba(239,68,68,.04); }
-
-    .tv-card-row1 { display:flex; align-items:center; justify-content:space-between; margin-bottom:.25rem; }
-    .tv-lot-number { font-size: .8rem; font-weight: 800; color: var(--text); letter-spacing: .4px; }
-    .tv-priority-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-    .tv-lot-client { font-size: .68rem; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: .15rem; }
-    .tv-lot-paint  { font-size: .64rem; color: #94a3b8; margin-bottom: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .tv-card-row2 { display:flex; align-items:center; justify-content:space-between; margin-top:.25rem; flex-wrap: wrap; gap: .2rem; }
-    .tv-product-type {
-      font-size: .58rem; padding: .08rem .35rem; border-radius: 3px;
-      font-weight: 600; text-transform: uppercase; letter-spacing: .4px;
-    }
-    .tv-time-chip { font-size: .6rem; color: #64748b; display:flex; align-items:center; gap:.15rem; }
-    .tv-time-chip.alert-time { color: var(--red); animation: blink .8s ease-in-out infinite; }
-    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:.4; } }
-    .tv-delivery-date { font-size: .58rem; color: #64748b; }
-    .tv-delivery-date.today { color: var(--yellow); font-weight: 600; }
-    .tv-delivery-date.late  { color: var(--red); font-weight: 700; }
-
-    /* TIME BAR for TV */
-    .tv-time-bar-wrap { margin-top: .3rem; }
-    .tv-time-bar {
-      height: 3px; background: rgba(255,255,255,0.06);
-      border-radius: 2px; display: flex; overflow: hidden;
-    }
-    .tv-tbar-worked { height: 100%; background: var(--green); transition: width .5s; }
-    .tv-tbar-paused { height: 100%; background: var(--yellow); transition: width .5s; }
-    .tv-tbar-idle   { height: 100%; background: rgba(100,116,139,0.3); flex: 1; }
-    .tv-tbar-labels { display:flex; gap:.4rem; margin-top:.15rem; font-size:.56rem; color:#4a6080; }
-    .tv-tbar-labels .tw  { color: rgba(34,197,94,.8); }
-    .tv-tbar-labels .tp  { color: rgba(245,158,11,.8); }
-
-    /* Status dot */
-    .tv-status-dot {
-      display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: .2rem;
-    }
-    .tv-status-dot.working { background: var(--green); animation: livePulse 1.2s infinite; }
-    .tv-status-dot.paused  { background: var(--yellow); }
-
-    .tv-empty-col {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      color: #334155; font-size: .7rem; gap: .4rem;
-    }
-    .tv-empty-col i { font-size: 1.2rem; opacity: .25; }
-
-    /* ===== COLUMN THEME COLORS ===== */
-    /* Review/Lib sectors */
-    .col-coloracao_revisao .tv-col-header   { background: rgba(232,121,249,.07); }
-    .col-coloracao_revisao .tv-col-header::after { background: #e879f9; }
-    .col-coloracao_revisao .tv-col-icon     { background: rgba(232,121,249,.2); color: #f0abfc; }
-    .col-coloracao_revisao .tv-col-count    { background: rgba(232,121,249,.2); color: #f0abfc; }
-
-    .col-laboratorio_revisao .tv-col-header { background: rgba(45,212,191,.07); }
-    .col-laboratorio_revisao .tv-col-header::after { background: #2dd4bf; }
-    .col-laboratorio_revisao .tv-col-icon   { background: rgba(45,212,191,.2); color: #5eead4; }
-    .col-laboratorio_revisao .tv-col-count  { background: rgba(45,212,191,.2); color: #5eead4; }
-
-    .col-pcp_liberacao .tv-col-header       { background: rgba(244,63,94,.07); }
-    .col-pcp_liberacao .tv-col-header::after { background: #f43f5e; }
-    .col-pcp_liberacao .tv-col-icon         { background: rgba(244,63,94,.2); color: #fb7185; }
-    .col-pcp_liberacao .tv-col-count        { background: rgba(244,63,94,.2); color: #fb7185; }
-
-    /* Production sectors */
-    .col-pesagem .tv-col-header     { background: rgba(59,130,246,.07); }
-    .col-pesagem .tv-col-header::after { background: #3b82f6; }
-    .col-pesagem .tv-col-icon       { background: rgba(59,130,246,.2); color: #60a5fa; }
-    .col-pesagem .tv-col-count      { background: rgba(59,130,246,.2); color: #60a5fa; }
-
-    .col-producao .tv-col-header    { background: rgba(139,92,246,.07); }
-    .col-producao .tv-col-header::after { background: #8b5cf6; }
-    .col-producao .tv-col-icon      { background: rgba(139,92,246,.2); color: #a78bfa; }
-    .col-producao .tv-col-count     { background: rgba(139,92,246,.2); color: #a78bfa; }
-
-    .col-coloracao .tv-col-header   { background: rgba(245,158,11,.07); }
-    .col-coloracao .tv-col-header::after { background: #f59e0b; }
-    .col-coloracao .tv-col-icon     { background: rgba(245,158,11,.2); color: #fbbf24; }
-    .col-coloracao .tv-col-count    { background: rgba(245,158,11,.2); color: #fbbf24; }
-
-    .col-laboratorio .tv-col-header { background: rgba(16,185,129,.07); }
-    .col-laboratorio .tv-col-header::after { background: #10b981; }
-    .col-laboratorio .tv-col-icon   { background: rgba(16,185,129,.2); color: #34d399; }
-    .col-laboratorio .tv-col-count  { background: rgba(16,185,129,.2); color: #34d399; }
-
-    .col-laboratorio_amostras .tv-col-header { background: rgba(20,184,166,.07); }
-    .col-laboratorio_amostras .tv-col-header::after { background: #14b8a6; }
-    .col-laboratorio_amostras .tv-col-icon   { background: rgba(20,184,166,.2); color: #5eead4; }
-    .col-laboratorio_amostras .tv-col-count  { background: rgba(20,184,166,.2); color: #5eead4; }
-
-    .col-coloracao_amostras .tv-col-header   { background: rgba(250,204,21,.07); }
-    .col-coloracao_amostras .tv-col-header::after { background: #facc15; }
-    .col-coloracao_amostras .tv-col-icon     { background: rgba(250,204,21,.2); color: #fde047; }
-    .col-coloracao_amostras .tv-col-count    { background: rgba(250,204,21,.2); color: #fde047; }
-
-    .col-envase_produzir .tv-col-header      { background: rgba(249,115,22,.07); }
-    .col-envase_produzir .tv-col-header::after { background: #f97316; }
-    .col-envase_produzir .tv-col-icon        { background: rgba(249,115,22,.2); color: #fb923c; }
-    .col-envase_produzir .tv-col-count       { background: rgba(249,115,22,.2); color: #fb923c; }
-
-    .col-envase_enlatamento .tv-col-header      { background: rgba(6,182,212,.07); }
-    .col-envase_enlatamento .tv-col-header::after { background: #06b6d4; }
-    .col-envase_enlatamento .tv-col-icon        { background: rgba(6,182,212,.2); color: #22d3ee; }
-    .col-envase_enlatamento .tv-col-count       { background: rgba(6,182,212,.2); color: #22d3ee; }
-
-    .col-pronto .tv-col-header      { background: rgba(34,197,94,.07); }
-    .col-pronto .tv-col-header::after { background: #22c55e; }
-    .col-pronto .tv-col-icon        { background: rgba(34,197,94,.2); color: #4ade80; }
-    .col-pronto .tv-col-count       { background: rgba(34,197,94,.2); color: #4ade80; }
-
-    /* Product type badges */
-    .type-tinta       { background:rgba(59,130,246,.2);  color:#60a5fa; }
-    .type-diluente    { background:rgba(6,182,212,.2);   color:#22d3ee; }
-    .type-endurecedor { background:rgba(139,92,246,.2);  color:#a78bfa; }
-    .type-base        { background:rgba(245,158,11,.2);  color:#fbbf24; }
-    .type-amostra     { background:rgba(232,121,249,.2); color:#f0abfc; }
-
-    /* Urgency tags */
-    .tv-urgent-marker {
-      position: absolute; top: .35rem; right: .35rem;
-      font-size: .52rem; padding: .08rem .3rem; border-radius: 3px;
-      font-weight: 800; text-transform: uppercase;
-    }
-    .urgent-tag  { background:rgba(245,158,11,.25); color:#fbbf24; border:1px solid rgba(245,158,11,.4); }
-    .sameday-tag { background:rgba(239,68,68,.25);  color:#f87171; border:1px solid rgba(239,68,68,.5); }
-
-    /* ===== SECTOR STATS ROW ===== */
-    .tv-sector-stats {
-      padding: .3rem .6rem;
-      display: flex; gap: .4rem;
-      border-top: 1px solid rgba(255,255,255,.04);
-      flex-shrink: 0;
-      font-size: .58rem; color: #4a6080;
-    }
-    .tv-sector-stats span { display: flex; align-items: center; gap: .2rem; }
-    .tv-sector-stats .sw { color: rgba(34,197,94,.7); }
-    .tv-sector-stats .sp { color: rgba(245,158,11,.7); }
-    .tv-sector-stats .si { color: rgba(100,116,139,.7); }
-
-    /* ===== BOTTOM BAR ===== */
-    .tv-bottombar {
-      background: rgba(7,16,40,0.97); border-top: 1px solid var(--border);
-      padding: .4rem 1.2rem;
-      display: flex; align-items: center; gap: 1.5rem; flex-shrink: 0;
-    }
-    .tv-bottom-section { display:flex; align-items:center; gap:.5rem; flex:1; min-width: 0; }
-    .tv-bottom-label {
-      font-size: .6rem; text-transform: uppercase; letter-spacing: 1.5px;
-      color: var(--text2); font-weight: 600; white-space: nowrap;
-    }
-    .tv-chips { display:flex; gap:.3rem; flex-wrap:wrap; }
-    .tv-delivery-chip {
-      background:rgba(249,115,22,.15); border:1px solid rgba(249,115,22,.3);
-      border-radius:5px; padding:.15rem .5rem; font-size:.65rem; color:#fb923c; white-space:nowrap;
-    }
-    .tv-ready-chip {
-      background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.3);
-      border-radius:5px; padding:.15rem .5rem; font-size:.65rem; color:#4ade80; white-space:nowrap;
-    }
-    .tv-alert-chip {
-      background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3);
-      border-radius:5px; padding:.15rem .5rem; font-size:.65rem; color:#f87171;
-      display:flex; align-items:center; gap:.25rem; white-space:nowrap;
-      animation: alertPulse 2s ease-in-out infinite;
-    }
-    @keyframes alertPulse {
-      0%,100% { border-color:rgba(239,68,68,.3); }
-      50%      { border-color:rgba(239,68,68,.8); }
-    }
-
-    /* ===== PAGE INDICATOR (auto-scroll) ===== */
-    .tv-page-indicator { display:flex; align-items:center; gap:.35rem; }
-    .tv-page-dot {
-      width: 5px; height: 5px; border-radius: 50%;
-      background: var(--border); transition: all .3s;
-    }
-    .tv-page-dot.active {
-      background: var(--blue); box-shadow: 0 0 6px var(--blue);
-      width: 14px; border-radius: 3px;
-    }
-
-    /* ===== LOADING ===== */
-    .tv-loading {
-      position: fixed; inset: 0; background: var(--bg);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 999; gap: 1.2rem;
-    }
-    .tv-loading-logo {
-      font-size: 3.5rem;
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .tv-loading h2 {
-      font-size: 1.8rem; font-weight: 800;
-      background: linear-gradient(90deg, #60a5fa, #a78bfa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .tv-loading-bar {
-      width: 180px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
-    }
-    .tv-loading-fill {
-      height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple));
-      border-radius: 2px; animation: loadFill 1.5s ease-in-out infinite;
-    }
-    @keyframes loadFill {
-      0%   { width:0; margin-left:0; }
-      50%  { width:60%; margin-left:20%; }
-      100% { width:0; margin-left:100%; }
-    }
-
-    /* ===== AUTH SCREEN ===== */
-    .tv-auth-screen {
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      min-height:100vh; gap:1.2rem;
-    }
-    .tv-auth-screen i { font-size:2.5rem; color:var(--blue); }
-    .tv-auth-screen h2 { font-size:1.4rem; color:var(--text); }
-    .tv-auth-screen p  { color:var(--text2); font-size:.85rem; }
-    .tv-auth-form { display:flex; flex-direction:column; gap:.65rem; width:280px; }
-    .tv-auth-form input {
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:7px; padding:.65rem .9rem; color:var(--text); font-size:.9rem; outline:none;
-    }
-    .tv-auth-form input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,.2); }
-    .tv-auth-btn {
-      background:linear-gradient(135deg,var(--blue),var(--purple)); border:none;
-      border-radius:7px; padding:.65rem 1rem; color:#fff; font-size:.9rem; font-weight:600;
-      cursor:pointer; transition:opacity .2s;
-    }
-    .tv-auth-btn:hover { opacity:.9; }
-    .tv-auth-error { color:var(--red); font-size:.8rem; text-align:center; }
-
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  
-    /* ===== PÁGINA 3 – CENTRAL LOGÍSTICA AO VIVO ===== */
-    .tv-logistics-page {
-      width: 100%;
-      height: 100%;
-      padding: 1.1rem 1.4rem;
-      display: grid;
-      grid-template-columns: 300px 1fr 270px;
-      gap: 1.1rem;
-      overflow: hidden;
-    }
-
-    .tv-log-panel {
-      background: linear-gradient(180deg, rgba(15,23,42,.96), rgba(2,8,24,.96));
-      border: 1px solid rgba(249,115,22,.25);
-      border-radius: 22px;
-      box-shadow: 0 0 28px rgba(249,115,22,.08);
-      overflow: hidden;
-    }
-
-    .tv-log-driver {
-      padding: 1.4rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .tv-log-driver-icon {
-      width: 86px;
-      height: 86px;
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.4rem;
-      color: #fff;
-      background: linear-gradient(135deg, #fb923c, #f97316);
-      box-shadow: 0 0 32px rgba(249,115,22,.35);
-      margin-bottom: 1rem;
-    }
-
-    .tv-log-driver-name {
-      font-size: 2.7rem;
-      line-height: 1;
-      font-weight: 900;
-      color: #fb923c;
-      text-transform: uppercase;
-      letter-spacing: -1px;
-    }
-
-    .tv-log-driver-sub {
-      margin-top: .55rem;
-      color: #94a3b8;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .tv-log-live {
-      display: inline-flex;
-      align-items: center;
-      gap: .45rem;
-      margin-top: 1.1rem;
-      width: fit-content;
-      background: rgba(34,197,94,.13);
-      border: 1px solid rgba(34,197,94,.35);
-      color: #4ade80;
-      border-radius: 999px;
-      padding: .55rem .85rem;
-      font-size: .8rem;
-      font-weight: 900;
-      letter-spacing: .8px;
-    }
-
-    .tv-log-stat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .65rem;
-      margin-top: 1.4rem;
-    }
-
-    .tv-log-stat {
-      background: rgba(15,23,42,.65);
-      border: 1px solid rgba(59,130,246,.14);
-      border-radius: 15px;
-      padding: .75rem;
-    }
-
-    .tv-log-stat strong {
-      display: block;
-      font-size: 1.35rem;
-      color: #e2f0ff;
-      line-height: 1;
-    }
-
-    .tv-log-stat span {
-      display: block;
-      margin-top: .35rem;
-      color: #64748b;
-      font-size: .68rem;
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      font-weight: 800;
-    }
-
-    .tv-route-progress-large {
-      height: 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.07);
-      overflow: hidden;
-      margin-top: 1.1rem;
-      border: 1px solid rgba(255,255,255,.06);
-    }
-
-    .tv-route-progress-large div {
-      height: 100%;
-      background: linear-gradient(90deg, #22c55e, #86efac);
-      border-radius: 999px;
-      box-shadow: 0 0 18px rgba(34,197,94,.35);
-    }
-
-    .tv-log-stops {
-      padding: 1.1rem;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .tv-log-title-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: .85rem;
-      flex-shrink: 0;
-    }
-
-    .tv-log-title {
-      font-size: 1.05rem;
-      font-weight: 900;
-      letter-spacing: 1.7px;
-      color: #60a5fa;
-      text-transform: uppercase;
-    }
-
-    .tv-log-route-count {
-      color: #94a3b8;
-      font-size: .85rem;
-      font-weight: 700;
-    }
-
-    .tv-log-stops-list {
-      flex: 1;
-      display: grid;
-      grid-template-rows: repeat(3, minmax(0, 1fr));
-      gap: .8rem;
-      overflow: hidden;
-    }
-
-    .tv-log-stop-card {
-      position: relative;
-      background: rgba(15,23,42,.8);
-      border: 1px solid rgba(59,130,246,.18);
-      border-radius: 20px;
-      padding: 1rem 1.1rem;
-      display: grid;
-      grid-template-columns: 58px 1fr 120px;
-      gap: .9rem;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    .tv-log-stop-card.next {
-      border-color: rgba(249,115,22,.65);
-      box-shadow: inset 0 0 0 1px rgba(249,115,22,.15), 0 0 24px rgba(249,115,22,.18);
-      background: linear-gradient(90deg, rgba(249,115,22,.11), rgba(15,23,42,.86));
-    }
-
-    .tv-log-stop-num {
-      width: 48px;
-      height: 48px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(59,130,246,.15);
-      color: #60a5fa;
-      font-size: 1.25rem;
-      font-weight: 900;
-    }
-
-    .tv-log-stop-card.next .tv-log-stop-num {
-      background: rgba(249,115,22,.2);
-      color: #fb923c;
-    }
-
-    .tv-log-client-name {
-      font-size: 1.45rem;
-      font-weight: 900;
-      color: #e2e8f0;
-      line-height: 1.05;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .tv-log-product-name {
-      margin-top: .45rem;
-      color: #60a5fa;
-      font-size: .95rem;
-      font-weight: 800;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .tv-log-stop-meta {
-      text-align: right;
-      color: #94a3b8;
-      font-weight: 800;
-      font-size: .95rem;
-    }
-
-    .tv-log-next-badge {
-      position: absolute;
-      top: .7rem;
-      right: .8rem;
-      font-size: .58rem;
-      font-weight: 900;
-      color: #fb923c;
-      background: rgba(249,115,22,.16);
-      border: 1px solid rgba(249,115,22,.35);
-      border-radius: 999px;
-      padding: .2rem .45rem;
-      letter-spacing: .7px;
-    }
-
-    .tv-log-kpis {
-      padding: 1.1rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .tv-log-next-box {
-      background: linear-gradient(135deg, rgba(249,115,22,.16), rgba(59,130,246,.08));
-      border: 1px solid rgba(249,115,22,.3);
-      border-radius: 18px;
-      padding: 1rem;
-    }
-
-    .tv-log-next-label {
-      color: #fb923c;
-      font-size: .7rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      margin-bottom: .55rem;
-    }
-
-    .tv-log-next-client {
-      color: #fff;
-      font-size: 1.1rem;
-      font-weight: 900;
-      line-height: 1.15;
-    }
-
-    .tv-log-next-product {
-      margin-top: .5rem;
-      color: #93c5fd;
-      font-size: .82rem;
-      font-weight: 700;
-      line-height: 1.25;
-    }
-
-    .tv-log-mini-map {
-      margin-top: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: .55rem;
-      color: #94a3b8;
-      font-size: .78rem;
-      font-weight: 700;
-    }
-
-    .tv-log-map-point {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .tv-log-map-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #334155;
-      flex-shrink: 0;
-    }
-
-    .tv-log-map-point.next .tv-log-map-dot {
-      background: #fb923c;
-      box-shadow: 0 0 12px rgba(249,115,22,.7);
-    }
-
-    .tv-log-empty {
-      width:100%;
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      color:#334155;
-      gap:1rem;
-    }
-
-    .tv-log-empty i {
-      font-size:4rem;
-      opacity:.6;
-    }
-
-    .tv-log-empty-title {
-      font-size:1.5rem;
-      font-weight:800;
-      color:#64748b;
-    }
-
-  
-    /* ==========================================================
-       FACTORYFLOW TV PRO – VISUAL PREMIUM COMPLETO
-       ========================================================== */
-    :root {
-      --ff-bg: #030712;
-      --ff-bg2: #07111f;
-      --ff-panel: rgba(8, 18, 36, .82);
-      --ff-panel2: rgba(15, 28, 52, .72);
-      --ff-border: rgba(80, 130, 220, .24);
-      --ff-soft: rgba(148, 163, 184, .12);
-      --ff-text: #eaf3ff;
-      --ff-muted: #8aa3c7;
-      --ff-blue: #4f9cff;
-      --ff-cyan: #22d3ee;
-      --ff-green: #22c55e;
-      --ff-yellow: #facc15;
-      --ff-orange: #fb923c;
-      --ff-red: #fb7185;
-      --ff-purple: #a78bfa;
-    }
-
-    body {
-      background:
-        radial-gradient(circle at 15% 0%, rgba(79,156,255,.16), transparent 28%),
-        radial-gradient(circle at 85% 5%, rgba(251,146,60,.12), transparent 24%),
-        radial-gradient(circle at 50% 100%, rgba(34,211,238,.08), transparent 30%),
-        #020617 !important;
-    }
-
-    .tv-grid-lines {
-      opacity: .8;
-      background-size: 72px 72px !important;
-      mask-image: linear-gradient(to bottom, transparent, black 16%, black 78%, transparent);
-    }
-
-    .tv-topbar {
-      height: 70px;
-      padding: .55rem 1rem !important;
-      background: rgba(3, 10, 26, .86) !important;
-      border-bottom: 1px solid rgba(96, 165, 250, .22) !important;
-      box-shadow: 0 10px 35px rgba(0,0,0,.28);
-    }
-
-    .tv-brand-icon {
-      width: 42px !important;
-      height: 42px !important;
-      border-radius: 14px !important;
-      background: linear-gradient(135deg, #60a5fa, #7c3aed) !important;
-      box-shadow: 0 0 30px rgba(96,165,250,.24) !important;
-    }
-
-    .tv-brand h1 {
-      font-size: 1.15rem !important;
-      letter-spacing: 1.1px !important;
-    }
-
-    .tv-brand p {
-      font-size: .58rem !important;
-      letter-spacing: 3px !important;
-      color: #93c5fd !important;
-    }
-
-    .tv-clock {
-      font-size: 1.75rem !important;
-      font-weight: 900 !important;
-      letter-spacing: -.8px;
-    }
-
-    .tv-date {
-      font-size: .72rem !important;
-      color: #93c5fd !important;
-      margin-top: -2px;
-    }
-
-    .tv-metric-chip {
-      height: 32px;
-      padding: 0 .72rem !important;
-      border-radius: 11px !important;
-      font-size: .72rem !important;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-    }
-
-    .tv-live-badge {
-      height: 32px;
-      padding: 0 .78rem !important;
-      border-radius: 999px !important;
-      box-shadow: 0 0 22px rgba(34,197,94,.14);
-    }
-
-    .tv-wrapper {
-      background: transparent !important;
-    }
-
-    .tv-columns-wrapper {
-      padding: .75rem;
-      gap: .7rem !important;
-      background: transparent !important;
-    }
-
-    .tv-column {
-      border: 1px solid rgba(96,165,250,.15) !important;
-      border-radius: 20px;
-      background:
-        linear-gradient(180deg, rgba(15,23,42,.76), rgba(2,6,23,.72)),
-        rgba(15,23,42,.5);
-      overflow: hidden !important;
-      box-shadow:
-        0 18px 40px rgba(0,0,0,.22),
-        inset 0 1px 0 rgba(255,255,255,.05);
-    }
-
-    .tv-col-header {
-      min-height: 48px;
-      padding: .62rem .7rem !important;
-      background: linear-gradient(90deg, rgba(255,255,255,.045), rgba(255,255,255,.015)) !important;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-
-    .tv-col-header::after {
-      height: 3px !important;
-      opacity: .95;
-      box-shadow: 0 0 18px currentColor;
-    }
-
-    .tv-col-title {
-      font-size: .67rem !important;
-      letter-spacing: 1.1px !important;
-    }
-
-    .tv-col-icon {
-      width: 25px !important;
-      height: 25px !important;
-      border-radius: 9px !important;
-    }
-
-    .tv-col-count {
-      min-width: 32px !important;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px !important;
-      font-size: 1rem !important;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
-    }
-
-    .tv-col-body {
-      padding: .55rem !important;
-      gap: .48rem !important;
-    }
-
-    .tv-lot-card {
-      border-radius: 15px !important;
-      padding: .62rem .7rem !important;
-      background:
-        linear-gradient(135deg, rgba(15, 31, 60, .93), rgba(8, 18, 36, .92)) !important;
-      border: 1px solid rgba(96,165,250,.18) !important;
-      box-shadow:
-        0 9px 22px rgba(0,0,0,.18),
-        inset 0 1px 0 rgba(255,255,255,.05);
-    }
-
-    .tv-lot-card::before {
-      height: 3px !important;
-    }
-
-    .tv-lot-card.priority-urgent {
-      border-color: rgba(251,146,60,.52) !important;
-      box-shadow: 0 0 24px rgba(251,146,60,.08), 0 9px 22px rgba(0,0,0,.18);
-    }
-
-    .tv-lot-card.priority-sameday {
-      border-color: rgba(251,113,133,.55) !important;
-    }
-
-    .tv-lot-number {
-      font-size: .86rem !important;
-      letter-spacing: .3px;
-    }
-
-    .tv-lot-client {
-      color: #9fc5ff !important;
-      font-size: .67rem !important;
-      font-weight: 650;
-    }
-
-    .tv-lot-paint {
-      color: #aab7cc !important;
-      font-size: .62rem !important;
-    }
-
-    .tv-product-type {
-      border-radius: 999px !important;
-      padding: .12rem .42rem !important;
-    }
-
-    .tv-time-bar {
-      height: 4px !important;
-      background: rgba(255,255,255,.08) !important;
-    }
-
-    .tv-sector-stats {
-      background: rgba(2, 6, 23, .35);
-      padding: .38rem .65rem !important;
-    }
-
-    .tv-bottombar {
-      min-height: 78px;
-      padding: .52rem .9rem !important;
-      background: rgba(3, 10, 26, .88) !important;
-      backdrop-filter: blur(18px);
-      border-top: 1px solid rgba(96,165,250,.22) !important;
-      box-shadow: 0 -16px 38px rgba(0,0,0,.22);
-    }
-
-    .tv-bottom-label {
-      color: #93c5fd !important;
-      font-size: .58rem !important;
-      font-weight: 900 !important;
-    }
-
-    .tv-delivery-chip,
-    .tv-ready-chip,
-    .tv-alert-chip {
-      border-radius: 10px !important;
-      padding: .22rem .55rem !important;
-      font-weight: 800;
-    }
-
-    /* ===== PÁGINA PRODUÇÃO PRO ===== */
-    .tv-production-hero {
-      width: 100%;
-      height: 100%;
-      display: grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap: .8rem;
-      padding: .75rem;
-    }
-
-    .tv-hero-main {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: .75rem;
-      min-width: 0;
-    }
-
-    .tv-hero-side {
-      display: grid;
-      grid-template-rows: 1fr 1fr;
-      gap: .75rem;
-      min-width: 0;
-    }
-
-    .tv-super-card {
-      background: linear-gradient(180deg, rgba(15,23,42,.82), rgba(2,6,23,.72));
-      border: 1px solid rgba(96,165,250,.18);
-      border-radius: 24px;
-      box-shadow: 0 18px 40px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05);
-      overflow: hidden;
-    }
-
-    .tv-super-card-header {
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: .65rem .8rem;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      background: linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
-    }
-
-    .tv-super-title {
-      display: flex;
-      align-items: center;
-      gap: .48rem;
-      font-size: .72rem;
-      font-weight: 950;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: #dbeafe;
-    }
-
-    .tv-super-count {
-      min-width: 34px;
-      height: 28px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(96,165,250,.14);
-      color: #93c5fd;
-      font-weight: 950;
-    }
-
-    .tv-super-list {
-      height: calc(100% - 48px);
-      padding: .65rem;
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-      overflow: hidden;
-    }
-
-    .tv-focus-lot {
-      position: relative;
-      background: linear-gradient(135deg, rgba(15,31,60,.95), rgba(8,18,36,.92));
-      border: 1px solid rgba(96,165,250,.2);
-      border-radius: 16px;
-      padding: .7rem;
-      min-height: 78px;
-      overflow: hidden;
-    }
-
-    .tv-focus-lot.hot {
-      border-color: rgba(251,146,60,.58);
-      box-shadow: 0 0 24px rgba(251,146,60,.1);
-    }
-
-    .tv-focus-lot.danger {
-      border-color: rgba(251,113,133,.58);
-      box-shadow: 0 0 24px rgba(251,113,133,.1);
-    }
-
-    .tv-focus-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: .6rem;
-    }
-
-    .tv-focus-number {
-      color: #f8fbff;
-      font-size: 1rem;
-      font-weight: 950;
-      letter-spacing: .2px;
-    }
-
-    .tv-focus-badge {
-      border-radius: 999px;
-      padding: .16rem .45rem;
-      font-size: .55rem;
-      font-weight: 950;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    .tv-focus-client {
-      margin-top: .36rem;
-      color: #9fc5ff;
-      font-weight: 750;
-      font-size: .72rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .tv-focus-paint {
-      margin-top: .18rem;
-      color: #aab7cc;
-      font-size: .66rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .tv-focus-meta {
-      margin-top: .36rem;
-      display: flex;
-      gap: .45rem;
-      color: #64748b;
-      font-size: .58rem;
-      font-weight: 800;
-    }
-
-    /* ===== PÁGINA LOGÍSTICA PRO ===== */
-    .tv-logistics-page {
-      padding: .9rem 1.05rem !important;
-      grid-template-columns: 310px 1fr 300px !important;
-      gap: .9rem !important;
-    }
-
-    .tv-log-panel {
-      border-radius: 26px !important;
-      background:
-        linear-gradient(180deg, rgba(15,23,42,.88), rgba(2,6,23,.78)) !important;
-      border: 1px solid rgba(251,146,60,.26) !important;
-      box-shadow: 0 22px 50px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05) !important;
-    }
-
-    .tv-log-driver-name {
-      font-size: 2.55rem !important;
-      letter-spacing: -1.5px;
-    }
-
-    .tv-log-stops-list {
-      grid-template-rows: repeat(4, minmax(0, 1fr)) !important;
-      gap: .65rem !important;
-    }
-
-    .tv-log-stop-card {
-      grid-template-columns: 54px 1fr 120px !important;
-      border-radius: 19px !important;
-      padding: .8rem .95rem !important;
-    }
-
-    .tv-log-client-name {
-      font-size: 1.18rem !important;
-    }
-
-    .tv-log-product-name {
-      font-size: .82rem !important;
-    }
-
-  
-/* ==========================================================
-   AJUSTE FINAL TV – PRODUÇÃO CABENDO MELHOR NA TELA
-   ========================================================== */
-.tv-topbar{
-  height:66px !important;
-  min-height:66px !important;
-  padding:.42rem .8rem !important;
-}
-
-.tv-brand-icon{
-  width:38px !important;
-  height:38px !important;
-  border-radius:12px !important;
-}
-
-.tv-brand h1{
-  font-size:1.05rem !important;
-}
-
-.tv-brand p{
-  font-size:.52rem !important;
-}
-
-.tv-clock{
-  font-size:1.48rem !important;
-}
-
-.tv-date{
-  font-size:.66rem !important;
-}
-
-.tv-metric-chip{
-  height:28px !important;
-  padding:0 .58rem !important;
-  font-size:.62rem !important;
-  border-radius:9px !important;
-}
-
-.tv-live-badge{
-  height:28px !important;
-  padding:0 .65rem !important;
-  font-size:.62rem !important;
-}
-
-.tv-columns-wrapper{
-  flex:1 !important;
-  min-height:0 !important;
-  height:calc(100vh - 122px) !important;
-  padding:.35rem !important;
-  gap:.45rem !important;
-  overflow:hidden !important;
-}
-
-.tv-bottombar{
-  height:56px !important;
-  min-height:56px !important;
-  padding:.25rem .6rem !important;
-  gap:.8rem !important;
-}
-
-.tv-bottom-label{
-  font-size:.50rem !important;
-}
-
-.tv-delivery-chip,
-.tv-ready-chip,
-.tv-alert-chip{
-  padding:.12rem .38rem !important;
-  font-size:.50rem !important;
-  border-radius:8px !important;
-}
-
-/* Página 1 premium compacta */
-.tv-production-hero{
-  width:100% !important;
-  height:100% !important;
-  display:grid !important;
-  grid-template-columns:1fr !important;
-  grid-template-rows:1fr .58fr !important;
-  gap:.45rem !important;
-  padding:0 !important;
-  overflow:hidden !important;
-}
-
-.tv-hero-main{
-  display:grid !important;
-  grid-template-columns:repeat(6, minmax(0, 1fr)) !important;
-  gap:.45rem !important;
-  min-height:0 !important;
-  overflow:hidden !important;
-}
-
-.tv-hero-side{
-  display:grid !important;
-  grid-template-columns:1fr 1fr !important;
-  grid-template-rows:1fr !important;
-  gap:.45rem !important;
-  min-height:0 !important;
-  overflow:hidden !important;
-}
-
-.tv-super-card{
-  min-height:0 !important;
-  overflow:hidden !important;
-  border-radius:16px !important;
-}
-
-.tv-super-card-header{
-  height:34px !important;
-  min-height:34px !important;
-  padding:.32rem .48rem !important;
-}
-
-.tv-super-title{
-  font-size:.50rem !important;
-  letter-spacing:.9px !important;
-  gap:.32rem !important;
-}
-
-.tv-super-count{
-  min-width:24px !important;
-  height:22px !important;
-  border-radius:8px !important;
-  font-size:.70rem !important;
-}
-
-.tv-super-list{
-  height:calc(100% - 34px) !important;
-  padding:.34rem !important;
-  gap:.28rem !important;
-  min-height:0 !important;
-  overflow:hidden !important;
-}
-
-.tv-focus-lot{
-  border-radius:11px !important;
-  padding:.36rem .44rem !important;
-  min-height:50px !important;
-}
-
-.tv-focus-number{
-  font-size:.72rem !important;
-}
-
-.tv-focus-badge{
-  font-size:.42rem !important;
-  padding:.10rem .32rem !important;
-}
-
-.tv-focus-client{
-  margin-top:.22rem !important;
-  font-size:.52rem !important;
-  line-height:1.08 !important;
-}
-
-.tv-focus-paint{
-  margin-top:.12rem !important;
-  font-size:.47rem !important;
-  line-height:1.08 !important;
-}
-
-.tv-focus-meta{
-  margin-top:.22rem !important;
-  gap:.26rem !important;
-  font-size:.42rem !important;
-}
-
-/* Página 2 kanban compacta */
-.tv-column{
-  border-radius:15px !important;
-}
-
-.tv-col-header{
-  min-height:36px !important;
-  padding:.32rem .44rem !important;
-}
-
-.tv-col-title{
-  font-size:.54rem !important;
-  gap:.28rem !important;
-}
-
-.tv-col-icon{
-  width:20px !important;
-  height:20px !important;
-  border-radius:7px !important;
-  font-size:.50rem !important;
-}
-
-.tv-col-count{
-  min-width:24px !important;
-  height:22px !important;
-  font-size:.76rem !important;
-}
-
-.tv-col-body{
-  padding:.30rem !important;
-  gap:.30rem !important;
-}
-
-.tv-lot-card{
-  border-radius:11px !important;
-  padding:.38rem .44rem !important;
-}
-
-.tv-lot-card::before{
-  height:2px !important;
-}
-
-.tv-lot-number{
-  font-size:.72rem !important;
-}
-
-.tv-lot-client{
-  font-size:.54rem !important;
-  line-height:1.1 !important;
-}
-
-.tv-lot-paint{
-  font-size:.48rem !important;
-  line-height:1.08 !important;
-}
-
-.tv-product-type,
-.tv-time-chip,
-.tv-delivery-date{
-  font-size:.42rem !important;
-}
-
-.tv-time-bar-wrap{
-  margin-top:.18rem !important;
-}
-
-.tv-tbar-labels{
-  font-size:.42rem !important;
-  margin-top:.08rem !important;
-}
-
-.tv-sector-stats{
-  padding:.18rem .38rem !important;
-  font-size:.42rem !important;
-}
-
-/* Página 3 rotas compacta e proporcional */
-.tv-logistics-page{
-  height:100% !important;
-  padding:.35rem !important;
-  gap:.45rem !important;
-  grid-template-columns:230px 1fr 230px !important;
-  overflow:hidden !important;
-}
-
-.tv-log-panel{
-  border-radius:18px !important;
-  min-height:0 !important;
-}
-
-.tv-log-driver{
-  padding:.9rem !important;
-}
-
-.tv-log-driver-icon{
-  width:62px !important;
-  height:62px !important;
-  border-radius:17px !important;
-  font-size:1.75rem !important;
-}
-
-.tv-log-driver-name{
-  font-size:1.85rem !important;
-}
-
-.tv-log-driver-sub{
-  font-size:.75rem !important;
-}
-
-.tv-log-live{
-  padding:.38rem .58rem !important;
-  font-size:.62rem !important;
-}
-
-.tv-log-stat-grid{
-  gap:.42rem !important;
-  margin-top:.8rem !important;
-}
-
-.tv-log-stat{
-  padding:.5rem !important;
-  border-radius:12px !important;
-}
-
-.tv-log-stat strong{
-  font-size:1rem !important;
-}
-
-.tv-log-stat span{
-  font-size:.50rem !important;
-}
-
-.tv-log-stops{
-  padding:.65rem !important;
-}
-
-.tv-log-title-row{
-  margin-bottom:.45rem !important;
-}
-
-.tv-log-title{
-  font-size:.72rem !important;
-}
-
-.tv-log-route-count{
-  font-size:.62rem !important;
-}
-
-.tv-log-stops-list{
-  grid-template-rows:repeat(4, minmax(0, 1fr)) !important;
-  gap:.45rem !important;
-}
-
-.tv-log-stop-card{
-  grid-template-columns:42px 1fr 86px !important;
-  gap:.55rem !important;
-  padding:.55rem .65rem !important;
-  border-radius:14px !important;
-}
-
-.tv-log-stop-num{
-  width:36px !important;
-  height:36px !important;
-  border-radius:12px !important;
-  font-size:.9rem !important;
-}
-
-.tv-log-client-name{
-  font-size:.85rem !important;
-}
-
-.tv-log-product-name{
-  font-size:.58rem !important;
-  margin-top:.25rem !important;
-}
-
-.tv-log-stop-meta{
-  font-size:.62rem !important;
-}
-
-.tv-log-kpis{
-  padding:.65rem !important;
-}
-
-.tv-log-next-box{
-  padding:.7rem !important;
-  border-radius:14px !important;
-}
-
-.tv-log-next-label{
-  font-size:.55rem !important;
-}
-
-.tv-log-next-client{
-  font-size:.78rem !important;
-}
-
-.tv-log-next-product{
-  font-size:.58rem !important;
-}
-
-.tv-log-mini-map{
-  font-size:.58rem !important;
-  gap:.35rem !important;
-}
-
-#tvLastUpdate{
-  font-size:.48rem !important;
-}
-
-
-/* ===== PRONTOS COMO STATUS DE EXPEDIÇÃO ===== */
-.tv-ready-status-list{
-  height:calc(100% - 34px);
-  padding:.34rem;
-  display:flex;
-  flex-direction:column;
-  gap:.28rem;
-  overflow:hidden;
-}
-
-.tv-ready-status-item{
-  display:grid;
-  grid-template-columns: 68px 1fr auto;
-  align-items:center;
-  gap:.45rem;
-  min-height:38px;
-  padding:.36rem .48rem;
-  border-radius:11px;
-  background:linear-gradient(135deg, rgba(20,83,45,.18), rgba(15,31,60,.78));
-  border:1px solid rgba(34,197,94,.28);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
-}
-
-.tv-ready-status-item.in-route{
-  background:linear-gradient(135deg, rgba(37,99,235,.16), rgba(15,31,60,.78));
-  border-color:rgba(96,165,250,.28);
-}
-
-.tv-ready-status-order{
-  color:#eafff2;
-  font-weight:950;
-  font-size:.66rem;
-  white-space:nowrap;
-}
-
-.tv-ready-status-client{
-  color:#9fc5ff;
-  font-weight:800;
-  font-size:.56rem;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.tv-ready-status-paint{
-  margin-top:.08rem;
-  color:#94a3b8;
-  font-size:.45rem;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.tv-ready-status-badge{
-  border-radius:999px;
-  padding:.12rem .38rem;
-  font-size:.42rem;
-  font-weight:950;
-  text-transform:uppercase;
-  white-space:nowrap;
-  letter-spacing:.4px;
-}
-
-.tv-ready-status-badge.ready{
-  color:#4ade80;
-  background:rgba(34,197,94,.14);
-  border:1px solid rgba(34,197,94,.30);
-}
-
-.tv-ready-status-badge.route{
-  color:#60a5fa;
-  background:rgba(59,130,246,.14);
-  border:1px solid rgba(59,130,246,.30);
-}
-
-
-/* ===== CENTRAL DE EXPEDIÇÃO ===== */
-.tv-expedition-page{
-  width:100%;
-  height:100%;
-  display:grid;
-  grid-template-columns:1.1fr .9fr .7fr;
-  gap:.45rem;
-  padding:.35rem;
-  overflow:hidden;
-}
-
-.tv-exp-card{
-  background:linear-gradient(180deg, rgba(15,23,42,.82), rgba(2,6,23,.74));
-  border:1px solid rgba(96,165,250,.16);
-  border-radius:16px;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  min-height:0;
-}
-
-.tv-exp-header{
-  height:36px;
-  min-height:36px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:.35rem .55rem;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
-}
-
-.tv-exp-title{
-  font-size:.58rem;
-  font-weight:900;
-  letter-spacing:1px;
-  text-transform:uppercase;
-}
-
-.tv-exp-count{
-  min-width:24px;
-  height:22px;
-  border-radius:8px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:rgba(96,165,250,.14);
-  color:#93c5fd;
-  font-size:.68rem;
-  font-weight:900;
-}
-
-.tv-exp-list{
-  flex:1;
-  padding:.35rem;
-  display:flex;
-  flex-direction:column;
-  gap:.3rem;
-  overflow:hidden;
-}
-
-.tv-exp-item{
-  display:grid;
-  grid-template-columns:68px 1fr auto;
-  gap:.42rem;
-  align-items:center;
-  min-height:44px;
-  padding:.36rem .48rem;
-  border-radius:11px;
-  background:linear-gradient(135deg, rgba(15,31,60,.9), rgba(8,18,36,.88));
-  border:1px solid rgba(96,165,250,.16);
-}
-
-.tv-exp-order{
-  color:#fff;
-  font-size:.64rem;
-  font-weight:900;
-}
-
-.tv-exp-client{
-  color:#9fc5ff;
-  font-size:.56rem;
-  font-weight:800;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.tv-exp-product{
-  margin-top:.08rem;
-  color:#94a3b8;
-  font-size:.46rem;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.tv-exp-status{
-  border-radius:999px;
-  padding:.12rem .34rem;
-  font-size:.42rem;
-  font-weight:900;
-  text-transform:uppercase;
-  white-space:nowrap;
-}
-
-.tv-exp-status.ready{
-  color:#4ade80;
-  background:rgba(34,197,94,.14);
-  border:1px solid rgba(34,197,94,.28);
-}
-
-.tv-exp-status.route{
-  color:#60a5fa;
-  background:rgba(59,130,246,.14);
-  border:1px solid rgba(59,130,246,.28);
-}
-
-.tv-exp-status.urgent{
-  color:#fb7185;
-  background:rgba(251,113,133,.14);
-  border:1px solid rgba(251,113,133,.28);
-}
-
-.tv-exp-kpi{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  min-height:84px;
-  border-radius:14px;
-  background:linear-gradient(135deg, rgba(15,31,60,.9), rgba(8,18,36,.88));
-  border:1px solid rgba(96,165,250,.16);
-}
-
-.tv-exp-kpi strong{
-  font-size:1.2rem;
-  color:#fff;
-  line-height:1;
-}
-
-.tv-exp-kpi span{
-  margin-top:.28rem;
-  color:#94a3b8;
-  font-size:.48rem;
-  font-weight:800;
-  letter-spacing:.8px;
-  text-transform:uppercase;
-}
-
-
-/* ===== CENTRAL DE EXPEDIÇÃO V2 – URGENTES + LOTES PRONTOS ===== */
-.tv-expedition-page{
-  width:100% !important;
-  height:100% !important;
-  display:grid !important;
-  grid-template-columns:.95fr 1.45fr !important;
-  grid-template-rows:1fr !important;
-  gap:.55rem !important;
-  padding:.45rem !important;
-  overflow:hidden !important;
-}
-
-.tv-exp-panel{
-  background:linear-gradient(180deg, rgba(15,23,42,.88), rgba(2,6,23,.78));
-  border:1px solid rgba(96,165,250,.18);
-  border-radius:18px;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  min-height:0;
-  box-shadow:0 16px 38px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.04);
-}
-
-.tv-exp-panel.urgent{
-  border-color:rgba(251,113,133,.34);
-  box-shadow:0 0 28px rgba(251,113,133,.08), 0 16px 38px rgba(0,0,0,.24);
-}
-
-.tv-exp-panel.ready{
-  border-color:rgba(34,197,94,.28);
-}
-
-.tv-exp-top{
-  height:44px;
-  min-height:44px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:.45rem .7rem;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:linear-gradient(90deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
-}
-
-.tv-exp-heading{
-  display:flex;
-  align-items:center;
-  gap:.45rem;
-  font-size:.68rem;
-  font-weight:950;
-  letter-spacing:1.1px;
-  text-transform:uppercase;
-}
-
-.tv-exp-heading.urgent{ color:#fb7185; }
-.tv-exp-heading.ready{ color:#4ade80; }
-
-.tv-exp-pill{
-  min-width:30px;
-  height:26px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:0 .55rem;
-  border-radius:999px;
-  font-size:.72rem;
-  font-weight:950;
-}
-
-.tv-exp-pill.urgent{
-  color:#fb7185;
-  background:rgba(251,113,133,.15);
-  border:1px solid rgba(251,113,133,.32);
-}
-
-.tv-exp-pill.ready{
-  color:#4ade80;
-  background:rgba(34,197,94,.14);
-  border:1px solid rgba(34,197,94,.30);
-}
-
-.tv-exp-scroll{
-  flex:1;
-  min-height:0;
-  overflow:hidden;
-  padding:.45rem;
-  display:flex;
-  flex-direction:column;
-  gap:.38rem;
-}
-
-.tv-urgent-order-card{
-  background:linear-gradient(135deg, rgba(127,29,29,.18), rgba(15,31,60,.82));
-  border:1px solid rgba(251,113,133,.26);
-  border-radius:15px;
-  padding:.55rem;
-  min-height:82px;
-}
-
-.tv-urgent-order-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:.5rem;
-  margin-bottom:.28rem;
-}
-
-.tv-urgent-order-number{
-  font-size:.82rem;
-  color:#fff;
-  font-weight:950;
-}
-
-.tv-urgent-badge{
-  font-size:.46rem;
-  color:#fb7185;
-  background:rgba(251,113,133,.14);
-  border:1px solid rgba(251,113,133,.3);
-  border-radius:999px;
-  padding:.12rem .35rem;
-  font-weight:950;
-  text-transform:uppercase;
-  white-space:nowrap;
-}
-
-.tv-urgent-client{
-  color:#bfdbfe;
-  font-size:.62rem;
-  font-weight:850;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  margin-bottom:.25rem;
-}
-
-.tv-urgent-lots{
-  display:flex;
-  flex-direction:column;
-  gap:.18rem;
-}
-
-.tv-urgent-lot-line{
-  display:grid;
-  grid-template-columns:62px 1fr auto;
-  gap:.32rem;
-  align-items:center;
-  color:#94a3b8;
-  font-size:.48rem;
-}
-
-.tv-urgent-lot-code{
-  color:#e2f0ff;
-  font-weight:900;
-}
-
-.tv-urgent-location{
-  color:#fbbf24;
-  font-weight:850;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.tv-ready-grid{
-  flex:1;
-  min-height:0;
-  overflow:hidden;
-  padding:.45rem;
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
-  align-content:start;
-  gap:.38rem;
-}
-
-.tv-ready-lot-card{
-  display:grid;
-  grid-template-columns:66px 1fr auto;
-  gap:.38rem;
-  align-items:center;
-  min-height:48px;
-  padding:.38rem .46rem;
-  border-radius:12px;
-  background:linear-gradient(135deg, rgba(20,83,45,.18), rgba(15,31,60,.82));
-  border:1px solid rgba(34,197,94,.24);
-  overflow:hidden;
-}
-
-.tv-ready-lot-card.in-route{
-  background:linear-gradient(135deg, rgba(30,64,175,.17), rgba(15,31,60,.82));
-  border-color:rgba(96,165,250,.26);
-}
-
-.tv-ready-order{
-  color:#fff;
-  font-size:.62rem;
-  font-weight:950;
-  white-space:nowrap;
-}
-
-.tv-ready-client{
-  color:#9fc5ff;
-  font-size:.52rem;
-  font-weight:850;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.tv-ready-product{
-  margin-top:.08rem;
-  color:#94a3b8;
-  font-size:.43rem;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.tv-ready-state{
-  border-radius:999px;
-  padding:.12rem .32rem;
-  font-size:.40rem;
-  font-weight:950;
-  text-transform:uppercase;
-  white-space:nowrap;
-}
-
-.tv-ready-state.ready{
-  color:#4ade80;
-  background:rgba(34,197,94,.14);
-  border:1px solid rgba(34,197,94,.28);
-}
-
-.tv-ready-state.route{
-  color:#60a5fa;
-  background:rgba(59,130,246,.14);
-  border:1px solid rgba(59,130,246,.28);
-}
-
-.tv-exp-empty{
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  gap:.6rem;
-  color:#475569;
-  font-weight:800;
-}
-
-
-/* ===== NOVO LAYOUT EXPEDIÇÃO ===== */
-.tv-expedition-page{
-  width:100%;
-  height:100%;
-  padding:.55rem;
-  display:flex;
-  flex-direction:column;
-  gap:.55rem;
-  overflow:hidden;
-}
-
-.tv-exp-main-title{
-  height:48px;
-  min-height:48px;
-  border-radius:16px;
-  background:linear-gradient(90deg, rgba(127,29,29,.18), rgba(15,23,42,.92));
-  border:1px solid rgba(251,113,133,.25);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 1rem;
-}
-
-.tv-exp-main-title h1{
-  color:#fff;
-  font-size:1rem;
-  font-weight:950;
-  letter-spacing:.5px;
-}
-
-.tv-exp-main-title span{
-  color:#fb7185;
-  font-size:.72rem;
-  font-weight:900;
-}
-
-.tv-priority-grid{
-  flex:1;
-  min-height:0;
-  display:grid;
-  grid-template-columns:repeat(2, minmax(0, 1fr));
-  gap:.55rem;
-  overflow:hidden;
-}
-
-.tv-priority-card{
-  border-radius:18px;
-  background:linear-gradient(180deg, rgba(15,23,42,.92), rgba(2,6,23,.82));
-  border:1px solid rgba(251,113,133,.22);
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-}
-
-.tv-priority-header{
-  height:42px;
-  min-height:42px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 .8rem;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:linear-gradient(90deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-}
-
-.tv-priority-header h2{
-  color:#fff;
-  font-size:.72rem;
-  font-weight:900;
-  letter-spacing:.8px;
-  text-transform:uppercase;
-}
-
-.tv-priority-count{
-  min-width:28px;
-  height:24px;
-  border-radius:999px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#fff;
-  font-size:.68rem;
-  font-weight:900;
-}
-
-.tv-priority-count.urgent{
-  background:rgba(251,113,133,.18);
-  border:1px solid rgba(251,113,133,.32);
-  color:#fb7185;
-}
-
-.tv-priority-count.ready{
-  background:rgba(34,197,94,.15);
-  border:1px solid rgba(34,197,94,.28);
-  color:#4ade80;
-}
-
-.tv-priority-list{
-  flex:1;
-  padding:.5rem;
-  display:flex;
-  flex-direction:column;
-  gap:.4rem;
-  overflow:hidden;
-}
-
-.tv-priority-item{
-  border-radius:14px;
-  padding:.55rem .65rem;
-  background:linear-gradient(135deg, rgba(15,31,60,.92), rgba(8,18,36,.88));
-  border:1px solid rgba(96,165,250,.16);
-}
-
-.tv-priority-item.urgent{
-  border-color:rgba(251,113,133,.26);
-  background:linear-gradient(135deg, rgba(127,29,29,.14), rgba(15,31,60,.92));
-}
-
-.tv-priority-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:.5rem;
-}
-
-.tv-priority-order{
-  color:#fff;
-  font-size:.82rem;
-  font-weight:950;
-}
-
-.tv-priority-badge{
-  border-radius:999px;
-  padding:.12rem .38rem;
-  font-size:.44rem;
-  font-weight:950;
-  text-transform:uppercase;
-}
-
-.tv-priority-badge.urgent{
-  color:#fb7185;
-  background:rgba(251,113,133,.14);
-  border:1px solid rgba(251,113,133,.28);
-}
-
-.tv-priority-badge.ready{
-  color:#4ade80;
-  background:rgba(34,197,94,.14);
-  border:1px solid rgba(34,197,94,.28);
-}
-
-.tv-priority-client{
-  margin-top:.22rem;
-  color:#9fc5ff;
-  font-size:.6rem;
-  font-weight:850;
-}
-
-.tv-priority-lots{
-  margin-top:.35rem;
-  display:flex;
-  flex-direction:column;
-  gap:.18rem;
-}
-
-.tv-priority-lot{
-  display:grid;
-  grid-template-columns:62px 1fr auto;
-  gap:.32rem;
-  align-items:center;
-  color:#94a3b8;
-  font-size:.48rem;
-}
-
-.tv-priority-lot strong{
-  color:#fff;
-}
-
-.tv-priority-location{
-  color:#fbbf24;
-  font-weight:900;
-}
-
-.tv-ready-grid-full{
-  flex:1;
-  padding:.5rem;
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
-  align-content:start;
-  gap:.38rem;
-  overflow:hidden;
-}
-
-.tv-ready-card{
-  min-height:52px;
-  border-radius:12px;
-  padding:.42rem .5rem;
-  background:linear-gradient(135deg, rgba(20,83,45,.16), rgba(15,31,60,.9));
-  border:1px solid rgba(34,197,94,.24);
-  display:grid;
-  grid-template-columns:70px 1fr auto;
-  gap:.38rem;
-  align-items:center;
-}
-
-.tv-ready-card.route{
-  background:linear-gradient(135deg, rgba(30,64,175,.15), rgba(15,31,60,.9));
-  border-color:rgba(96,165,250,.28);
-}
-
-.tv-ready-number{
-  color:#fff;
-  font-size:.64rem;
-  font-weight:950;
-}
-
-.tv-ready-client{
-  color:#9fc5ff;
-  font-size:.52rem;
-  font-weight:850;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.tv-ready-product{
-  margin-top:.08rem;
-  color:#94a3b8;
-  font-size:.44rem;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.tv-ready-status{
-  border-radius:999px;
-  padding:.12rem .32rem;
-  font-size:.4rem;
-  font-weight:950;
-  text-transform:uppercase;
-  white-space:nowrap;
-}
-
-.tv-ready-status.ready{
-  color:#4ade80;
-  background:rgba(34,197,94,.14);
-  border:1px solid rgba(34,197,94,.28);
-}
-
-.tv-ready-status.route{
-  color:#60a5fa;
-  background:rgba(59,130,246,.14);
-  border:1px solid rgba(59,130,246,.28);
-}
-
-
-
-/* ==========================================================
-   PÁGINA PEDIDOS – NOVOS / EM ROTA / ENTREGUES (PREMIUM)
-   ========================================================== */
-.tv-orders-page{
-  width:100%;
-  height:100%;
-  display:grid;
-  grid-template-columns:1.08fr 1fr .92fr;
-  gap:.55rem;
-  padding:.45rem;
-  overflow:hidden;
-}
-.tv-orders-panel{
-  min-width:0;
-  min-height:0;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  border-radius:18px;
-  background:linear-gradient(180deg, rgba(15,23,42,.88), rgba(2,6,23,.78));
-  border:1px solid rgba(96,165,250,.18);
-  box-shadow:0 16px 38px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.04);
-}
-.tv-orders-panel.new{border-color:rgba(167,139,250,.28);}
-.tv-orders-panel.route{border-color:rgba(251,146,60,.28);}
-.tv-orders-panel.delivered{border-color:rgba(34,197,94,.28);}
-.tv-orders-header{
-  height:44px;
-  min-height:44px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:.45rem .7rem;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:linear-gradient(90deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
-}
-.tv-orders-title{
-  min-width:0;
-  display:flex;
-  align-items:center;
-  gap:.45rem;
-  font-size:.68rem;
-  font-weight:950;
-  letter-spacing:1.1px;
-  text-transform:uppercase;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.tv-orders-title.new{color:#c4b5fd;}
-.tv-orders-title.route{color:#fb923c;}
-.tv-orders-title.delivered{color:#4ade80;}
-.tv-orders-count{
-  min-width:30px;
-  height:26px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:0 .55rem;
-  border-radius:999px;
-  font-size:.72rem;
-  font-weight:950;
-}
-.tv-orders-count.new{color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.30);}
-.tv-orders-count.route{color:#fb923c;background:rgba(251,146,60,.14);border:1px solid rgba(251,146,60,.30);}
-.tv-orders-count.delivered{color:#4ade80;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.30);}
-.tv-orders-list{
-  flex:1;
-  min-height:0;
-  overflow:hidden;
-  padding:.45rem;
-  display:flex;
-  flex-direction:column;
-  gap:.38rem;
-}
-.tv-order-mini-card{
-  min-height:92px;
-  border-radius:15px;
-  padding:.56rem .62rem;
-  background:linear-gradient(135deg, rgba(15,31,60,.93), rgba(8,18,36,.90));
-  border:1px solid rgba(96,165,250,.16);
-  box-shadow:0 9px 22px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.04);
-  overflow:hidden;
-}
-.tv-order-mini-card.new{border-color:rgba(167,139,250,.24);}
-.tv-order-mini-card.route{border-color:rgba(251,146,60,.26);background:linear-gradient(135deg, rgba(124,45,18,.18), rgba(8,18,36,.90));}
-.tv-order-mini-card.delivered{border-color:rgba(34,197,94,.24);background:linear-gradient(135deg, rgba(20,83,45,.16), rgba(8,18,36,.90));}
-.tv-order-mini-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:.45rem;
-}
-.tv-order-mini-number{
-  min-width:0;
-  color:#fff;
-  font-size:.78rem;
-  font-weight:950;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.tv-order-mini-badge{
-  flex-shrink:0;
-  border-radius:999px;
-  padding:.13rem .42rem;
-  font-size:.46rem;
-  font-weight:950;
-  text-transform:uppercase;
-  letter-spacing:.45px;
-  white-space:nowrap;
-}
-.tv-order-mini-badge.new{color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.30);}
-.tv-order-mini-badge.route{color:#fb923c;background:rgba(251,146,60,.14);border:1px solid rgba(251,146,60,.30);}
-.tv-order-mini-badge.delivered{color:#4ade80;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.30);}
-.tv-order-mini-client{
-  margin-top:.28rem;
-  color:#bfdbfe;
-  font-size:.62rem;
-  font-weight:850;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.tv-order-mini-meta{
-  display:flex;
-  flex-wrap:wrap;
-  gap:.22rem .42rem;
-  margin-top:.25rem;
-  color:#94a3b8;
-  font-size:.48rem;
-  font-weight:800;
-}
-.tv-order-mini-lots{
-  display:flex;
-  flex-direction:column;
-  gap:.16rem;
-  margin-top:.32rem;
-}
-.tv-order-mini-lot{
-  display:grid;
-  grid-template-columns:58px 1fr auto;
-  align-items:center;
-  gap:.28rem;
-  min-width:0;
-  color:#94a3b8;
-  font-size:.49rem;
-  line-height:1.05;
-}
-.tv-order-mini-lot strong{color:#dbeafe;font-size:.52rem;white-space:nowrap;}
-.tv-order-mini-lot span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tv-order-mini-lot em{
-  max-width:86px;
-  color:#60a5fa;
-  font-style:normal;
-  font-weight:850;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.tv-order-more{
-  color:#64748b;
-  font-size:.46rem;
-  font-weight:900;
-  padding-left:58px;
-}
-.tv-order-empty{
-  height:100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:.55rem;
-  color:#475569;
-  text-align:center;
-  font-size:.75rem;
-  font-weight:850;
-}
-.tv-order-empty i{font-size:2.3rem;opacity:.45;}
-@media (max-width: 1200px){
-  .tv-orders-page{grid-template-columns:1fr 1fr 1fr;gap:.35rem;padding:.35rem;}
-  .tv-order-mini-card{min-height:82px;padding:.45rem;}
-  .tv-order-mini-number{font-size:.68rem;}
-  .tv-order-mini-client{font-size:.54rem;}
-  .tv-order-mini-meta{font-size:.42rem;}
-  .tv-order-mini-lot{font-size:.42rem;grid-template-columns:52px 1fr auto;}
-}
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FactoryFlow TV</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #020617;
+  color: #e2e8f0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+/* ============================================================
+   BACKGROUND
+   ============================================================ */
+.tv-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,130,246,.12) 0%, transparent 60%),
+              radial-gradient(ellipse 50% 40% at 100% 100%, rgba(139,92,246,.08) 0%, transparent 50%),
+              radial-gradient(ellipse 40% 30% at 0% 100%, rgba(6,182,212,.06) 0%, transparent 50%),
+              #020617;
+}
+
+.tv-grid-overlay {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(59,130,246,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ============================================================
+   AUTH SCREEN
+   ============================================================ */
+.tv-auth {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1.2rem; padding: 2rem;
+}
+
+.tv-auth-box {
+  background: rgba(15,23,42,.96);
+  border: 1px solid rgba(59,130,246,.25);
+  border-radius: 24px;
+  padding: 2.5rem 3rem;
+  width: 100%; max-width: 420px;
+  box-shadow: 0 32px 80px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; align-items: center; gap: 1.4rem;
+}
+
+.tv-auth-icon {
+  width: 72px; height: 72px;
+  background: linear-gradient(135deg, rgba(59,130,246,.2), rgba(139,92,246,.15));
+  border: 1px solid rgba(59,130,246,.3);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: #60a5fa;
+}
+
+.tv-auth-box h2 { font-size: 1.5rem; font-weight: 800; color: #fff; text-align: center; }
+.tv-auth-box p  { color: #64748b; font-size: .85rem; text-align: center; }
+
+.tv-auth-form { width: 100%; display: flex; flex-direction: column; gap: .7rem; }
+
+.tv-auth-form input {
+  width: 100%; padding: .75rem 1rem;
+  background: rgba(30,41,59,.8);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px; color: #fff; font-size: .95rem;
+  outline: none; transition: border-color .2s;
+}
+.tv-auth-form input:focus { border-color: rgba(59,130,246,.6); }
+
+.tv-auth-error {
+  color: #fb7185; font-size: .82rem; text-align: center;
+  background: rgba(251,113,133,.08); border: 1px solid rgba(251,113,133,.2);
+  border-radius: 8px; padding: .5rem;
+}
+
+.tv-auth-btn {
+  padding: .75rem;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  border: none; border-radius: 12px; color: #fff;
+  font-size: .95rem; font-weight: 700; cursor: pointer;
+  transition: opacity .2s;
+}
+.tv-auth-btn:hover { opacity: .9; }
+.tv-auth-back { color: #3b82f6; font-size: .8rem; text-decoration: none; }
+
+/* ============================================================
+   LOADING
+   ============================================================ */
+.tv-loading {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1rem;
+}
+.tv-loading-icon {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, rgba(59,130,246,.2), rgba(139,92,246,.15));
+  border: 1px solid rgba(59,130,246,.3);
+  border-radius: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem; color: #60a5fa;
+  animation: tvpulse 2s ease-in-out infinite;
+}
+@keyframes tvpulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.7; transform:scale(.96); } }
+.tv-loading h2 { font-size: 1.4rem; font-weight: 800; color: #fff; }
+.tv-loading p  { color: #64748b; font-size: .85rem; }
+.tv-loading-bar { width: 220px; height: 4px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; }
+.tv-loading-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #6366f1); animation: loadbar 2s ease-in-out infinite; }
+@keyframes loadbar { 0% { width:0%;margin-left:0%; } 50% { width:70%;margin-left:15%; } 100% { width:0%;margin-left:100%; } }
+
+/* ============================================================
+   MAIN WRAPPER
+   ============================================================ */
+.tv-wrapper {
+  position: fixed; inset: 0; z-index: 1;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.tv-topbar {
+  flex-shrink: 0; height: 56px;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0 1rem;
+  background: rgba(2,6,23,.88);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  backdrop-filter: blur(20px); z-index: 10;
+}
+
+.tv-brand { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+.tv-brand-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, rgba(59,130,246,.25), rgba(139,92,246,.2));
+  border: 1px solid rgba(59,130,246,.3);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #60a5fa; font-size: 1rem;
+}
+.tv-brand h1 { font-size: .95rem; font-weight: 900; letter-spacing: .5px; color: #fff; line-height: 1.1; }
+.tv-brand p  { font-size: .6rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+
+.tv-topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; gap: 1.2rem; }
+.tv-clock { font-size: 1.5rem; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: .5px; }
+.tv-date  { font-size: .65rem; color: #64748b; font-weight: 600; text-align: center; }
+
+.tv-page-tabs { display: flex; gap: .3rem; overflow: hidden; max-width: 500px; }
+.tv-page-tab {
+  height: 24px; padding: 0 .55rem;
+  border-radius: 6px; background: rgba(255,255,255,.04);
+  border: 1px solid transparent; color: #475569;
+  font-size: .58rem; font-weight: 700;
+  display: flex; align-items: center; gap: .28rem;
+  text-transform: uppercase; letter-spacing: .4px;
+  transition: all .3s; white-space: nowrap; flex-shrink: 0;
+}
+.tv-page-tab.active { background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.3); color: #93c5fd; }
+
+.tv-topbar-right { flex-shrink: 0; display: flex; align-items: center; gap: .6rem; }
+.tv-live-badge {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .65rem; font-weight: 800; color: #4ade80;
+  background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25);
+  border-radius: 99px; padding: .28rem .7rem;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.tv-live-dot {
+  width: 7px; height: 7px; background: #4ade80; border-radius: 50%;
+  animation: livepulse 1.5s ease-in-out infinite;
+}
+@keyframes livepulse { 0%,100% { opacity:1;transform:scale(1); } 50% { opacity:.5;transform:scale(.7); } }
+.tv-back-link { color: #475569; font-size: .72rem; text-decoration: none; display: flex; align-items: center; gap: .3rem; }
+.tv-back-link:hover { color: #e2e8f0; }
+
+/* ============================================================
+   CONTENT AREA
+   ============================================================ */
+.tv-content { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+
+/* ============================================================
+   SHARED COMPONENTS
+   ============================================================ */
+.tv-panel-header {
+  height: 40px; min-height: 40px;
+  display: flex; align-items: center; gap: .5rem;
+  padding: 0 .9rem; border-bottom: 1px solid rgba(255,255,255,.07);
+  background: rgba(255,255,255,.025);
+  font-size: .72rem; font-weight: 800; color: #e2e8f0;
+  letter-spacing: .6px; text-transform: uppercase;
+}
+.tv-panel-header i { color: #64748b; }
+
+.tv-empty-state {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .5rem; color: #475569; font-size: .75rem; font-weight: 700;
+}
+.tv-empty-state i { font-size: 1.8rem; opacity: .35; }
+
+/* ============================================================
+   PAGE: VISAO GERAL (METRICS)
+   ============================================================ */
+.tv-metrics-page {
+  width: 100%; height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: .55rem; padding: .6rem; overflow: hidden;
+}
+
+/* KPI bar - 8 cards */
+.tv-kpi-bar {
+  display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: .5rem;
+}
+
+.tv-kpi-card {
+  border-radius: 16px; padding: .85rem .7rem;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .32rem; background: rgba(15,23,42,.9);
+  border: 1px solid rgba(255,255,255,.07);
+  transition: transform .2s; cursor: default;
+}
+.tv-kpi-card:hover { transform: translateY(-1px); }
+
+.tv-kpi-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; font-size: .9rem;
+}
+.tv-kpi-value { font-size: 2rem; font-weight: 900; line-height: 1; letter-spacing: -.5px; }
+.tv-kpi-label { font-size: .58rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; text-align: center; }
+
+.tv-kpi-card.k-blue    { border-color: rgba(59,130,246,.2); }
+.tv-kpi-card.k-blue    .tv-kpi-icon  { background: rgba(59,130,246,.15); color: #60a5fa; }
+.tv-kpi-card.k-blue    .tv-kpi-value { color: #60a5fa; }
+.tv-kpi-card.k-green   { border-color: rgba(34,197,94,.2); }
+.tv-kpi-card.k-green   .tv-kpi-icon  { background: rgba(34,197,94,.12); color: #4ade80; }
+.tv-kpi-card.k-green   .tv-kpi-value { color: #4ade80; }
+.tv-kpi-card.k-yellow  { border-color: rgba(250,204,21,.2); }
+.tv-kpi-card.k-yellow  .tv-kpi-icon  { background: rgba(250,204,21,.12); color: #fde047; }
+.tv-kpi-card.k-yellow  .tv-kpi-value { color: #fde047; }
+.tv-kpi-card.k-slate   { border-color: rgba(100,116,139,.15); }
+.tv-kpi-card.k-slate   .tv-kpi-icon  { background: rgba(100,116,139,.1); color: #94a3b8; }
+.tv-kpi-card.k-slate   .tv-kpi-value { color: #94a3b8; }
+.tv-kpi-card.k-emerald { border-color: rgba(16,185,129,.2); }
+.tv-kpi-card.k-emerald .tv-kpi-icon  { background: rgba(16,185,129,.12); color: #34d399; }
+.tv-kpi-card.k-emerald .tv-kpi-value { color: #34d399; }
+.tv-kpi-card.k-orange  { border-color: rgba(249,115,22,.2); }
+.tv-kpi-card.k-orange  .tv-kpi-icon  { background: rgba(249,115,22,.12); color: #fb923c; }
+.tv-kpi-card.k-orange  .tv-kpi-value { color: #fb923c; }
+.tv-kpi-card.k-red     { border-color: rgba(239,68,68,.2); }
+.tv-kpi-card.k-red     .tv-kpi-icon  { background: rgba(239,68,68,.12); color: #f87171; }
+.tv-kpi-card.k-red     .tv-kpi-value { color: #f87171; }
+.tv-kpi-card.k-purple  { border-color: rgba(139,92,246,.2); }
+.tv-kpi-card.k-purple  .tv-kpi-icon  { background: rgba(139,92,246,.12); color: #a78bfa; }
+.tv-kpi-card.k-purple  .tv-kpi-value { color: #a78bfa; }
+
+/* Middle: sectors + alerts */
+.tv-metrics-middle {
+  display: grid; grid-template-columns: 1fr 320px;
+  gap: .55rem; min-height: 0; overflow: hidden;
+}
+
+.tv-sectors-panel {
+  border-radius: 16px; background: rgba(15,23,42,.85);
+  border: 1px solid rgba(255,255,255,.07);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+
+.tv-sectors-grid {
+  flex: 1; min-height: 0; overflow: hidden; padding: .55rem;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .42rem; align-content: start;
+}
+
+.tv-sec-row {
+  border-radius: 11px; padding: .52rem .6rem;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
+  display: flex; flex-direction: column; gap: .32rem;
+}
+
+.tv-sec-row-top {
+  display: flex; align-items: center; justify-content: space-between; gap: .4rem;
+}
+.tv-sec-row-name {
+  display: flex; align-items: center; gap: .38rem;
+  font-size: .64rem; font-weight: 800; color: #e2e8f0;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tv-sec-row-count { font-size: 1.15rem; font-weight: 900; flex-shrink: 0; }
+.tv-sec-badges    { display: flex; gap: .28rem; flex-wrap: wrap; }
+.tv-sec-badge {
+  font-size: .5rem; font-weight: 800; padding: .1rem .28rem;
+  border-radius: 5px; text-transform: uppercase; letter-spacing: .3px;
+}
+.tv-sec-badge.sw { background: rgba(34,197,94,.12); color: #4ade80; }
+.tv-sec-badge.sp { background: rgba(250,204,21,.12); color: #fde047; }
+.tv-sec-badge.su { background: rgba(239,68,68,.12);  color: #f87171; }
+.tv-sec-badge.sl { background: rgba(249,115,22,.12); color: #fb923c; }
+
+.tv-sec-bar-track {
+  height: 5px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden; display: flex;
+}
+.tv-sbar-w { background: #22c55e; border-radius: 99px; transition: width .5s; }
+.tv-sbar-p { background: #f59e0b; border-radius: 99px; transition: width .5s; }
+.tv-sbar-i { flex: 1; }
+
+/* Right: alerts */
+.tv-alert-panel {
+  border-radius: 16px; background: rgba(15,23,42,.85);
+  border: 1px solid rgba(239,68,68,.15);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.tv-alert-list {
+  flex: 1; min-height: 0; overflow: hidden; padding: .5rem;
+  display: flex; flex-direction: column; gap: .35rem;
+}
+.tv-alert-item {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .45rem .55rem; border-radius: 10px;
+  background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.14);
+}
+.tv-alert-num    { font-size: .8rem; font-weight: 900; color: #fff; flex-shrink: 0; }
+.tv-alert-info   { min-width: 0; flex: 1; }
+.tv-alert-client { font-size: .6rem; color: #bfdbfe; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-alert-sector { font-size: .54rem; color: #64748b; font-weight: 600; }
+.tv-alert-time   { font-size: .78rem; font-weight: 900; color: #f87171; flex-shrink: 0; }
+
+/* Bottom: deliveries */
+.tv-deliveries-bar {
+  border-radius: 16px; background: rgba(15,23,42,.85);
+  border: 1px solid rgba(255,255,255,.07); overflow: hidden;
+}
+.tv-deliveries-list { display: flex; gap: .45rem; padding: .5rem .6rem; overflow: hidden; }
+.tv-delivery-chip {
+  flex-shrink: 0; display: flex; align-items: center; gap: .5rem;
+  padding: .38rem .6rem; border-radius: 10px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+}
+.tv-deliv-order  { font-size: .7rem; font-weight: 900; color: #fff; }
+.tv-deliv-client { font-size: .58rem; color: #9fc5ff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+.tv-deliv-date   { font-size: .62rem; font-weight: 900; padding: .1rem .32rem; border-radius: 6px; flex-shrink: 0; }
+.tv-deliv-date.dl { background: rgba(239,68,68,.15); color: #f87171; }
+.tv-deliv-date.dt { background: rgba(250,204,21,.15); color: #fde047; }
+.tv-deliv-date.ds { background: rgba(59,130,246,.12); color: #93c5fd; }
+
+/* ============================================================
+   LOT CARDS (used in all pages)
+   ============================================================ */
+.tv-lot-card {
+  border-radius: 11px; padding: .45rem .52rem;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-left: 3px solid transparent; flex-shrink: 0;
+}
+.tv-lot-card.priority-sameday { border-left-color: #ef4444; background: rgba(127,29,29,.12); }
+.tv-lot-card.priority-urgent  { border-left-color: #f59e0b; }
+.tv-lot-card.priority-normal  { border-left-color: #22c55e; }
+.tv-lot-card.late-lot         { border-left-color: #ef4444; }
+
+.tv-card-top { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-bottom: .28rem; }
+.tv-lot-number { font-size: .78rem; font-weight: 900; color: #fff; display: flex; align-items: center; gap: .3rem; }
+.tv-status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.tv-status-dot.working { background: #22c55e; animation: livepulse 1.5s infinite; }
+.tv-status-dot.paused  { background: #f59e0b; }
+.tv-priority-tag { font-size: .44rem; font-weight: 900; padding: .1rem .28rem; border-radius: 5px; text-transform: uppercase; flex-shrink: 0; }
+.tv-priority-tag.sameday { background: rgba(239,68,68,.18); color: #f87171; }
+.tv-priority-tag.urgent  { background: rgba(245,158,11,.15); color: #fbbf24; }
+.tv-lot-client  { font-size: .6rem; color: #9fc5ff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: .2rem; }
+.tv-lot-paint   { font-size: .58rem; color: #64748b; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: .26rem; }
+.tv-card-meta   { display: flex; align-items: center; gap: .28rem; flex-wrap: wrap; }
+.tv-meta-chip   { font-size: .48rem; font-weight: 800; padding: .1rem .26rem; border-radius: 5px; }
+.tv-meta-chip.mtype  { background: rgba(59,130,246,.1); color: #93c5fd; }
+.tv-meta-chip.mtime  { background: rgba(255,255,255,.06); color: #94a3b8; }
+.tv-meta-chip.mtime.alert { background: rgba(239,68,68,.12); color: #f87171; }
+.tv-meta-chip.mdate  { background: rgba(255,255,255,.05); color: #94a3b8; }
+.tv-meta-chip.mlate  { background: rgba(239,68,68,.12); color: #f87171; }
+.tv-meta-chip.mtoday { background: rgba(250,204,21,.12); color: #fde047; }
+.tv-time-bar { height: 4px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden; display: flex; margin-top: .3rem; }
+.tv-tbar-w { background: #22c55e; border-radius: 99px; }
+.tv-tbar-p { background: #f59e0b; border-radius: 99px; }
+.tv-tbar-i { flex: 1; }
+
+.tv-empty-col {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .4rem; color: #475569; font-size: .68rem; font-weight: 700;
+}
+.tv-empty-col i { font-size: 1.4rem; opacity: .3; }
+
+/* Focus cards (larger, for priorities side panel) */
+.tv-focus-card {
+  border-radius: 13px; padding: .55rem .65rem;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); flex-shrink: 0;
+}
+.tv-focus-card.danger { background: rgba(127,29,29,.1); border-color: rgba(239,68,68,.2); }
+.tv-focus-top    { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-bottom: .32rem; }
+.tv-focus-num    { font-size: .9rem; font-weight: 900; color: #fff; }
+.tv-focus-badge  { font-size: .48rem; font-weight: 900; padding: .12rem .4rem; border-radius: 99px; text-transform: uppercase; }
+.tv-focus-client { font-size: .68rem; color: #9fc5ff; font-weight: 800; margin-bottom: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-focus-paint  { font-size: .6rem; color: #64748b; font-weight: 600; margin-bottom: .32rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-focus-meta   { display: flex; gap: .32rem; flex-wrap: wrap; }
+
+/* ============================================================
+   PAGE: PRODUCTION FOCUS
+   ============================================================ */
+.tv-production-page {
+  width: 100%; height: 100%;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) 210px;
+  gap: .5rem; padding: .5rem; overflow: hidden;
+}
+
+.tv-prod-col {
+  border-radius: 16px; background: rgba(15,23,42,.88);
+  border: 1px solid rgba(255,255,255,.07);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+
+.tv-col-head {
+  height: 44px; min-height: 44px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 .7rem; border-bottom: 1px solid rgba(255,255,255,.07);
+  background: rgba(255,255,255,.03);
+}
+.tv-col-title {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .66rem; font-weight: 800;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tv-col-count {
+  font-size: .72rem; font-weight: 900; min-width: 24px; height: 22px;
+  background: rgba(255,255,255,.07); border-radius: 6px; padding: 0 .38rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.tv-col-body {
+  flex: 1; min-height: 0; overflow: hidden; padding: .38rem;
+  display: flex; flex-direction: column; gap: .32rem;
+}
+.tv-col-footer {
+  height: 26px; min-height: 26px;
+  display: flex; align-items: center; gap: .5rem; padding: 0 .7rem;
+  border-top: 1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.015);
+  font-size: .52rem; color: #64748b; font-weight: 700;
+}
+.tv-col-footer .tw { color: #4ade80; }
+.tv-col-footer .tp { color: #fde047; }
+
+.tv-side-col { display: flex; flex-direction: column; gap: .5rem; overflow: hidden; }
+.tv-side-card {
+  flex: 1; min-height: 0; border-radius: 16px;
+  background: rgba(15,23,42,.88); border: 1px solid rgba(255,255,255,.07);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+
+.tv-ready-list {
+  flex: 1; min-height: 0; overflow: hidden; padding: .38rem;
+  display: flex; flex-direction: column; gap: .28rem;
+}
+.tv-ready-item {
+  display: grid; grid-template-columns: 64px 1fr auto; gap: .38rem; align-items: center;
+  padding: .36rem .42rem; border-radius: 10px;
+  background: rgba(20,83,45,.12); border: 1px solid rgba(34,197,94,.18);
+}
+.tv-ready-item.in-route { background: rgba(30,64,175,.12); border-color: rgba(59,130,246,.2); }
+.tv-ready-num    { font-size: .68rem; font-weight: 900; color: #fff; }
+.tv-ready-client { font-size: .58rem; color: #9fc5ff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-ready-paint  { font-size: .5rem; color: #64748b; font-weight: 600; margin-top: .05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-ready-badge  { font-size: .44rem; font-weight: 900; padding: .1rem .3rem; border-radius: 99px; text-transform: uppercase; flex-shrink: 0; }
+.tv-ready-badge.ready { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+.tv-ready-badge.route { background: rgba(59,130,246,.12); color: #60a5fa; border: 1px solid rgba(59,130,246,.25); }
+
+/* ============================================================
+   PAGE: KANBAN
+   ============================================================ */
+.tv-kanban-page {
+  width: 100%; height: 100%; gap: .45rem; padding: .5rem; overflow: hidden; display: grid;
+}
+
+/* ============================================================
+   PAGE: EXPEDICAO
+   ============================================================ */
+.tv-expedition-page {
+  width: 100%; height: 100%;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: .55rem; padding: .5rem; overflow: hidden;
+}
+.tv-exp-panel {
+  border-radius: 18px; background: rgba(15,23,42,.88);
+  border: 1px solid rgba(255,255,255,.07);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.tv-exp-head {
+  height: 48px; min-height: 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 .9rem; border-bottom: 1px solid rgba(255,255,255,.07);
+  background: rgba(255,255,255,.025);
+}
+.tv-exp-title { font-size: .8rem; font-weight: 900; display: flex; align-items: center; gap: .5rem; }
+.tv-exp-count { min-width: 32px; height: 28px; border-radius: 99px; display: flex; align-items: center; justify-content: center; font-size: .82rem; font-weight: 900; padding: 0 .6rem; }
+.tv-exp-count.urgent   { background: rgba(239,68,68,.12); color: #f87171; border: 1px solid rgba(239,68,68,.25); }
+.tv-exp-count.readyc   { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+.tv-exp-body { flex: 1; min-height: 0; overflow: hidden; padding: .5rem; display: flex; flex-direction: column; gap: .38rem; }
+
+.tv-urgent-card { border-radius: 13px; padding: .55rem .65rem; background: rgba(127,29,29,.1); border: 1px solid rgba(239,68,68,.2); }
+.tv-urgent-top { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-bottom: .25rem; }
+.tv-urgent-order { font-size: .82rem; font-weight: 900; color: #fff; }
+.tv-urgent-badge { font-size: .46rem; font-weight: 900; padding: .1rem .35rem; border-radius: 99px; background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.3); text-transform: uppercase; }
+.tv-urgent-client { font-size: .65rem; color: #bfdbfe; font-weight: 800; margin-bottom: .28rem; }
+.tv-urgent-lots   { display: flex; flex-direction: column; gap: .18rem; }
+.tv-urgent-lot    { display: grid; grid-template-columns: 62px 1fr auto; gap: .3rem; align-items: center; font-size: .52rem; color: #64748b; }
+.tv-urgent-lot strong { color: #dbeafe; font-weight: 900; }
+.tv-urgent-lot em     { color: #fbbf24; font-style: normal; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.tv-ready-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .38rem; align-content: start; overflow: hidden; }
+.tv-rgc {
+  border-radius: 11px; padding: .4rem .48rem;
+  background: rgba(20,83,45,.12); border: 1px solid rgba(34,197,94,.2);
+  display: grid; grid-template-columns: 58px 1fr auto; gap: .28rem; align-items: center;
+}
+.tv-rgc.route { background: rgba(30,64,175,.1); border-color: rgba(59,130,246,.22); }
+.tv-rgc-num    { font-size: .65rem; font-weight: 900; color: #fff; }
+.tv-rgc-client { font-size: .55rem; color: #9fc5ff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-rgc-paint  { font-size: .47rem; color: #64748b; margin-top: .05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-rgc-status { font-size: .42rem; font-weight: 900; padding: .1rem .28rem; border-radius: 99px; text-transform: uppercase; flex-shrink: 0; }
+.tv-rgc-status.ready { background: rgba(34,197,94,.1); color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+.tv-rgc-status.route { background: rgba(59,130,246,.1); color: #60a5fa; border: 1px solid rgba(59,130,246,.25); }
+
+/* ============================================================
+   PAGE: PEDIDOS
+   ============================================================ */
+.tv-orders-page {
+  width: 100%; height: 100%;
+  display: grid; grid-template-columns: 1.1fr 1fr .9fr;
+  gap: .55rem; padding: .5rem; overflow: hidden;
+}
+.tv-orders-panel {
+  border-radius: 18px; background: rgba(15,23,42,.88);
+  border: 1px solid rgba(255,255,255,.07);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.tv-orders-panel.new       { border-color: rgba(139,92,246,.22); }
+.tv-orders-panel.route     { border-color: rgba(249,115,22,.22); }
+.tv-orders-panel.delivered { border-color: rgba(34,197,94,.22); }
+.tv-orders-head {
+  height: 46px; min-height: 46px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 .85rem; border-bottom: 1px solid rgba(255,255,255,.07);
+  background: rgba(255,255,255,.025);
+}
+.tv-orders-title { font-size: .7rem; font-weight: 900; display: flex; align-items: center; gap: .45rem; letter-spacing: .4px; text-transform: uppercase; }
+.tv-orders-title.new       { color: #c4b5fd; }
+.tv-orders-title.route     { color: #fb923c; }
+.tv-orders-title.delivered { color: #4ade80; }
+.tv-orders-count { min-width: 30px; height: 26px; padding: 0 .55rem; border-radius: 99px; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 900; }
+.tv-orders-count.new       { background: rgba(139,92,246,.12); color: #c4b5fd; border: 1px solid rgba(139,92,246,.28); }
+.tv-orders-count.route     { background: rgba(249,115,22,.12); color: #fb923c; border: 1px solid rgba(249,115,22,.28); }
+.tv-orders-count.delivered { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.28); }
+.tv-orders-list { flex: 1; min-height: 0; overflow: hidden; padding: .45rem; display: flex; flex-direction: column; gap: .38rem; }
+.tv-order-card { border-radius: 14px; padding: .58rem .68rem; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); }
+.tv-order-card.new       { border-color: rgba(139,92,246,.18); }
+.tv-order-card.route     { border-color: rgba(249,115,22,.2); background: rgba(124,45,18,.09); }
+.tv-order-card.delivered { border-color: rgba(34,197,94,.18); background: rgba(20,83,45,.09); }
+.tv-order-top    { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-bottom: .26rem; }
+.tv-order-num    { font-size: .8rem; font-weight: 900; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-order-badge  { font-size: .46rem; font-weight: 900; padding: .12rem .4rem; border-radius: 99px; text-transform: uppercase; flex-shrink: 0; }
+.tv-order-badge.new       { background: rgba(139,92,246,.12); color: #c4b5fd; border: 1px solid rgba(139,92,246,.28); }
+.tv-order-badge.route     { background: rgba(249,115,22,.12); color: #fb923c; border: 1px solid rgba(249,115,22,.28); }
+.tv-order-badge.delivered { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.28); }
+.tv-order-client { font-size: .64rem; color: #bfdbfe; font-weight: 800; margin-bottom: .25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-order-meta   { display: flex; flex-wrap: wrap; gap: .2rem .38rem; color: #64748b; font-size: .5rem; font-weight: 800; margin-bottom: .28rem; }
+.tv-order-lots   { display: flex; flex-direction: column; gap: .15rem; }
+.tv-order-lot    { display: grid; grid-template-columns: 56px 1fr auto; gap: .26rem; align-items: center; font-size: .5rem; color: #64748b; }
+.tv-order-lot strong { color: #dbeafe; font-size: .52rem; white-space: nowrap; }
+.tv-order-lot em     { color: #60a5fa; font-style: normal; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+.tv-order-more   { color: #475569; font-size: .46rem; font-weight: 900; padding-left: 56px; }
+.tv-order-empty  { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem; color: #475569; font-size: .78rem; font-weight: 700; }
+.tv-order-empty i { font-size: 2rem; opacity: .35; }
+
+/* ============================================================
+   PAGE: ROTAS
+   ============================================================ */
+.tv-routes-page {
+  width: 100%; height: 100%;
+  display: grid; grid-template-columns: 260px 1fr 220px;
+  gap: .55rem; padding: .5rem; overflow: hidden;
+}
+.tv-route-panel {
+  border-radius: 18px; background: rgba(15,23,42,.88);
+  border: 1px solid rgba(59,130,246,.18);
+  overflow: hidden; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: .9rem; padding: 1.4rem;
+}
+.tv-route-driver-icon {
+  width: 76px; height: 76px;
+  background: linear-gradient(135deg, rgba(59,130,246,.2), rgba(6,182,212,.15));
+  border: 1px solid rgba(59,130,246,.3); border-radius: 22px;
+  display: flex; align-items: center; justify-content: center; font-size: 2.1rem; color: #60a5fa;
+}
+.tv-route-driver-name { font-size: 1.15rem; font-weight: 900; color: #fff; text-align: center; }
+.tv-route-driver-sub  { font-size: .68rem; color: #64748b; font-weight: 700; }
+.tv-route-progress-track { width: 100%; height: 8px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; }
+.tv-route-progress-fill  { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4); border-radius: 99px; transition: width .6s; }
+.tv-route-pct { font-size: .75rem; color: #94a3b8; font-weight: 800; text-align: center; }
+.tv-route-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: .45rem; width: 100%; }
+.tv-route-stat { border-radius: 12px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); padding: .55rem; text-align: center; }
+.tv-route-stat strong { display: block; font-size: 1.5rem; font-weight: 900; color: #fff; }
+.tv-route-stat span   { font-size: .56rem; color: #64748b; font-weight: 700; text-transform: uppercase; }
+
+.tv-stops-panel {
+  border-radius: 18px; background: rgba(15,23,42,.88);
+  border: 1px solid rgba(255,255,255,.07);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.tv-stops-list { flex: 1; min-height: 0; overflow: hidden; padding: .5rem; display: flex; flex-direction: column; gap: .4rem; }
+.tv-stop-card {
+  border-radius: 13px; padding: .58rem .68rem;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+  display: grid; grid-template-columns: 32px 1fr auto; gap: .5rem; align-items: center;
+}
+.tv-stop-card.next { background: rgba(30,64,175,.12); border-color: rgba(59,130,246,.25); }
+.tv-stop-num { width: 32px; height: 32px; border-radius: 9px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.07); display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 900; color: #fff; }
+.tv-stop-card.next .tv-stop-num { background: rgba(59,130,246,.2); border-color: rgba(59,130,246,.3); color: #60a5fa; }
+.tv-stop-next-b { font-size: .44rem; font-weight: 900; color: #60a5fa; background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.25); border-radius: 4px; padding: .07rem .26rem; text-transform: uppercase; display: inline-block; margin-bottom: .16rem; }
+.tv-stop-client  { font-size: .72rem; font-weight: 800; color: #fff; }
+.tv-stop-product { font-size: .58rem; color: #64748b; font-weight: 600; }
+.tv-stop-meta    { text-align: right; }
+.tv-stop-num-t   { font-size: .64rem; font-weight: 900; color: #94a3b8; }
+.tv-stop-qty     { font-size: .56rem; color: #64748b; }
+
+.tv-route-kpi-panel {
+  border-radius: 18px; background: rgba(15,23,42,.88);
+  border: 1px solid rgba(255,255,255,.07);
+  overflow: hidden; display: flex; flex-direction: column; gap: .5rem; padding: .7rem;
+}
+.tv-rk-row { display: flex; justify-content: space-between; align-items: center; padding: .42rem .5rem; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); }
+.tv-rk-label { font-size: .64rem; color: #64748b; font-weight: 700; }
+.tv-rk-value { font-size: .82rem; font-weight: 900; color: #fff; }
+.tv-route-next-box { border-radius: 14px; background: rgba(59,130,246,.07); border: 1px solid rgba(59,130,246,.2); padding: .75rem; }
+.tv-rn-label   { font-size: .6rem; color: #60a5fa; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin-bottom: .38rem; }
+.tv-rn-client  { font-size: 1rem; font-weight: 900; color: #fff; margin-bottom: .18rem; }
+.tv-rn-product { font-size: .66rem; color: #9fc5ff; font-weight: 700; }
+
+.tv-route-empty { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .8rem; color: #475569; font-size: .9rem; font-weight: 700; }
+.tv-route-empty i { font-size: 3rem; opacity: .3; }
+
+/* ============================================================
+   BOTTOM BAR
+   ============================================================ */
+.tv-bottombar {
+  flex-shrink: 0; height: 40px;
+  display: flex; align-items: center; gap: .55rem; padding: 0 .8rem;
+  background: rgba(2,6,23,.88); border-top: 1px solid rgba(255,255,255,.07);
+  backdrop-filter: blur(20px); overflow: hidden;
+}
+.tv-blabel { font-size: .58rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: .5px; display: flex; align-items: center; gap: .3rem; flex-shrink: 0; }
+.tv-bsep   { width: 1px; height: 20px; background: rgba(255,255,255,.07); flex-shrink: 0; }
+.tv-bchips { display: flex; gap: .32rem; overflow: hidden; flex: 1; }
+.tv-bchip  { flex-shrink: 0; font-size: .58rem; font-weight: 800; padding: .22rem .48rem; border-radius: 99px; display: flex; align-items: center; gap: .25rem; }
+.tv-bchip.route { background: rgba(249,115,22,.12); color: #fb923c; border: 1px solid rgba(249,115,22,.2); }
+.tv-bchip.ready { background: rgba(34,197,94,.1);   color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
+.tv-bchip.alert { background: rgba(239,68,68,.1);   color: #f87171; border: 1px solid rgba(239,68,68,.2); }
+.tv-bchip.muted { color: #475569; }
+.tv-last-update { margin-left: auto; font-size: .55rem; color: #334155; flex-shrink: 0; }
 </style>
 </head>
 <body>
 
-<!-- Loading screen -->
+<div class="tv-bg"></div>
+<div class="tv-grid-overlay"></div>
+
+<!-- Loading -->
 <div id="tvLoading" class="tv-loading">
-  <div class="tv-loading-logo"><i class="fas fa-industry"></i></div>
+  <div class="tv-loading-icon"><i class="fas fa-industry"></i></div>
   <h2>FactoryFlow TV</h2>
-  <p style="color:#475569;font-size:.8rem">Carregando painel de produção...</p>
+  <p>Carregando painel de producao...</p>
   <div class="tv-loading-bar"><div class="tv-loading-fill"></div></div>
 </div>
 
-<!-- Auth screen -->
-<div id="tvAuthScreen" style="display:none" class="tv-auth-screen">
-  <i class="fas fa-tv"></i>
-  <h2>Painel TV – Acesso Necessário</h2>
-  <p>Faça login com uma conta <strong>TV / Painel</strong> ou superior</p>
-  <form class="tv-auth-form" onsubmit="tvHandleLogin(event)">
-    <input type="text" id="tvUser" placeholder="Usuário" autocomplete="username" required />
-    <input type="password" id="tvPass" placeholder="Senha" autocomplete="current-password" required />
-    <div id="tvAuthError" style="display:none" class="tv-auth-error">Usuário ou senha inválidos</div>
-    <button type="submit" class="tv-auth-btn"><i class="fas fa-sign-in-alt"></i> Entrar</button>
-  </form>
-  <p style="color:#334155;font-size:.72rem;margin-top:.8rem">
-    <a href="index.html" style="color:#3b82f6;text-decoration:none"><i class="fas fa-arrow-left"></i> Voltar ao sistema</a>
-  </p>
+<!-- Auth -->
+<div id="tvAuthScreen" style="display:none" class="tv-auth">
+  <div class="tv-auth-box">
+    <div class="tv-auth-icon"><i class="fas fa-tv"></i></div>
+    <h2>Painel TV</h2>
+    <p>Acesso restrito — entre com uma conta autorizada</p>
+    <form class="tv-auth-form" onsubmit="tvHandleLogin(event)">
+      <input type="text" id="tvUser" placeholder="Usuario" autocomplete="username" required />
+      <input type="password" id="tvPass" placeholder="Senha" autocomplete="current-password" required />
+      <div id="tvAuthError" style="display:none" class="tv-auth-error">Usuario ou senha invalidos</div>
+      <button type="submit" class="tv-auth-btn"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+    </form>
+    <a href="index.html" class="tv-auth-back"><i class="fas fa-arrow-left"></i> Voltar ao sistema</a>
+  </div>
 </div>
 
-<!-- Main TV panel -->
+<!-- Main panel -->
 <div id="tvPanel" style="display:none" class="tv-wrapper">
-  <div class="tv-bg"></div>
-  <div class="tv-grid-lines"></div>
-
-  <!-- Top bar -->
   <div class="tv-topbar">
     <div class="tv-brand">
       <div class="tv-brand-icon"><i class="fas fa-industry"></i></div>
-      <div>
-        <h1>FactoryFlow</h1>
-        <p>Painel de Produção</p>
-      </div>
+      <div><h1>FactoryFlow</h1><p>Painel de Producao</p></div>
     </div>
-
     <div class="tv-topbar-center">
       <div>
         <div class="tv-clock" id="tvClock">00:00:00</div>
-        <div class="tv-date" id="tvDate">Carregando...</div>
+        <div class="tv-date"  id="tvDate"></div>
       </div>
-      <div class="tv-metrics-bar" id="tvMetricsBar"></div>
+      <div class="tv-page-tabs" id="tvPageTabs"></div>
     </div>
-
     <div class="tv-topbar-right">
-      <div class="tv-page-indicator" id="tvPageDots"></div>
-      <div class="tv-live-badge">
-        <div class="tv-live-dot"></div>
-        Ao Vivo
-      </div>
-      <a href="index.html" style="color:#475569;font-size:.7rem;text-decoration:none">
-        <i class="fas fa-arrow-left"></i> Sistema
-      </a>
+      <div class="tv-live-badge"><div class="tv-live-dot"></div> Ao Vivo</div>
+      <a href="index.html" class="tv-back-link"><i class="fas fa-arrow-left"></i> Sistema</a>
     </div>
   </div>
 
-  <!-- Sector columns -->
-  <div class="tv-columns-wrapper" id="tvColumns"></div>
+  <div class="tv-content" id="tvContent"></div>
 
-  <!-- Bottom bar -->
-  <div class="tv-bottombar">
-    <div class="tv-bottom-section">
-      <span class="tv-bottom-label"><i class="fas fa-truck"></i> Em Rota</span>
-      <div class="tv-chips" id="tvDeliveryChips"></div>
-    </div>
-    <div class="tv-bottom-section">
-      <span class="tv-bottom-label"><i class="fas fa-check-circle"></i> Prontos</span>
-      <div class="tv-chips" id="tvReadyChips"></div>
-    </div>
-    <div class="tv-bottom-section">
-      <span class="tv-bottom-label"><i class="fas fa-exclamation-triangle"></i> Alertas</span>
-      <div class="tv-chips" id="tvAlertChips"></div>
-    </div>
-    <div style="margin-left:auto;font-size:.58rem;color:#334155;white-space:nowrap" id="tvLastUpdate"></div>
+  <div class="tv-bottombar" id="tvBottomBar">
+    <span class="tv-blabel"><i class="fas fa-truck"></i> Em Rota</span>
+    <div class="tv-bchips" id="tvRouteChips"></div>
+    <div class="tv-bsep"></div>
+    <span class="tv-blabel"><i class="fas fa-check-circle"></i> Prontos</span>
+    <div class="tv-bchips" id="tvReadyChips"></div>
+    <div class="tv-bsep"></div>
+    <span class="tv-blabel"><i class="fas fa-clock"></i> Alertas</span>
+    <div class="tv-bchips" id="tvAlertChips"></div>
+    <div class="tv-last-update" id="tvLastUpdate"></div>
   </div>
 </div>
 
 <script src="js/data.js"></script>
 <script>
-// ===================================================
-// TV MODE – setores atualizados + envase separado + amostras + tempos
-// Dados reais de produção: usa o mesmo backend/bridge MySQL do Kanban
-// (js/data.js → loadBridgeLots / apiGet), sem depender de tabelas locais.
-// ===================================================
+// ============================================================
+// TV MODE – FactoryFlow Production Board
+// ============================================================
 let tvState = { lots: [], routes: [], orders: [], currentUser: null };
 let tvUpdateInterval = null;
-let tvAutoScrollInterval = null;
-let tvCurrentPage = 0;
-let tvRoutePageIndex = 0;
+let tvAutoInterval   = null;
+let tvCurrentPage    = 0;
+let tvRoutePageIdx   = 0;
 
-// Ordem atual do FactoryFlow
-// Mantém Envase – Produzir e Envase – Enlatamento separados.
-const TV_ALL_SECTORS = [
-  'coloracao_revisao',
-  'laboratorio_revisao',
-  'pcp_liberacao',
-  'laboratorio_amostras',
-  'coloracao_amostras',
-  'pesagem',
-  'producao',
-  'coloracao',
-  'laboratorio',
-  'envase_produzir',
-  'envase_enlatamento'
+const TV_SECTORS = [
+  'coloracao_revisao','laboratorio_revisao','pcp_liberacao',
+  'laboratorio_amostras','coloracao_amostras',
+  'pesagem','producao','coloracao','laboratorio',
+  'envase_produzir','envase_enlatamento'
 ];
 
 const TV_SECTOR_LABELS = {
-  coloracao_revisao:   'Coloração (Rev.)',
-  laboratorio_revisao: 'Lab. (Rev.)',
-  pcp_liberacao:       'PCP (Lib.)',
-  pesagem:             'Pesagem',
-  producao:            'Produção',
-  coloracao:           'Coloração',
-  laboratorio:         'Laboratório',
-  laboratorio_amostras:'Lab. Amostras',
-  coloracao_amostras:  'Color. Amostras',
-  envase_produzir:     'Envase Produzir',
-  envase_enlatamento:  'Envase Enlat.',
-  pronto:              'Pronto'
+  coloracao_revisao:    'Coloracao Rev.',
+  laboratorio_revisao:  'Lab. Revisao',
+  pcp_liberacao:        'PCP Liberacao',
+  pesagem:              'Pesagem',
+  producao:             'Producao',
+  coloracao:            'Coloracao',
+  laboratorio:          'Laboratorio',
+  laboratorio_amostras: 'Lab. Amostras',
+  coloracao_amostras:   'Color. Amostras',
+  envase_produzir:      'Envase Produzir',
+  envase_enlatamento:   'Envase Enlat.',
+  pronto:               'Pronto',
+  entrega:              'Em Entrega',
+  entregue:             'Entregue'
 };
 
 const TV_SECTOR_ICONS = {
-  coloracao_revisao:   'fas fa-search-plus',
-  laboratorio_revisao: 'fas fa-microscope',
-  pcp_liberacao:       'fas fa-unlock',
-  pesagem:             'fas fa-weight',
-  producao:            'fas fa-cogs',
-  coloracao:           'fas fa-palette',
-  laboratorio:         'fas fa-flask',
-  laboratorio_amostras:'fas fa-vial',
-  coloracao_amostras:  'fas fa-fill-drip',
-  envase_produzir:     'fas fa-box-open',
-  envase_enlatamento:  'fas fa-boxes-packing',
-  pronto:              'fas fa-check-circle'
+  coloracao_revisao:    'fas fa-search-plus',
+  laboratorio_revisao:  'fas fa-microscope',
+  pcp_liberacao:        'fas fa-unlock',
+  pesagem:              'fas fa-weight',
+  producao:             'fas fa-cogs',
+  coloracao:            'fas fa-palette',
+  laboratorio:          'fas fa-flask',
+  laboratorio_amostras: 'fas fa-vial',
+  coloracao_amostras:   'fas fa-fill-drip',
+  envase_produzir:      'fas fa-box-open',
+  envase_enlatamento:   'fas fa-boxes-packing',
+  pronto:               'fas fa-check-circle'
 };
 
 const TV_SECTOR_COLORS = {
-  coloracao_revisao:   '#e879f9',
-  laboratorio_revisao: '#2dd4bf',
-  pcp_liberacao:       '#f43f5e',
-  pesagem:             '#3b82f6',
-  producao:            '#8b5cf6',
-  coloracao:           '#f59e0b',
-  laboratorio:         '#10b981',
-  laboratorio_amostras:'#14b8a6',
-  coloracao_amostras:  '#facc15',
-  envase_produzir:     '#f97316',
-  envase_enlatamento:  '#06b6d4',
-  pronto:              '#22c55e'
+  coloracao_revisao:    '#e879f9',
+  laboratorio_revisao:  '#2dd4bf',
+  pcp_liberacao:        '#f43f5e',
+  pesagem:              '#3b82f6',
+  producao:             '#8b5cf6',
+  coloracao:            '#f59e0b',
+  laboratorio:          '#10b981',
+  laboratorio_amostras: '#14b8a6',
+  coloracao_amostras:   '#facc15',
+  envase_produzir:      '#f97316',
+  envase_enlatamento:   '#06b6d4',
+  pronto:               '#22c55e'
 };
 
-// Sectors that support work tracking (start/pause)
-const TV_TRACKABLE = ['pesagem','producao','coloracao','laboratorio','laboratorio_amostras','coloracao_amostras','envase_produzir','envase_enlatamento'];
+const TV_TRACKABLE  = ['pesagem','producao','coloracao','laboratorio','laboratorio_amostras','coloracao_amostras','envase_produzir','envase_enlatamento'];
+const TV_COLS_PER_PAGE = 6;
+const PT_LABELS     = { tinta:'Tinta', diluente:'Diluente', endurecedor:'Endur.', base:'Base', amostra:'Amostra' };
 
-const PRODUCT_TYPE_LABELS = {
-  tinta:'Tinta', diluente:'Diluente', endurecedor:'Endur.', base:'Base', amostra:'Amostra'
-};
-const PRIORITY_COLORS_TV = { normal:'#22c55e', urgent:'#f59e0b', sameday:'#ef4444' };
-
-// How many columns per "page" (auto-scroll)
-// With 9 sectors on a large screen we show all; on smaller resolution we paginate
-const TV_COLS_PER_PAGE = 6; // 12 setores em 2 páginas automáticas
-
-// ===== CLOCK =====
+// ---- Clock ----
 function updateClock() {
   const now = new Date();
-  const el = document.getElementById('tvClock');
-  if (el) el.textContent = now.toLocaleTimeString('pt-BR');
-  const de = document.getElementById('tvDate');
-  if (de) de.textContent = now.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const cl = document.getElementById('tvClock');
+  if (cl) cl.textContent = now.toLocaleTimeString('pt-BR');
+  const dt = document.getElementById('tvDate');
+  if (dt) dt.textContent = now.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
 }
 
-// ===== API =====
-// Tabelas auxiliares (rotas/pedidos/usuários) continuam vindo da API genérica
-// /api/tables/:nome, igual ao restante do app. Os lotes em si vêm do bridge
-// MySQL real (/api/producao/ativos), a mesma fonte oficial do Kanban.
-async function tvApiGet(table) {
-  return apiGet(table, { limit: 500 });
-}
+// ---- API ----
+async function tvApiGet(table) { return apiGet(table, { limit: 500 }); }
 
-
-function tvNormalizeSector(rawSector, lot = {}) {
-  const s = String(rawSector || '').trim().toLowerCase();
+// ---- Sector normalization ----
+function tvNS(raw, lot) {
+  const s = String(raw || '').trim().toLowerCase();
   if (!s) return '';
-
-  // Compatibilidade com setores antigos salvos no banco.
-  // IMPORTANTE: não converte envase_produzir para enlatamento.
-  const tipo = String(lot.productType || lot.tipo || '').trim().toLowerCase();
-
   if (s === 'envase_produzir' || s === 'envase_enlatamento') return s;
   if (s === 'envase_producao' || s === 'envase_produção') return 'envase_produzir';
   if (s === 'enlatamento') return 'envase_enlatamento';
-
-  // Se ainda vier como envase antigo, separa pelo tipo.
-  // Diluente normalmente fica em Envase – Produzir.
-  // Tinta/endurecedor/base vindo do Laboratório fica em Envase – Enlatamento.
   if (s === 'envase' || s === 'envase_antigo') {
-    if (tipo === 'diluente') return 'envase_produzir';
-    return 'envase_enlatamento';
+    const t = String((lot && (lot.productType || lot.tipo)) || '').toLowerCase();
+    return t === 'diluente' ? 'envase_produzir' : 'envase_enlatamento';
   }
-
   return s;
 }
 
-function tvNormalizeLot(lot) {
+function tvNormLot(lot) {
   if (!lot) return lot;
-  lot.sector = tvNormalizeSector(lot.sector || lot.stage || lot.status, lot);
-
-  if (Array.isArray(lot.workSessions)) {
-    lot.workSessions = lot.workSessions.map(sess => ({
-      ...sess,
-      sector: tvNormalizeSector(sess.sector, lot)
-    }));
-  }
-
-  if (Array.isArray(lot.history)) {
-    lot.history = lot.history.map(h => ({
-      ...h,
-      sector: tvNormalizeSector(h.sector, lot)
-    }));
-  }
-
+  lot.sector = tvNS(lot.sector || lot.stage || lot.status, lot);
+  if (Array.isArray(lot.workSessions)) lot.workSessions = lot.workSessions.map(s => ({...s, sector: tvNS(s.sector, lot)}));
+  if (Array.isArray(lot.history))      lot.history      = lot.history.map(h => ({...h, sector: tvNS(h.sector, lot)}));
   return lot;
 }
 
+// ---- Data loading ----
 async function tvLoadData() {
-  // Lotes reais: producao_lotes via bridge MySQL (mesma fonte do Kanban principal).
   await loadBridgeLots({ limit: 500, force: true, timeout: 12000 });
-
   const [routesRaw, ordersRaw] = await Promise.all([
-    tvApiGet('ff_routes').catch(()=>[]),
-    // Algumas instalações não têm tabela ff_orders; nesse caso o TV monta os pedidos agrupando os lotes.
-    tvApiGet('ff_orders').catch(()=>[])
+    tvApiGet('ff_routes').catch(() => []),
+    tvApiGet('ff_orders').catch(() => [])
   ]);
-
-  if (!STATE._bridgeConnected) {
-    throw new Error('Não foi possível conectar à produção (bridge MySQL indisponível).');
-  }
-
-  tvState.lots   = (STATE.lots || []).map(tvNormalizeLot).filter(l => !l.rejected);
+  if (!STATE._bridgeConnected) throw new Error('Nao foi possivel conectar a producao.');
+  tvState.lots   = (STATE.lots || []).map(tvNormLot).filter(l => !l.rejected);
   tvState.orders = Array.isArray(ordersRaw) ? ordersRaw : [];
-  tvState.routes = routesRaw.map(r => {
-    let lots=[];
-    try { lots = typeof r.lots==='string' ? JSON.parse(r.lots) : (r.lots||[]); } catch(e){}
-    return { ...r, lots, createdAt: Number(r.createdAt)||0 };
+  tvState.routes = (Array.isArray(routesRaw) ? routesRaw : []).map(r => {
+    let lots = [];
+    try { lots = typeof r.lots === 'string' ? JSON.parse(r.lots) : (r.lots || []); } catch(e){}
+    return { ...r, lots };
   });
 }
 
-// ===== TIME HELPERS =====
+// ---- Time helpers ----
 function tvIsLate(lot) {
-  if (['entregue'].includes(lot.sector)) return false;
+  const s = tvNS(lot.sector, lot);
+  if (['entregue','entrega'].includes(s)) return false;
   if (!lot.deliveryDate) return false;
   return lot.deliveryDate < new Date().toISOString().split('T')[0];
 }
-function tvIsToday(d) { return d === new Date().toISOString().split('T')[0]; }
+function tvIsToday(d)    { return !!d && d === new Date().toISOString().split('T')[0]; }
 
-function tvGetTimeInSector(lot) {
-  const entered = Number(lot.sectorEnteredAt) || Number(lot.createdAt) || 0;
-  if (!entered) return 0;
-  return Date.now() - entered;
-}
-
-function tvGetTimeSummary(lot) {
-  const sector  = tvNormalizeSector(lot.sector, lot);
+function tvGetTS(lot) {
+  const sector  = tvNS(lot.sector, lot);
   const entered = Number(lot.sectorEnteredAt) || Number(lot.createdAt) || Date.now();
   const now     = Date.now();
   const total   = Math.max(0, now - entered);
-
   const sessions = (Array.isArray(lot.workSessions) ? lot.workSessions : [])
-    .filter(s => tvNormalizeSector(s.sector, lot) === sector)
-    .sort((a,b) => a.start - b.start);
-
-  const worked = sessions.reduce((acc,s) => {
-    const end = s.end || now;
-    return acc + Math.max(0, end - s.start);
-  }, 0);
-
+    .filter(s => tvNS(s.sector, lot) === sector)
+    .sort((a, b) => a.start - b.start);
+  const worked = sessions.reduce((acc, s) => acc + Math.max(0, (s.end || now) - s.start), 0);
   let paused = 0;
-  for (let i=1; i<sessions.length; i++) {
-    const pe = sessions[i-1].end, ns = sessions[i].start;
-    if (pe) paused += Math.max(0, ns - pe);
+  for (let i = 1; i < sessions.length; i++) {
+    if (sessions[i-1].end) paused += Math.max(0, sessions[i].start - sessions[i-1].end);
   }
-  if (lot.lotStatus==='paused' && sessions.length>0) {
-    const lastEnd = sessions[sessions.length-1].end;
-    if (lastEnd) paused += Math.max(0, now - lastEnd);
+  if (lot.lotStatus === 'paused' && sessions.length > 0) {
+    const le = sessions[sessions.length-1].end;
+    if (le) paused += Math.max(0, now - le);
   }
-  const idle = Math.max(0, total - worked - paused);
-  return { total, worked, paused, idle };
+  return { total, worked, paused };
 }
 
-function tvFormatMs(ms) {
+function tvTInSec(lot) {
+  const e = Number(lot.sectorEnteredAt) || Number(lot.createdAt) || 0;
+  return e ? Date.now() - e : 0;
+}
+
+function tvFmtMs(ms) {
   if (!ms || ms < 0) return '0m';
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  if (h > 0) return `${h}h${m>0?m+'m':''}`;
-  return `${m}m`;
+  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
+  return h > 0 ? `${h}h${m > 0 ? m + 'm' : ''}` : `${m}m`;
 }
 
-function tvEscape(str) {
-  if (str == null) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
-}
-
-function tvFormatDate(d) {
+function tvFmtDate(d) {
   if (!d) return '–';
-  const [y,mo,dd] = d.split('-');
+  const [,mo,dd] = d.split('-');
   return `${dd}/${mo}`;
 }
 
-// Average time stats for a sector (for footer label)
-function tvGetSectorAvgStats(sector) {
-  const lotsHere = tvState.lots.filter(l => tvNormalizeSector(l.sector, l) === sector);
-  if (lotsHere.length === 0) return null;
-  let sumW=0, sumP=0, sumT=0;
-  lotsHere.forEach(l => {
-    const s = tvGetTimeSummary(l);
-    sumT += s.total; sumW += s.worked; sumP += s.paused;
-  });
-  return { avgTotal: sumT/lotsHere.length, avgWorked: sumW/lotsHere.length, avgPaused: sumP/lotsHere.length };
+function tvE(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
 }
 
 function tvGetAlerts() {
-  const thr = 2 * 3600000;
   return tvState.lots.filter(l => {
-    if (['entrega','entregue'].includes(tvNormalizeSector(l.sector,l))) return false;
-    return tvGetTimeInSector(l) > thr;
+    const s = tvNS(l.sector, l);
+    return !['entrega','entregue'].includes(s) && tvTInSec(l) > 7200000;
   });
 }
 
-
-// ===== PEDIDOS / EXPEDIÇÃO HELPERS =====
-function tvLotOrderKey(lot) {
-  return String(
-    lot.orderNumber || lot.order || lot.pedido || lot.pits_pedido || lot.orderId || lot.order_id || lot.number || ''
-  ).trim();
+function tvSecStats(sector) {
+  const lots = tvState.lots.filter(l => tvNS(l.sector, l) === sector);
+  return {
+    total:   lots.length,
+    working: lots.filter(l => l.lotStatus === 'working').length,
+    paused:  lots.filter(l => l.lotStatus === 'paused').length,
+    urgent:  lots.filter(l => ['urgent','sameday'].includes(l.priority)).length,
+    late:    lots.filter(l => tvIsLate(l)).length
+  };
 }
 
-function tvRouteLotIds(routes, onlyActive = true) {
-  const ids = new Set();
-  (routes || []).forEach(r => {
-    if (onlyActive && !['in_progress','active','started','em_rota'].includes(String(r.status || '').toLowerCase())) return;
-    (Array.isArray(r.lots) ? r.lots : []).forEach(x => {
-      if (Array.isArray(x.lotIds)) x.lotIds.forEach(id => ids.add(String(id)));
-      ['lotId','id','number','op'].forEach(k => { if (x && x[k] != null) ids.add(String(x[k])); });
-    });
-  });
-  return ids;
+function tvLotKey(lot) {
+  return String(lot.orderNumber || lot.order || lot.pedido || lot.pits_pedido || lot.orderId || lot.order_id || lot.number || '').trim();
 }
 
-function tvIsLotInActiveRoute(lot, routes) {
-  const ids = tvRouteLotIds(routes, true);
-  return ids.has(String(lot.id || '')) || ids.has(String(lot.number || '')) || ids.has(String(lot.op || ''));
-}
-
-function tvGroupLotsByOrder(lots) {
+function tvGroupByOrder(lots) {
   const map = new Map();
   lots.forEach(lot => {
-    const key = tvLotOrderKey(lot) || String(lot.client || lot.id || lot.number || 'Pedido');
-    if (!map.has(key)) {
-      map.set(key, {
-        order: key,
-        client: lot.client || lot.customer || 'Cliente não informado',
-        city: lot.city || '',
-        deliveryDate: lot.deliveryDate || '',
-        priority: lot.priority || 'normal',
-        lots: []
-      });
-    }
+    const key = tvLotKey(lot) || String(lot.client || lot.number || 'Pedido');
+    if (!map.has(key)) map.set(key, { order: key, client: lot.client || 'Cliente', city: lot.city || '', deliveryDate: lot.deliveryDate || '', priority: lot.priority || 'normal', lots: [] });
     const item = map.get(key);
     item.lots.push(lot);
     if (lot.priority === 'sameday' || (lot.priority === 'urgent' && item.priority !== 'sameday')) item.priority = lot.priority;
     if (!item.deliveryDate && lot.deliveryDate) item.deliveryDate = lot.deliveryDate;
     if (!item.city && lot.city) item.city = lot.city;
   });
-
-  return [...map.values()].sort((a,b) => {
-    const po = { sameday: 0, urgent: 1, normal: 2 };
-    const pa = po[a.priority] ?? 2;
-    const pb = po[b.priority] ?? 2;
-    if (pa !== pb) return pa - pb;
-    return String(a.deliveryDate || '').localeCompare(String(b.deliveryDate || ''));
+  const po = { sameday: 0, urgent: 1, normal: 2 };
+  return [...map.values()].sort((a, b) => {
+    const d = (po[a.priority] ?? 2) - (po[b.priority] ?? 2);
+    return d !== 0 ? d : String(a.deliveryDate || '').localeCompare(String(b.deliveryDate || ''));
   });
 }
 
-function tvBuildOrderMiniCard(order, statusClass, statusText, icon = 'fas fa-clipboard-list') {
-  const lots = order.lots || [];
-  const mainLots = lots.slice(0, 3);
-  const qty = lots.reduce((sum,l) => sum + (Number(l.qty) || 0), 0);
-  return `
-    <div class="tv-order-mini-card ${statusClass}">
-      <div class="tv-order-mini-top">
-        <div class="tv-order-mini-number"><i class="${icon}"></i> Pedido ${tvEscape(order.order || '-')}</div>
-        <div class="tv-order-mini-badge ${statusClass}">${statusText}</div>
-      </div>
-      <div class="tv-order-mini-client">${tvEscape(order.client || 'Cliente')}</div>
-      <div class="tv-order-mini-meta">
-        <span><i class="fas fa-boxes-stacked"></i> ${lots.length} lote(s)</span>
-        <span><i class="fas fa-weight-hanging"></i> ${qty || 0} Kg</span>
-        ${order.deliveryDate ? `<span><i class="fas fa-calendar"></i> ${tvFormatDate(order.deliveryDate)}</span>` : ''}
-        ${order.city ? `<span><i class="fas fa-location-dot"></i> ${tvEscape(order.city)}</span>` : ''}
-      </div>
-      <div class="tv-order-mini-lots">
-        ${mainLots.map(l => `
-          <div class="tv-order-mini-lot">
-            <strong>#${tvEscape(l.number || '')}</strong>
-            <span>${tvEscape(l.paint || l.productCode || '')}</span>
-            <em>${tvEscape(TV_SECTOR_LABELS[tvNormalizeSector(l.sector,l)] || tvNormalizeSector(l.sector,l) || '-')}</em>
-          </div>
-        `).join('')}
-        ${lots.length > 3 ? `<div class="tv-order-more">+${lots.length - 3} lote(s)</div>` : ''}
-      </div>
-    </div>`;
-}
-
-function tvRenderOrdersPage(colsDiv, lots, routes) {
-  const bottom = document.querySelector('.tv-bottombar');
-  if (bottom) bottom.style.display = 'none';
-
-  const newLots = lots.filter(l => {
-    const sec = tvNormalizeSector(l.sector,l);
-    return ['pcp_liberacao','coloracao_revisao','laboratorio_revisao'].includes(sec);
-  });
-  const deliveredLots = lots.filter(l => tvNormalizeSector(l.sector,l) === 'entregue');
-  const routeLots = lots.filter(l => tvNormalizeSector(l.sector,l) === 'entrega' || tvIsLotInActiveRoute(l, routes));
-
-  const newOrders = tvGroupLotsByOrder(newLots).slice(0, 8);
-  const deliveredOrders = tvGroupLotsByOrder(deliveredLots).slice(0, 8);
-  const routeOrders = tvGroupLotsByOrder(routeLots).slice(0, 8);
-
-  colsDiv.innerHTML = `
-    <div class="tv-orders-page">
-      <section class="tv-orders-panel new">
-        <div class="tv-orders-header">
-          <div class="tv-orders-title new"><i class="fas fa-inbox"></i> Pedidos novos / revisão</div>
-          <div class="tv-orders-count new">${newOrders.length}</div>
-        </div>
-        <div class="tv-orders-list">
-          ${newOrders.length ? newOrders.map(o => tvBuildOrderMiniCard(o, 'new', 'Novo', 'fas fa-inbox')).join('') : `
-            <div class="tv-order-empty"><i class="fas fa-circle-check"></i><span>Nenhum pedido novo aguardando</span></div>
-          `}
-        </div>
-      </section>
-
-      <section class="tv-orders-panel route">
-        <div class="tv-orders-header">
-          <div class="tv-orders-title route"><i class="fas fa-truck-fast"></i> Pedidos em rota</div>
-          <div class="tv-orders-count route">${routeOrders.length}</div>
-        </div>
-        <div class="tv-orders-list">
-          ${routeOrders.length ? routeOrders.map(o => tvBuildOrderMiniCard(o, 'route', 'Em rota', 'fas fa-truck')).join('') : `
-            <div class="tv-order-empty"><i class="fas fa-truck"></i><span>Nenhum pedido em rota agora</span></div>
-          `}
-        </div>
-      </section>
-
-      <section class="tv-orders-panel delivered">
-        <div class="tv-orders-header">
-          <div class="tv-orders-title delivered"><i class="fas fa-box-circle-check"></i> Pedidos entregues</div>
-          <div class="tv-orders-count delivered">${deliveredOrders.length}</div>
-        </div>
-        <div class="tv-orders-list">
-          ${deliveredOrders.length ? deliveredOrders.map(o => tvBuildOrderMiniCard(o, 'delivered', 'Entregue', 'fas fa-check')).join('') : `
-            <div class="tv-order-empty"><i class="fas fa-box-open"></i><span>Nenhum pedido entregue ainda</span></div>
-          `}
-        </div>
-      </section>
-    </div>
-  `;
-}
-
-// ===== RENDER =====
-
-function tvBuildFocusLot(lot, options = {}) {
-  lot = tvNormalizeLot(lot);
-  const ts = tvGetTimeSummary(lot);
-  const late = tvIsLate(lot);
-  const hot = lot.priority === 'urgent';
-  const danger = lot.priority === 'sameday' || late || (ts.total > 7200000);
-  const badge = danger ? 'Atenção' : hot ? 'Urgente' : (TV_SECTOR_LABELS[lot.sector] || 'Fluxo');
-  const badgeStyle = danger
-    ? 'background:rgba(251,113,133,.16);color:#fb7185;border:1px solid rgba(251,113,133,.32)'
-    : hot
-    ? 'background:rgba(251,146,60,.16);color:#fb923c;border:1px solid rgba(251,146,60,.32)'
-    : 'background:rgba(34,197,94,.13);color:#4ade80;border:1px solid rgba(34,197,94,.28)';
-
-  return `
-    <div class="tv-focus-lot ${hot ? 'hot' : ''} ${danger ? 'danger' : ''}">
-      <div class="tv-focus-top">
-        <div class="tv-focus-number">#${tvEscape(lot.number || '')}</div>
-        <div class="tv-focus-badge" style="${badgeStyle}">${badge}</div>
-      </div>
-      <div class="tv-focus-client">${tvEscape(lot.client || 'Cliente não informado')}</div>
-      <div class="tv-focus-paint">${tvEscape(lot.paint || lot.productCode || 'Produto não informado')}</div>
-      <div class="tv-focus-meta">
-        <span><i class="fas fa-clock"></i> ${tvFormatMs(ts.total)}</span>
-        <span><i class="fas fa-box"></i> ${tvEscape(lot.qty || '')}${tvEscape(lot.unit || 'Kg')}</span>
-        <span><i class="fas fa-calendar"></i> ${tvFormatDate(lot.deliveryDate)}</span>
-      </div>
-    </div>`;
-}
-
-
-function tvBuildReadyStatusItem(lot, routes = []) {
-  lot = tvNormalizeLot(lot);
-
-  const inRoute = routes.some(r => {
-    if (r.status !== 'in_progress') return false;
-    const routeLots = Array.isArray(r.lots) ? r.lots : [];
-    return routeLots.some(x =>
+function tvInRoute(lot, routes) {
+  return routes.some(r => {
+    if (!['in_progress','active','started','em_rota'].includes(String(r.status || '').toLowerCase())) return false;
+    return (Array.isArray(r.lots) ? r.lots : []).some(x =>
       String(x.lotId || x.id || x.number || '') === String(lot.id || lot.number || '')
     );
   });
+}
 
-  const statusText = inRoute ? 'Em rota' : 'Pronto';
-  const badgeClass = inRoute ? 'route' : 'ready';
+// ============================================================
+// BUILD HELPERS
+// ============================================================
+function tvBuildLotCard(lot) {
+  const ts     = tvGetTS(lot);
+  const late   = tvIsLate(lot);
+  const today  = tvIsToday(lot.deliveryDate);
+  const track  = TV_TRACKABLE.includes(lot.sector);
+  const alert  = ts.total > 7200000;
+  const status = lot.lotStatus || 'idle';
+  const pt     = lot.productType || 'tinta';
+  const wPct   = ts.total ? Math.min(100, Math.round(ts.worked / ts.total * 100)) : 0;
+  const pPct   = ts.total ? Math.min(100 - wPct, Math.round(ts.paused / ts.total * 100)) : 0;
+
+  const ptag = lot.priority === 'sameday' ? `<div class="tv-priority-tag sameday">HOJE</div>`
+             : lot.priority === 'urgent'  ? `<div class="tv-priority-tag urgent">URG</div>` : '';
+  const sdot = status === 'working' ? `<span class="tv-status-dot working"></span>`
+             : status === 'paused'  ? `<span class="tv-status-dot paused"></span>` : '';
 
   return `
-    <div class="tv-ready-status-item ${inRoute ? 'in-route' : ''}">
-      <div class="tv-ready-status-order">#${tvEscape(lot.number || '')}</div>
-
-      <div style="min-width:0">
-        <div class="tv-ready-status-client">${tvEscape(lot.client || 'Cliente não informado')}</div>
-        <div class="tv-ready-status-paint">${tvEscape(lot.paint || lot.productCode || 'Produto não informado')}</div>
+    <div class="tv-lot-card priority-${lot.priority||'normal'} ${late?'late-lot':''}">
+      ${ptag}
+      <div class="tv-card-top"><div class="tv-lot-number">${sdot}#${tvE(lot.number||'')}</div></div>
+      <div class="tv-lot-client">${tvE(lot.client||'')}</div>
+      <div class="tv-lot-paint">${tvE(lot.paint||lot.productCode||'')} &middot; ${tvE(lot.qty||'')}${tvE(lot.unit||'Kg')}</div>
+      <div class="tv-card-meta">
+        <span class="tv-meta-chip mtype">${PT_LABELS[pt]||pt}</span>
+        <span class="tv-meta-chip mtime${alert?' alert':''}"><i class="fas fa-clock"></i> ${tvFmtMs(ts.total)}</span>
+        <span class="tv-meta-chip mdate ${late?'mlate':today?'mtoday':''}">${late?'&#9888;':today?'&#128197;':''}${tvFmtDate(lot.deliveryDate)}</span>
       </div>
+      ${track && ts.total > 0 ? `<div class="tv-time-bar"><div class="tv-tbar-w" style="width:${wPct}%"></div><div class="tv-tbar-p" style="width:${pPct}%"></div><div class="tv-tbar-i"></div></div>` : ''}
+    </div>`;
+}
 
-      <div class="tv-ready-status-badge ${badgeClass}">
-        ${statusText}
+function tvBuildFocusCard(lot) {
+  const ts   = tvGetTS(lot);
+  const late = tvIsLate(lot);
+  const danger = lot.priority === 'sameday' || late;
+  const bs = danger ? 'background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)'
+           : lot.priority === 'urgent' ? 'background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.3)'
+           : 'background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25)';
+  const bt = danger ? 'Atencao' : lot.priority === 'urgent' ? 'Urgente' : 'Normal';
+  return `
+    <div class="tv-focus-card ${danger?'danger':''}">
+      <div class="tv-focus-top">
+        <div class="tv-focus-num">#${tvE(lot.number||'')}</div>
+        <div class="tv-focus-badge" style="${bs}">${bt}</div>
+      </div>
+      <div class="tv-focus-client">${tvE(lot.client||'')}</div>
+      <div class="tv-focus-paint">${tvE(lot.paint||lot.productCode||'')}</div>
+      <div class="tv-focus-meta">
+        <span class="tv-meta-chip mtime"><i class="fas fa-clock"></i> ${tvFmtMs(ts.total)}</span>
+        <span class="tv-meta-chip mtype">${tvE(lot.qty||'')}${tvE(lot.unit||'Kg')}</span>
+        <span class="tv-meta-chip mdate ${late?'mlate':tvIsToday(lot.deliveryDate)?'mtoday':''}">${tvFmtDate(lot.deliveryDate)}</span>
       </div>
     </div>`;
 }
 
-function tvRenderProductionPro(lots, routes, visibleSectors, totalPages) {
-  const colsDiv = document.getElementById('tvColumns');
-  const bottom = document.querySelector('.tv-bottombar');
-  if (bottom) bottom.style.display = 'flex';
-
-  // Página 1: central de produção com foco em gargalos e setores principais
-  if (tvCurrentPage === 0) {
-    const mainSectors = ['pcp_liberacao', 'pesagem', 'producao', 'coloracao', 'laboratorio', 'envase_produzir'];
-    const priorityLots = [...lots]
-      .filter(l => !['entrega','entregue'].includes(tvNormalizeSector(l.sector,l)))
-      .sort((a,b) => {
-        const score = x => (x.priority === 'sameday' ? 100000 : x.priority === 'urgent' ? 60000 : 0) + tvGetTimeInSector(x);
-        return score(b) - score(a);
-      })
-      .slice(0, 4);
-
-    const readyLots = lots.filter(l => tvNormalizeSector(l.sector,l) === 'pronto').slice(0, 10);
-    const alertLots = tvGetAlerts().slice(0, 4);
-
-    colsDiv.innerHTML = `
-      <div class="tv-production-hero">
-        <div class="tv-hero-main">
-          ${mainSectors.map(sector => {
-            const sectorLots = lots
-              .filter(l => tvNormalizeSector(l.sector,l) === sector)
-              .sort((a,b) => tvGetTimeInSector(b) - tvGetTimeInSector(a))
-              .slice(0, 4);
-            return `
-              <div class="tv-super-card">
-                <div class="tv-super-card-header">
-                  <div class="tv-super-title" style="color:${TV_SECTOR_COLORS[sector] || '#93c5fd'}">
-                    <i class="${TV_SECTOR_ICONS[sector] || 'fas fa-circle'}"></i>
-                    ${TV_SECTOR_LABELS[sector] || sector}
-                  </div>
-                  <div class="tv-super-count">${lots.filter(l => tvNormalizeSector(l.sector,l) === sector).length}</div>
-                </div>
-                <div class="tv-super-list">
-                  ${sectorLots.length ? sectorLots.map(l => tvBuildFocusLot(l)).join('') : `
-                    <div class="tv-empty-col"><i class="fas fa-inbox"></i><span>Vazio</span></div>
-                  `}
-                </div>
-              </div>`;
-          }).join('')}
+function tvBuildSectorCol(sector, lots) {
+  const sl = lots.filter(l => tvNS(l.sector, l) === sector)
+    .sort((a, b) => {
+      const po = { sameday:0, urgent:1, normal:2 };
+      const pd = (po[a.priority]??2) - (po[b.priority]??2);
+      return pd !== 0 ? pd : tvTInSec(b) - tvTInSec(a);
+    });
+  const color = TV_SECTOR_COLORS[sector] || '#6b7280';
+  const icon  = TV_SECTOR_ICONS[sector]  || 'fas fa-circle';
+  const isRev = ['coloracao_revisao','laboratorio_revisao','pcp_liberacao'].includes(sector);
+  const isSmp = ['laboratorio_amostras','coloracao_amostras'].includes(sector);
+  const isTrack = TV_TRACKABLE.includes(sector);
+  let foot = '';
+  if (isTrack && sl.length > 0) {
+    let sw=0,sp=0;
+    sl.forEach(l => { const t=tvGetTS(l); sw+=t.worked; sp+=t.paused; });
+    foot = `<div class="tv-col-footer"><span class="tw"><i class="fas fa-play-circle"></i> ${tvFmtMs(sw/sl.length)}/lote</span>${sp>0?`<span class="tp"><i class="fas fa-pause-circle"></i> ${tvFmtMs(sp/sl.length)}</span>`:''}</div>`;
+  }
+  return `
+    <div class="tv-prod-col">
+      <div class="tv-col-head">
+        <div class="tv-col-title" style="color:${color}">
+          <i class="${icon}"></i>${TV_SECTOR_LABELS[sector]||sector}
+          ${isRev?'<span style="font-size:.5rem;background:rgba(255,255,255,.07);padding:.05rem .25rem;border-radius:4px;color:#64748b">REV</span>':''}
+          ${isSmp?'<span style="font-size:.5rem;background:rgba(250,204,21,.1);padding:.05rem .25rem;border-radius:4px;color:#facc15">AMOSTRA</span>':''}
         </div>
+        <div class="tv-col-count" style="color:${color}">${sl.length}</div>
+      </div>
+      <div class="tv-col-body">
+        ${sl.length===0 ? `<div class="tv-empty-col"><i class="fas fa-inbox"></i><span>Vazio</span></div>` : sl.map(l=>tvBuildLotCard(l)).join('')}
+      </div>
+      ${foot}
+    </div>`;
+}
 
-        <div class="tv-hero-side">
-          <div class="tv-super-card">
-            <div class="tv-super-card-header">
-              <div class="tv-super-title" style="color:#fb923c">
-                <i class="fas fa-bolt"></i> Prioridades e gargalos
-              </div>
-              <div class="tv-super-count">${priorityLots.length}</div>
-            </div>
-            <div class="tv-super-list">
-              ${priorityLots.length ? priorityLots.map(l => tvBuildFocusLot(l)).join('') : `
-                <div class="tv-empty-col"><i class="fas fa-check"></i><span>Sem prioridade crítica</span></div>
-              `}
-            </div>
-          </div>
+// ============================================================
+// PAGE RENDERERS
+// ============================================================
 
-          <div class="tv-super-card">
-            <div class="tv-super-card-header">
-              <div class="tv-super-title" style="color:#4ade80">
-                <i class="fas fa-clipboard-check"></i> Status dos Prontos
-              </div>
-              <div class="tv-super-count">${lots.filter(l => tvNormalizeSector(l.sector,l) === 'pronto').length}</div>
-            </div>
-            <div class="tv-ready-status-list">
-              ${readyLots.length ? readyLots.map(l => tvBuildReadyStatusItem(l, routes)).join('') : `
-                <div class="tv-empty-col"><i class="fas fa-box-open"></i><span>Nenhum pronto</span></div>
-              `}
-            </div>
-          </div>
+function tvRenderMetrics(lots, routes) {
+  const ns = l => tvNS(l.sector, l);
+  const terminal = ['entrega','entregue','finalizado'];
+
+  const inProd  = lots.filter(l => !terminal.includes(ns(l))).length;
+  const working = lots.filter(l => l.lotStatus==='working' && !terminal.includes(ns(l))).length;
+  const paused  = lots.filter(l => l.lotStatus==='paused'  && !terminal.includes(ns(l))).length;
+  const idle    = Math.max(0, inProd - working - paused);
+  const ready   = lots.filter(l => ns(l)==='pronto').length;
+  const inRoute = lots.filter(l => ns(l)==='entrega').length;
+  const urgent  = lots.filter(l => ['urgent','sameday'].includes(l.priority) && !terminal.includes(ns(l))).length;
+  const late    = lots.filter(l => tvIsLate(l)).length;
+
+  const kpis = [
+    ['Em Producao',  inProd,  'fas fa-cogs',               'k-blue'],
+    ['Trabalhando',  working, 'fas fa-play-circle',         'k-green'],
+    ['Pausados',     paused,  'fas fa-pause-circle',        'k-yellow'],
+    ['Aguardando',   idle,    'fas fa-hourglass-half',      'k-slate'],
+    ['Prontos',      ready,   'fas fa-check-circle',        'k-emerald'],
+    ['Em Rota',      inRoute, 'fas fa-truck',               'k-orange'],
+    ['Urgentes',     urgent,  'fas fa-bolt',                urgent>0?'k-red':'k-slate'],
+    ['Atrasados',    late,    'fas fa-exclamation-triangle',late>0?'k-red':'k-slate']
+  ];
+
+  const kpiHtml = kpis.map(([lbl,val,icon,cls]) => `
+    <div class="tv-kpi-card ${cls}">
+      <div class="tv-kpi-icon"><i class="${icon}"></i></div>
+      <div class="tv-kpi-value">${val}</div>
+      <div class="tv-kpi-label">${lbl}</div>
+    </div>`).join('');
+
+  const sectHtml = TV_SECTORS.map(sec => {
+    const st = tvSecStats(sec);
+    const color = TV_SECTOR_COLORS[sec] || '#6b7280';
+    const icon  = TV_SECTOR_ICONS[sec]  || 'fas fa-circle';
+    const wPct  = st.total ? Math.round(st.working/st.total*100) : 0;
+    const pPct  = st.total ? Math.round(st.paused /st.total*100) : 0;
+    const badges = [
+      st.working ? `<span class="tv-sec-badge sw"><i class="fas fa-play"></i> ${st.working}</span>` : '',
+      st.paused  ? `<span class="tv-sec-badge sp"><i class="fas fa-pause"></i> ${st.paused}</span>` : '',
+      st.urgent  ? `<span class="tv-sec-badge su"><i class="fas fa-bolt"></i> ${st.urgent} urg.</span>` : '',
+      st.late    ? `<span class="tv-sec-badge sl"><i class="fas fa-exclamation"></i> ${st.late} atras.</span>` : ''
+    ].filter(Boolean).join('');
+    return `
+      <div class="tv-sec-row">
+        <div class="tv-sec-row-top">
+          <div class="tv-sec-row-name" style="color:${color}"><i class="${icon}" style="flex-shrink:0"></i>${TV_SECTOR_LABELS[sec]||sec}</div>
+          <div class="tv-sec-row-count" style="color:${color}">${st.total}</div>
+        </div>
+        ${st.total>0?`<div class="tv-sec-badges">${badges||'<span class="tv-sec-badge" style="color:#475569">Aguardando</span>'}</div>`:''}
+        <div class="tv-sec-bar-track">
+          <div class="tv-sbar-w" style="width:${wPct}%"></div>
+          <div class="tv-sbar-p" style="width:${pPct}%"></div>
+          <div class="tv-sbar-i"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const alerts = tvGetAlerts().slice(0,8);
+  const alertsHtml = alerts.length ? alerts.map(l => `
+    <div class="tv-alert-item">
+      <div class="tv-alert-num">#${tvE(l.number||'')}</div>
+      <div class="tv-alert-info">
+        <div class="tv-alert-client">${tvE(l.client||'')}</div>
+        <div class="tv-alert-sector">${TV_SECTOR_LABELS[tvNS(l.sector,l)]||tvNS(l.sector,l)}</div>
+      </div>
+      <div class="tv-alert-time"><i class="fas fa-clock"></i> ${tvFmtMs(tvTInSec(l))}</div>
+    </div>`).join('')
+  : `<div class="tv-empty-state"><i class="fas fa-check-circle"></i>Sem alertas ativos</div>`;
+
+  const upcoming = lots.filter(l => l.deliveryDate && ns(l)!=='entregue')
+    .sort((a,b) => String(a.deliveryDate).localeCompare(String(b.deliveryDate)))
+    .slice(0,10);
+
+  const upHtml = upcoming.length ? upcoming.map(l => {
+    const late  = tvIsLate(l), today = tvIsToday(l.deliveryDate);
+    const cls   = late?'dl':today?'dt':'ds';
+    const icon  = late?'&#9888;':today?'&#128197;':'&#128230;';
+    return `
+      <div class="tv-delivery-chip">
+        <div>
+          <div class="tv-deliv-order">#${tvE(l.number||'')}</div>
+          <div class="tv-deliv-client">${tvE(l.client||'')}</div>
+        </div>
+        <div class="tv-deliv-date ${cls}">${icon} ${tvFmtDate(l.deliveryDate)}</div>
+      </div>`;
+  }).join('')
+  : `<span class="tv-bchip muted">Nenhuma entrega proxima</span>`;
+
+  return `
+    <div class="tv-metrics-page">
+      <div class="tv-kpi-bar">${kpiHtml}</div>
+      <div class="tv-metrics-middle">
+        <div class="tv-sectors-panel">
+          <div class="tv-panel-header"><i class="fas fa-layer-group"></i> Ocupacao por Setor</div>
+          <div class="tv-sectors-grid">${sectHtml}</div>
+        </div>
+        <div class="tv-alert-panel">
+          <div class="tv-panel-header" style="border-color:rgba(239,68,68,.15)"><i class="fas fa-triangle-exclamation" style="color:#f87171"></i> Alertas &mdash; mais de 2h no setor</div>
+          <div class="tv-alert-list">${alertsHtml}</div>
         </div>
       </div>
-    `;
-    return true;
-  }
+      <div class="tv-deliveries-bar">
+        <div class="tv-panel-header" style="border-radius:16px 16px 0 0"><i class="fas fa-calendar-check"></i> Proximas Entregas</div>
+        <div class="tv-deliveries-list">${upHtml}</div>
+      </div>
+    </div>`;
+}
 
-  // Página 2: kanban completo, elegante, com setores restantes
-  return false;
+function tvRenderProduction(lots, routes) {
+  const main = ['pcp_liberacao','pesagem','producao','coloracao','laboratorio','envase_produzir'];
+  const ns   = l => tvNS(l.sector, l);
+
+  const prio = [...lots].filter(l => !['entrega','entregue'].includes(ns(l)))
+    .sort((a,b) => {
+      const s = x => (x.priority==='sameday'?100000:x.priority==='urgent'?60000:0) + tvTInSec(x);
+      return s(b) - s(a);
+    }).slice(0,5);
+
+  const readyLots = lots.filter(l => ns(l)==='pronto');
+
+  const prioHtml = prio.length ? prio.map(l=>tvBuildFocusCard(l)).join('')
+    : `<div class="tv-empty-col"><i class="fas fa-check-circle"></i><span>Sem prioridade critica</span></div>`;
+
+  const readyHtml = readyLots.length ? readyLots.slice(0,8).map(l => {
+    const ir = tvInRoute(l, routes);
+    return `
+      <div class="tv-ready-item ${ir?'in-route':''}">
+        <div class="tv-ready-num">#${tvE(l.number||'')}</div>
+        <div><div class="tv-ready-client">${tvE(l.client||'')}</div><div class="tv-ready-paint">${tvE(l.paint||l.productCode||'')}</div></div>
+        <div class="tv-ready-badge ${ir?'route':'ready'}">${ir?'Em rota':'Pronto'}</div>
+      </div>`;
+  }).join('')
+  : `<div class="tv-empty-col"><i class="fas fa-box-open"></i><span>Nenhum pronto</span></div>`;
+
+  return `
+    <div class="tv-production-page">
+      ${main.map(s=>tvBuildSectorCol(s,lots)).join('')}
+      <div class="tv-side-col">
+        <div class="tv-side-card">
+          <div class="tv-col-head">
+            <div class="tv-col-title" style="color:#fb923c"><i class="fas fa-bolt"></i> Prioridades</div>
+            <div class="tv-col-count" style="color:#fb923c">${prio.length}</div>
+          </div>
+          <div class="tv-col-body">${prioHtml}</div>
+        </div>
+        <div class="tv-side-card">
+          <div class="tv-col-head">
+            <div class="tv-col-title" style="color:#4ade80"><i class="fas fa-clipboard-check"></i> Prontos</div>
+            <div class="tv-col-count" style="color:#4ade80">${readyLots.length}</div>
+          </div>
+          <div class="tv-ready-list">${readyHtml}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function tvRenderKanban(lots, kanbanIdx) {
+  const slice = TV_SECTORS.slice(kanbanIdx * TV_COLS_PER_PAGE, (kanbanIdx+1) * TV_COLS_PER_PAGE);
+  return `
+    <div class="tv-kanban-page" style="grid-template-columns:repeat(${slice.length},minmax(0,1fr))">
+      ${slice.map(s=>tvBuildSectorCol(s,lots)).join('')}
+    </div>`;
+}
+
+function tvRenderExpedition(lots, routes) {
+  const ns = l => tvNS(l.sector, l);
+  const urg = lots.filter(l => {
+    const s = ns(l);
+    return s!=='pronto'&&s!=='entregue'&&(l.priority==='urgent'||l.priority==='sameday'||tvIsLate(l));
+  });
+  const groups = tvGroupByOrder(urg).slice(0,10);
+  const ready  = lots.filter(l => ns(l)==='pronto');
+  const rids   = new Set();
+  routes.forEach(r => r.status==='in_progress' && (r.lots||[]).forEach(x => rids.add(String(x.lotId||x.id||x.number||''))));
+
+  const urgHtml = groups.length ? groups.map(g => `
+    <div class="tv-urgent-card">
+      <div class="tv-urgent-top">
+        <div class="tv-urgent-order"><i class="fas fa-clipboard-list"></i> Pedido ${tvE(g.order||'-')}</div>
+        <div class="tv-urgent-badge">Urgente</div>
+      </div>
+      <div class="tv-urgent-client">${tvE(g.client||'')}</div>
+      <div class="tv-urgent-lots">
+        ${g.lots.slice(0,4).map(l=>`
+          <div class="tv-urgent-lot">
+            <strong>#${tvE(l.number||'')}</strong>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tvE(l.paint||l.productCode||'')}</span>
+            <em>${tvE(TV_SECTOR_LABELS[ns(l)]||'-')}</em>
+          </div>`).join('')}
+      </div>
+    </div>`).join('')
+  : `<div class="tv-empty-state"><i class="fas fa-check-circle"></i>Nenhum pedido urgente</div>`;
+
+  const rgHtml = ready.slice(0,48).map(l => {
+    const ir = rids.has(String(l.id||l.number||''));
+    return `
+      <div class="tv-rgc ${ir?'route':''}">
+        <div class="tv-rgc-num">#${tvE(l.number||'')}</div>
+        <div><div class="tv-rgc-client">${tvE(l.client||'')}</div><div class="tv-rgc-paint">${tvE(l.paint||l.productCode||'')}</div></div>
+        <div class="tv-rgc-status ${ir?'route':'ready'}">${ir?'Rota':'Pronto'}</div>
+      </div>`;
+  }).join('') || `<div class="tv-empty-state" style="grid-column:1/-1"><i class="fas fa-box-open"></i>Nenhum pronto</div>`;
+
+  return `
+    <div class="tv-expedition-page">
+      <div class="tv-exp-panel">
+        <div class="tv-exp-head">
+          <div class="tv-exp-title" style="color:#f87171"><i class="fas fa-bolt"></i> Urgentes e Atrasados</div>
+          <div class="tv-exp-count urgent">${groups.length}</div>
+        </div>
+        <div class="tv-exp-body">${urgHtml}</div>
+      </div>
+      <div class="tv-exp-panel">
+        <div class="tv-exp-head">
+          <div class="tv-exp-title" style="color:#4ade80"><i class="fas fa-check-circle"></i> Lotes Prontos</div>
+          <div class="tv-exp-count readyc">${ready.length}</div>
+        </div>
+        <div class="tv-exp-body"><div class="tv-ready-grid">${rgHtml}</div></div>
+      </div>
+    </div>`;
+}
+
+function tvRenderOrders(lots, routes) {
+  const ns = l => tvNS(l.sector, l);
+  function buildCard(order, cls, statusText) {
+    const lo = order.lots || [];
+    const qty = lo.reduce((s,l)=>s+(Number(l.qty)||0),0);
+    return `
+      <div class="tv-order-card ${cls}">
+        <div class="tv-order-top">
+          <div class="tv-order-num"><i class="fas fa-clipboard-list"></i> Pedido ${tvE(order.order||'-')}</div>
+          <div class="tv-order-badge ${cls}">${statusText}</div>
+        </div>
+        <div class="tv-order-client">${tvE(order.client||'')}</div>
+        <div class="tv-order-meta">
+          <span><i class="fas fa-boxes-stacked"></i> ${lo.length} lote(s)</span>
+          <span><i class="fas fa-weight-hanging"></i> ${qty} Kg</span>
+          ${order.deliveryDate?`<span><i class="fas fa-calendar"></i> ${tvFmtDate(order.deliveryDate)}</span>`:''}
+          ${order.city?`<span><i class="fas fa-location-dot"></i> ${tvE(order.city)}</span>`:''}
+        </div>
+        <div class="tv-order-lots">
+          ${lo.slice(0,3).map(l=>`
+            <div class="tv-order-lot">
+              <strong>#${tvE(l.number||'')}</strong>
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tvE(l.paint||l.productCode||'')}</span>
+              <em>${tvE(TV_SECTOR_LABELS[ns(l)]||'-')}</em>
+            </div>`).join('')}
+          ${lo.length>3?`<div class="tv-order-more">+${lo.length-3} lote(s)</div>`:''}
+        </div>
+      </div>`;
+  }
+  function panel(pLots, cls, stText, ei, em) {
+    const orders = tvGroupByOrder(pLots).slice(0,8);
+    return `
+      <div class="tv-orders-panel ${cls}">
+        <div class="tv-orders-head">
+          <div class="tv-orders-title ${cls}">
+            ${cls==='new'?'<i class="fas fa-inbox"></i>':cls==='route'?'<i class="fas fa-truck-fast"></i>':'<i class="fas fa-box-circle-check"></i>'}
+            ${cls==='new'?'Pedidos Novos / Revisao':cls==='route'?'Em Rota':'Entregues'}
+          </div>
+          <div class="tv-orders-count ${cls}">${orders.length}</div>
+        </div>
+        <div class="tv-orders-list">
+          ${orders.length ? orders.map(o=>buildCard(o,cls,stText)).join('')
+            : `<div class="tv-order-empty"><i class="${ei}"></i><span>${em}</span></div>`}
+        </div>
+      </div>`;
+  }
+  const newLots  = lots.filter(l=>['pcp_liberacao','coloracao_revisao','laboratorio_revisao'].includes(ns(l)));
+  const routeLots= lots.filter(l=>ns(l)==='entrega'||tvInRoute(l,routes));
+  const delLots  = lots.filter(l=>ns(l)==='entregue');
+  return `
+    <div class="tv-orders-page">
+      ${panel(newLots,   'new',       'Novo',     'fas fa-circle-check','Nenhum pedido aguardando')}
+      ${panel(routeLots, 'route',     'Em rota',  'fas fa-truck',       'Nenhum pedido em rota')}
+      ${panel(delLots,   'delivered', 'Entregue', 'fas fa-box-open',    'Nenhum entregue ainda')}
+    </div>`;
+}
+
+function tvRenderRoutes(routes) {
+  const active = routes.filter(r=>r.status==='in_progress');
+  if (!active.length) {
+    return `
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
+        <div class="tv-route-empty">
+          <i class="fas fa-truck"></i>
+          <div>Nenhuma rota em andamento</div>
+          <div style="font-size:.78rem;opacity:.6">As rotas ativas aparecerao aqui automaticamente</div>
+        </div>
+      </div>`;
+  }
+  const route = active[tvRoutePageIdx % active.length];
+  const rl    = Array.isArray(route.lots) ? route.lots : [];
+  const del   = rl.filter(l=>l.delivered||l.status==='delivered'||l.status==='entregue').length;
+  const pend  = Math.max(0, rl.length-del);
+  const pct   = rl.length ? Math.round(del/rl.length*100) : 0;
+  const kg    = rl.reduce((s,l)=>s+(Number(l.qty)||0),0);
+  const next  = rl.find(l=>!(l.delivered||l.status==='delivered'||l.status==='entregue')) || rl[0];
+
+  return `
+    <div class="tv-routes-page">
+      <div class="tv-route-panel">
+        <div class="tv-route-driver-icon"><i class="fas fa-truck"></i></div>
+        <div class="tv-route-driver-name">${tvE(route.driverName||'Motorista')}</div>
+        <div class="tv-route-driver-sub">Central logistica ao vivo</div>
+        <div class="tv-live-badge"><div class="tv-live-dot"></div> EM ROTA</div>
+        <div class="tv-route-progress-track">
+          <div class="tv-route-progress-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="tv-route-pct">${del}/${rl.length} entregas &middot; ${pct}%${active.length>1?` &middot; Rota ${tvRoutePageIdx%active.length+1}/${active.length}`:''}</div>
+        <div class="tv-route-stats">
+          <div class="tv-route-stat"><strong>${rl.length}</strong><span>Paradas</span></div>
+          <div class="tv-route-stat"><strong>${pend}</strong><span>Pendentes</span></div>
+          <div class="tv-route-stat"><strong>${del}</strong><span>Entregues</span></div>
+          <div class="tv-route-stat"><strong>${kg||'&ndash;'}</strong><span>Kg totais</span></div>
+        </div>
+      </div>
+
+      <div class="tv-stops-panel">
+        <div class="tv-col-head">
+          <div class="tv-col-title" style="color:#60a5fa"><i class="fas fa-route"></i> Roteiro de Entregas</div>
+          <div class="tv-col-count" style="color:#60a5fa">${rl.length}</div>
+        </div>
+        <div class="tv-stops-list">
+          ${rl.slice(0,6).map((lot,idx)=>`
+            <div class="tv-stop-card ${idx===0?'next':''}">
+              <div class="tv-stop-num">${idx+1}</div>
+              <div>
+                ${idx===0?'<div class="tv-stop-next-b">PROXIMA</div>':''}
+                <div class="tv-stop-client">${tvE(lot.client||'Cliente')}</div>
+                <div class="tv-stop-product">${tvE(lot.paint||lot.productCode||lot.number||'Produto')}</div>
+              </div>
+              <div class="tv-stop-meta">
+                <div class="tv-stop-num-t">#${tvE(lot.number||'')}</div>
+                <div class="tv-stop-qty">${tvE(lot.qty||'')} Kg</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="tv-route-kpi-panel">
+        ${next?`
+          <div class="tv-route-next-box">
+            <div class="tv-rn-label"><i class="fas fa-location-dot"></i> Proxima entrega</div>
+            <div class="tv-rn-client">${tvE(next.client||'&ndash;')}</div>
+            <div class="tv-rn-product">${tvE(next.paint||next.productCode||'')}</div>
+          </div>`:''}
+        <div class="tv-rk-row"><span class="tv-rk-label">Status</span><span class="tv-rk-value" style="color:#4ade80">Ao vivo</span></div>
+        <div class="tv-rk-row"><span class="tv-rk-label">Motorista</span><span class="tv-rk-value">${tvE(route.driverName||'&ndash;')}</span></div>
+        <div class="tv-rk-row"><span class="tv-rk-label">Progresso</span><span class="tv-rk-value" style="color:#60a5fa">${pct}%</span></div>
+        <div class="tv-rk-row"><span class="tv-rk-label">Pendentes</span><span class="tv-rk-value" style="color:${pend>0?'#fb923c':'#4ade80'}">${pend}</span></div>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// MAIN RENDER
+// ============================================================
+function tvPageDef() {
+  const kb = Math.max(1, Math.ceil(TV_SECTORS.length / TV_COLS_PER_PAGE));
+  return { total: 2 + kb + 3, kb };
 }
 
 function tvRender() {
-  const lots   = tvState.lots.map(tvNormalizeLot);
+  const lots   = tvState.lots.map(tvNormLot);
   const routes = tvState.routes;
-  // PATCH: garante reset visual da barra inferior quando sair das páginas especiais
-  const __tvBottom = document.querySelector('.tv-bottombar');
-  if (__tvBottom) __tvBottom.style.display = 'flex';
+  const { total, kb } = tvPageDef();
 
-  const totalSectorPages = Math.max(1, Math.ceil(TV_ALL_SECTORS.length / TV_COLS_PER_PAGE));
-      const totalPages = totalSectorPages + 3; // páginas produção + expedição + pedidos + rotas
+  tvCurrentPage = tvCurrentPage % total;
 
-  tvCurrentPage = tvCurrentPage % totalPages;
+  const isMetrics = tvCurrentPage === 0;
+  const isProd    = tvCurrentPage === 1;
+  const isKanban  = tvCurrentPage >= 2 && tvCurrentPage < 2 + kb;
+  const isExp     = tvCurrentPage === 2 + kb;
+  const isOrders  = tvCurrentPage === 3 + kb;
+  const isRoutes  = tvCurrentPage === 4 + kb;
 
-  const isExpeditionPage = tvCurrentPage === totalPages - 3;
-  const isOrdersPage     = tvCurrentPage === totalPages - 2;
-  const isRoutesPage     = tvCurrentPage === totalPages - 1;
+  // Page tabs
+  const tabLabels = ['Visao Geral','Producao',...Array.from({length:kb},(_,i)=>`Kanban ${i+1}`),'Expedicao','Pedidos','Rotas'];
+  const tabsEl = document.getElementById('tvPageTabs');
+  if (tabsEl) tabsEl.innerHTML = tabLabels.map((lbl,i)=>`<div class="tv-page-tab ${i===tvCurrentPage?'active':''}">${lbl}</div>`).join('');
 
-  const visibleSectors = (isExpeditionPage || isOrdersPage || isRoutesPage)
-    ? []
-    : TV_ALL_SECTORS.slice(
-        tvCurrentPage * TV_COLS_PER_PAGE,
-        (tvCurrentPage + 1) * TV_COLS_PER_PAGE
-      );
+  // Bottom bar visibility
+  const bot = document.getElementById('tvBottomBar');
+  if (bot) bot.style.display = (isMetrics||isExp||isOrders||isRoutes) ? 'none' : 'flex';
 
-  // Metrics bar
-  const inProd  = lots.filter(l => !['entrega','entregue'].includes(tvNormalizeSector(l.sector, l))).length;
-  const ready   = lots.filter(l => tvNormalizeSector(l.sector, l)==='pronto').length;
-  const inRoute = lots.filter(l => tvNormalizeSector(l.sector, l)==='entrega').length;
-  const late    = lots.filter(l => tvIsLate(l)).length;
-  const urgent  = lots.filter(l => ['urgent','sameday'].includes(l.priority) && tvNormalizeSector(l.sector,l)!=='entregue').length;
-  const working = lots.filter(l => l.lotStatus==='working').length;
-  const paused  = lots.filter(l => l.lotStatus==='paused').length;
-  const delivered = lots.filter(l => tvNormalizeSector(l.sector,l)==='entregue').length;
-  const newOrdersMetric = tvGroupLotsByOrder(lots.filter(l => ['pcp_liberacao','coloracao_revisao','laboratorio_revisao'].includes(tvNormalizeSector(l.sector,l)))).length;
+  // Render
+  const el = document.getElementById('tvContent');
+  if (!el) return;
 
-  document.getElementById('tvMetricsBar').innerHTML = `
-    <div class="tv-metric-chip blue"><i class="fas fa-columns"></i> pág. ${tvCurrentPage + 1}/${totalPages}</div>
-    <div class="tv-metric-chip blue"><i class="fas fa-cogs"></i> ${inProd} prod.</div>
-    <div class="tv-metric-chip green"><i class="fas fa-play-circle"></i> ${working} trab.</div>
-    <div class="tv-metric-chip yellow"><i class="fas fa-pause-circle"></i> ${paused} pausa</div>
-    <div class="tv-metric-chip purple"><i class="fas fa-inbox"></i> ${newOrdersMetric} novos</div>
-    <div class="tv-metric-chip orange"><i class="fas fa-check"></i> ${ready} pronto</div>
-    <div class="tv-metric-chip green"><i class="fas fa-box-circle-check"></i> ${delivered} entreg.</div>
-    ${inRoute > 0 ? `<div class="tv-metric-chip orange"><i class="fas fa-truck"></i> ${inRoute} rota</div>` : ''}
-    ${urgent > 0  ? `<div class="tv-metric-chip red"><i class="fas fa-bolt"></i> ${urgent} urg.</div>` : ''}
-    ${late > 0    ? `<div class="tv-metric-chip red"><i class="fas fa-exclamation"></i> ${late} atras.</div>` : ''}
-  `;
+  if      (isMetrics) el.innerHTML = tvRenderMetrics(lots, routes);
+  else if (isProd)    el.innerHTML = tvRenderProduction(lots, routes);
+  else if (isKanban)  el.innerHTML = tvRenderKanban(lots, tvCurrentPage - 2);
+  else if (isExp)     el.innerHTML = tvRenderExpedition(lots, routes);
+  else if (isOrders)  el.innerHTML = tvRenderOrders(lots, routes);
+  else if (isRoutes)  el.innerHTML = tvRenderRoutes(routes);
 
-  const dots = document.getElementById('tvPageDots');
-  if (dots) {
-    dots.innerHTML = Array.from({ length: totalPages }, (_, i) =>
-      `<div class="tv-page-dot ${i === tvCurrentPage ? 'active' : ''}"></div>`
-    ).join('');
+  // Bottom bar chips
+  if (bot && bot.style.display !== 'none') {
+    const activeR = routes.filter(r=>r.status==='in_progress');
+    const rEl = document.getElementById('tvRouteChips');
+    if (rEl) rEl.innerHTML = activeR.length
+      ? activeR.map(r=>`<div class="tv-bchip route"><i class="fas fa-truck"></i> ${tvE(r.driverName||'Motorista')} &mdash; ${(r.lots||[]).length} paradas</div>`).join('')
+      : '<span class="tv-bchip muted">Nenhuma</span>';
+
+    const ready = lots.filter(l=>tvNS(l.sector,l)==='pronto');
+    const rdEl  = document.getElementById('tvReadyChips');
+    if (rdEl) rdEl.innerHTML = ready.length
+      ? ready.slice(0,6).map(l=>`<div class="tv-bchip ready">#${tvE(l.number)} ${tvE(String(l.client||'').slice(0,10))}</div>`).join('')
+      : '<span class="tv-bchip muted">Nenhum</span>';
+
+    const alts = tvGetAlerts();
+    const alEl = document.getElementById('tvAlertChips');
+    if (alEl) alEl.innerHTML = alts.length
+      ? alts.slice(0,5).map(l=>`<div class="tv-bchip alert"><i class="fas fa-clock"></i> #${tvE(l.number)} ${tvFmtMs(tvTInSec(l))}</div>`).join('')
+      : '<span class="tv-bchip muted">Nenhum</span>';
   }
 
-  // Produção premium
-  if (!isExpeditionPage && !isRoutesPage && tvRenderProductionPro(lots, routes, visibleSectors, totalPages)) {
-    // Bottom bar – in route
-    const activeRoutes = routes.filter(r => r.status==='in_progress');
-    document.getElementById('tvDeliveryChips').innerHTML = activeRoutes.length > 0
-      ? activeRoutes.map(r => `
-          <div class="tv-delivery-chip"><i class="fas fa-truck"></i> ${tvEscape(r.driverName || 'Motorista')} – ${(Array.isArray(r.lots)?r.lots:[]).length} paradas</div>
-        `).join('')
-      : '<span style="color:#334155;font-size:.65rem">Nenhuma rota</span>';
-
-    const readyLots = lots.filter(l => tvNormalizeSector(l.sector,l)==='pronto');
-    document.getElementById('tvReadyChips').innerHTML = readyLots.length > 0
-      ? readyLots.slice(0,8).map(l => `
-          <div class="tv-ready-chip">#${tvEscape(l.number)} – ${tvEscape(String(l.client || '').length>10 ? String(l.client).slice(0,10)+'…' : (l.client || ''))}</div>
-        `).join('')
-      : '<span style="color:#334155;font-size:.65rem">Nenhum pronto</span>';
-
-    const alerts = tvGetAlerts();
-    document.getElementById('tvAlertChips').innerHTML = alerts.length > 0
-      ? alerts.slice(0,6).map(l => `<div class="tv-alert-chip"><i class="fas fa-clock"></i> #${tvEscape(l.number)} ${tvFormatMs(tvGetTimeInSector(l))}</div>`).join('')
-      : '<span style="color:#334155;font-size:.65rem">Sem alertas</span>';
-
-    const upEl = document.getElementById('tvLastUpdate');
-    if (upEl) upEl.textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
-    return;
-  }
-
-  // Columns
-  const colsDiv = document.getElementById('tvColumns');
-if (isExpeditionPage) {
-    const bottom = document.querySelector('.tv-bottombar');
-    if (bottom) bottom.style.display = 'none';
-
-    const readyLots = lots.filter(l => tvNormalizeSector(l.sector,l) === 'pronto');
-
-    const routeLotsIds = new Set();
-    routes.forEach(r => {
-      if (r.status === 'in_progress') {
-        (Array.isArray(r.lots) ? r.lots : []).forEach(x => {
-          routeLotsIds.add(String(x.id || x.number || x.lotId || ''));
-        });
-      }
-    });
-
-    const urgentLots = lots.filter(l => {
-      const sec = tvNormalizeSector(l.sector,l);
-      return sec !== 'pronto' && sec !== 'entregue' &&
-        (l.priority === 'urgent' || l.priority === 'sameday' || tvIsLate(l));
-    });
-
-    const groupedUrgent = Object.values(
-      urgentLots.reduce((acc, lot) => {
-        const key = String(lot.order || lot.orderNumber || lot.pedido || lot.number || '');
-        if (!acc[key]) {
-          acc[key] = {
-            order:key,
-            client:lot.client || 'Cliente',
-            lots:[]
-          };
-        }
-        acc[key].lots.push(lot);
-        return acc;
-      }, {})
-    ).slice(0,12);
-
-    colsDiv.innerHTML = `
-      <div class="tv-expedition-page">
-
-        <div class="tv-exp-main-title">
-          <h1><i class="fas fa-triangle-exclamation"></i> CENTRAL DE EXPEDIÇÃO E PRIORIDADES</h1>
-          <span>${urgentLots.length} urgentes • ${readyLots.length} prontos</span>
-        </div>
-
-        <div class="tv-priority-grid">
-
-          <section class="tv-priority-card">
-            <div class="tv-priority-header">
-              <h2><i class="fas fa-bolt"></i> Pedidos prioritários e situação</h2>
-              <div class="tv-priority-count urgent">${groupedUrgent.length}</div>
-            </div>
-
-            <div class="tv-priority-list">
-              ${groupedUrgent.length ? groupedUrgent.map(order => `
-                <div class="tv-priority-item urgent">
-                  <div class="tv-priority-top">
-                    <div class="tv-priority-order">Pedido ${tvEscape(order.order || '-')}</div>
-                    <div class="tv-priority-badge urgent">Urgente</div>
-                  </div>
-
-                  <div class="tv-priority-client">${tvEscape(order.client || 'Cliente')}</div>
-
-                  <div class="tv-priority-lots">
-                    ${order.lots.slice(0,4).map(lot => `
-                      <div class="tv-priority-lot">
-                        <strong>#${tvEscape(lot.number || '')}</strong>
-
-                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-                          ${tvEscape(lot.paint || lot.productCode || '')}
-                        </span>
-
-                        <span class="tv-priority-location">
-                          ${tvEscape(TV_SECTOR_LABELS[tvNormalizeSector(lot.sector,lot)] || '-')}
-                        </span>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-              `).join('') : `
-                <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#475569;font-weight:800">
-                  Nenhum pedido urgente
-                </div>
-              `}
-            </div>
-          </section>
-
-          <section class="tv-priority-card">
-            <div class="tv-priority-header">
-              <h2><i class="fas fa-check-circle"></i> Lotes e pedidos prontos</h2>
-              <div class="tv-priority-count ready">${readyLots.length}</div>
-            </div>
-
-            <div class="tv-ready-grid-full">
-              ${readyLots.slice(0,42).map(lot => {
-                const inRoute = routeLotsIds.has(String(lot.id || lot.number || ''));
-                return `
-                  <div class="tv-ready-card ${inRoute ? 'route' : ''}">
-                    <div class="tv-ready-number">#${tvEscape(lot.number || '')}</div>
-
-                    <div style="min-width:0">
-                      <div class="tv-ready-client">${tvEscape(lot.client || 'Cliente')}</div>
-                      <div class="tv-ready-product">${tvEscape(lot.paint || lot.productCode || '')}</div>
-                    </div>
-
-                    <div class="tv-ready-status ${inRoute ? 'route' : 'ready'}">
-                      ${inRoute ? 'Em rota' : 'Pronto'}
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </section>
-
-        </div>
-
-      </div>
-    `;
-    return;
-  }
-
-  if (isOrdersPage) {
-    tvRenderOrdersPage(colsDiv, lots, routes);
-    return;
-  }
-
-  if (isRoutesPage) {
-    const activeRoutesPage = routes.filter(r => r.status === 'in_progress');
-    const bottom = document.querySelector('.tv-bottombar');
-    if (bottom) bottom.style.display = 'none';
-
-    if (activeRoutesPage.length === 0) {
-      colsDiv.innerHTML = `
-        <div class="tv-log-empty">
-          <i class="fas fa-truck"></i>
-          <div class="tv-log-empty-title">Nenhuma rota em andamento</div>
-          <div style="color:#475569;font-size:.9rem">Assim que uma rota iniciar, ela aparecerá aqui automaticamente.</div>
-        </div>
-      `;
-    } else {
-      const route = activeRoutesPage[tvRoutePageIndex % activeRoutesPage.length];
-      const routeLots = Array.isArray(route.lots) ? route.lots : [];
-      const delivered = routeLots.filter(l => l.delivered || l.status === 'delivered' || l.status === 'entregue').length;
-      const pending = Math.max(0, routeLots.length - delivered);
-      const progress = routeLots.length ? Math.round((delivered / routeLots.length) * 100) : 0;
-      const totalKg = routeLots.reduce((sum, l) => sum + (Number(l.qty) || 0), 0);
-      const nextLot = routeLots.find(l => !(l.delivered || l.status === 'delivered' || l.status === 'entregue')) || routeLots[0];
-
-      colsDiv.innerHTML = `
-        <div class="tv-logistics-page">
-          <section class="tv-log-panel tv-log-driver">
-            <div>
-              <div class="tv-log-driver-icon"><i class="fas fa-truck"></i></div>
-              <div class="tv-log-driver-name">${tvEscape(route.driverName || 'Motorista')}</div>
-              <div class="tv-log-driver-sub">Central logística ao vivo</div>
-
-              <div class="tv-log-live">
-                <span class="tv-live-dot"></span>
-                EM ROTA
-              </div>
-
-              <div class="tv-route-progress-large">
-                <div style="width:${progress}%"></div>
-              </div>
-
-              <div style="margin-top:.55rem;color:#94a3b8;font-size:.8rem;font-weight:800">
-                ${delivered}/${routeLots.length} entregas concluídas · ${progress}%
-              </div>
-            </div>
-
-            <div class="tv-log-stat-grid">
-              <div class="tv-log-stat">
-                <strong>${routeLots.length}</strong>
-                <span>Paradas</span>
-              </div>
-              <div class="tv-log-stat">
-                <strong>${pending}</strong>
-                <span>Pendentes</span>
-              </div>
-              <div class="tv-log-stat">
-                <strong>${delivered}</strong>
-                <span>Entregues</span>
-              </div>
-              <div class="tv-log-stat">
-                <strong>${totalKg || '-'}</strong>
-                <span>Kg rota</span>
-              </div>
-            </div>
-          </section>
-
-          <section class="tv-log-panel tv-log-stops">
-            <div class="tv-log-title-row">
-              <div class="tv-log-title"><i class="fas fa-route"></i> Roteiro de entregas</div>
-              <div class="tv-log-route-count">Rota ${(tvRoutePageIndex % activeRoutesPage.length) + 1}/${activeRoutesPage.length}</div>
-            </div>
-
-            <div class="tv-log-stops-list">
-              ${routeLots.slice(0, 4).map((lot, idx) => `
-                <div class="tv-log-stop-card ${idx === 0 ? 'next' : ''}">
-                  ${idx === 0 ? '<div class="tv-log-next-badge">PRÓXIMA</div>' : ''}
-                  <div class="tv-log-stop-num">${idx + 1}</div>
-
-                  <div style="min-width:0">
-                    <div class="tv-log-client-name">${tvEscape(lot.client || 'Cliente')}</div>
-                    <div class="tv-log-product-name">${tvEscape(lot.paint || lot.productCode || lot.number || 'Produto')}</div>
-                  </div>
-
-                  <div class="tv-log-stop-meta">
-                    <div>#${tvEscape(lot.number || '')}</div>
-                    <div>${tvEscape(lot.qty || '')}Kg</div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </section>
-
-          <section class="tv-log-panel tv-log-kpis">
-            <div>
-              <div class="tv-log-next-box">
-                <div class="tv-log-next-label"><i class="fas fa-location-dot"></i> Próxima entrega</div>
-                <div class="tv-log-next-client">${tvEscape(nextLot?.client || '-')}</div>
-                <div class="tv-log-next-product">${tvEscape(nextLot?.paint || nextLot?.productCode || '')}</div>
-              </div>
-
-              <div class="tv-log-mini-map">
-                <div class="tv-log-map-point next">
-                  <span class="tv-log-map-dot"></span>
-                  <span>Fábrica → ${tvEscape(nextLot?.client || 'Próxima parada')}</span>
-                </div>
-                ${routeLots.slice(1, 5).map(lot => `
-                  <div class="tv-log-map-point">
-                    <span class="tv-log-map-dot"></span>
-                    <span>${tvEscape(lot.client || 'Cliente')}</span>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-
-            <div style="
-              background:rgba(15,23,42,.7);
-              border:1px solid rgba(59,130,246,.16);
-              border-radius:18px;
-              padding:1rem;
-            ">
-              <div style="color:#60a5fa;font-size:.75rem;font-weight:900;letter-spacing:1px;text-transform:uppercase;margin-bottom:.7rem">
-                Resumo da rota
-              </div>
-
-              <div style="display:flex;justify-content:space-between;margin-bottom:.55rem;color:#94a3b8;font-size:.85rem">
-                <span>Status</span>
-                <strong style="color:#4ade80">Ao vivo</strong>
-              </div>
-
-              <div style="display:flex;justify-content:space-between;margin-bottom:.55rem;color:#94a3b8;font-size:.85rem">
-                <span>Motorista</span>
-                <strong style="color:#e2e8f0">${tvEscape(route.driverName || '-')}</strong>
-              </div>
-
-              <div style="display:flex;justify-content:space-between;color:#94a3b8;font-size:.85rem">
-                <span>Produtos</span>
-                <strong style="color:#e2e8f0">${routeLots.length}</strong>
-              </div>
-            </div>
-          </section>
-        </div>
-      `;
-    }
-  } else {
-    const bottom = document.querySelector('.tv-bottombar');
-    if (bottom) bottom.style.display = 'flex';
-
-    colsDiv.innerHTML = visibleSectors.map(sector => {
-    const sectorLots = lots.filter(l => tvNormalizeSector(l.sector, l) === sector);
-    sectorLots.sort((a,b) => {
-      const po = {sameday:0, urgent:1, normal:2};
-      if (po[a.priority] !== po[b.priority]) return po[a.priority]-po[b.priority];
-      return tvGetTimeInSector(b) - tvGetTimeInSector(a);
-    });
-
-    const count = sectorLots.length;
-    const icon  = TV_SECTOR_ICONS[sector] || 'fas fa-circle';
-    const color = TV_SECTOR_COLORS[sector] || '#6b7280';
-    const isReview = ['coloracao_revisao','laboratorio_revisao','pcp_liberacao'].includes(sector);
-    const isSample = ['laboratorio_amostras','coloracao_amostras'].includes(sector);
-
-    // Avg stats for sector footer
-    const avg = tvGetSectorAvgStats(sector);
-
-    return `
-      <div class="tv-column col-${sector}">
-        <div class="tv-col-header">
-          <div class="tv-col-title">
-            <div class="tv-col-icon"><i class="${icon}"></i></div>
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${color}">${TV_SECTOR_LABELS[sector]}</span>
-            ${isReview ? '<span style="font-size:.52rem;background:rgba(255,255,255,.07);padding:.08rem .3rem;border-radius:3px;color:#6b7280;letter-spacing:0">REV</span>' : ''}
-            ${isSample ? '<span style="font-size:.52rem;background:rgba(250,204,21,.12);padding:.08rem .3rem;border-radius:3px;color:#facc15;letter-spacing:0">AMOSTRA</span>' : ''}
-          </div>
-          <div class="tv-col-count">${count}</div>
-        </div>
-        <div class="tv-col-body">
-          ${count === 0
-            ? `<div class="tv-empty-col"><i class="fas fa-inbox"></i><span>Vazio</span></div>`
-            : sectorLots.map(lot => tvBuildCard(lot)).join('')}
-        </div>
-        ${avg && TV_TRACKABLE.includes(sector) ? `
-        <div class="tv-sector-stats">
-          <span class="sw" title="Média trabalhado"><i class="fas fa-play-circle"></i> ${tvFormatMs(avg.avgWorked)}</span>
-          <span class="sp" title="Média pausado"><i class="fas fa-pause-circle"></i> ${tvFormatMs(avg.avgPaused)}</span>
-          <span class="si" title="Média total"><i class="fas fa-clock"></i> ${tvFormatMs(avg.avgTotal)}</span>
-        </div>` : ''}
-      </div>`;
-  }).join('');
-  }
-
-  // Bottom bar – in route
-  const activeRoutes = routes.filter(r => r.status==='in_progress');
-  document.getElementById('tvDeliveryChips').innerHTML = activeRoutes.length > 0
-    ? activeRoutes.map(r => `
-        <div class="tv-delivery-chip"><i class="fas fa-truck"></i> ${r.driverName} – ${(Array.isArray(r.lots)?r.lots:[]).length} paradas</div>
-      `).join('')
-    : '<span style="color:#334155;font-size:.65rem">Nenhuma rota</span>';
-
-  // Ready lots
-  const readyLots = lots.filter(l => tvNormalizeSector(l.sector,l)==='pronto');
-  document.getElementById('tvReadyChips').innerHTML = readyLots.length > 0
-    ? readyLots.slice(0,8).map(l => `
-        <div class="tv-ready-chip">#${tvEscape(l.number)} – ${tvEscape(String(l.client || '').length>10 ? String(l.client).slice(0,10)+'…' : (l.client || ''))}</div>
-      `).join('')
-    : '<span style="color:#334155;font-size:.65rem">Nenhum pronto</span>';
-
-  // Alerts
-  const alerts = tvGetAlerts();
-  document.getElementById('tvAlertChips').innerHTML = alerts.length > 0
-    ? alerts.slice(0,6).map(l => {
-        const t = tvGetTimeInSector(l);
-        return `<div class="tv-alert-chip"><i class="fas fa-clock"></i> #${l.number} ${tvFormatMs(t)}</div>`;
-      }).join('')
-    : '<span style="color:#334155;font-size:.65rem">Sem alertas</span>';
-
-  // Last update timestamp
   const upEl = document.getElementById('tvLastUpdate');
   if (upEl) upEl.textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
 }
 
-function tvBuildCard(lot) {
-  lot = tvNormalizeLot(lot);
-  const pColor   = PRIORITY_COLORS_TV[lot.priority] || '#22c55e';
-  const late     = tvIsLate(lot);
-  const today    = tvIsToday(lot.deliveryDate);
-  const ts       = tvGetTimeSummary(lot);
-  const isAlert  = ts.total > 7200000;
-  const pt       = lot.productType || 'tinta';
-  const isTrack  = TV_TRACKABLE.includes(lot.sector);
-  const status   = lot.lotStatus || 'idle';
-
-  const urgentTag = lot.priority==='sameday'
-    ? `<div class="tv-urgent-marker sameday-tag">HOJE</div>`
-    : lot.priority==='urgent'
-    ? `<div class="tv-urgent-marker urgent-tag">URG</div>`
-    : '';
-
-  const statusDot = status==='working'
-    ? `<span class="tv-status-dot working"></span>`
-    : status==='paused'
-    ? `<span class="tv-status-dot paused"></span>`
-    : '';
-
-  // Time bar (only for trackable sectors)
-  const totalMs = ts.total || 1;
-  const wPct = Math.min(100, Math.round(ts.worked/totalMs*100));
-  const pPct = Math.min(100-wPct, Math.round(ts.paused/totalMs*100));
-
-  const timeBar = isTrack ? `
-    <div class="tv-time-bar-wrap">
-      <div class="tv-time-bar">
-        <div class="tv-tbar-worked" style="width:${wPct}%"></div>
-        <div class="tv-tbar-paused" style="width:${pPct}%"></div>
-        <div class="tv-tbar-idle"></div>
-      </div>
-      <div class="tv-tbar-labels">
-        <span class="tw">▶${tvFormatMs(ts.worked)}</span>
-        ${ts.paused>0 ? `<span class="tp">⏸${tvFormatMs(ts.paused)}</span>` : ''}
-      </div>
-    </div>` : '';
-
-  return `
-    <div class="tv-lot-card priority-${lot.priority} ${late?'late-lot':''}">
-      ${urgentTag}
-      <div class="tv-card-row1">
-        <div class="tv-lot-number">${statusDot}#${lot.number}</div>
-        <div class="tv-priority-dot" style="background:${pColor}"></div>
-      </div>
-      <div class="tv-lot-client"><i class="fas fa-building" style="opacity:.4;margin-right:.2rem;font-size:.6rem"></i>${tvEscape(lot.client || '')}</div>
-      <div class="tv-lot-paint">${tvEscape(lot.paint || lot.productCode || '')} · ${lot.qty}${tvEscape(lot.unit||'Kg')}</div>
-      <div class="tv-card-row2">
-        <span class="tv-product-type type-${pt}">${PRODUCT_TYPE_LABELS[pt]||pt}</span>
-        <span class="tv-time-chip ${isAlert?'alert-time':''}"><i class="fas fa-clock"></i>${tvFormatMs(ts.total)}</span>
-        <span class="tv-delivery-date ${late?'late':today?'today':''}">${late?'⚠️':today?'📅':''}${tvFormatDate(lot.deliveryDate)}</span>
-      </div>
-      ${timeBar}
-    </div>`;
-}
-
-// ===== HASH FNV-1a (inline para tv.html) =====
+// ============================================================
+// AUTH
+// ============================================================
 function tvFnv1a32(str) {
-  let hash = 0x811c9dc5;
+  let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
-    hash ^= str.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-    hash = hash >>> 0;
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
   }
-  return hash.toString(16).padStart(8, '0');
+  return h.toString(16).padStart(8,'0');
 }
-function tvVerifyPassword(entered, stored) {
+
+function tvVerifyPwd(entered, stored) {
   if (!stored) return false;
   if (stored.includes(':')) {
     const [salt] = stored.split(':');
     let h = tvFnv1a32(salt + entered);
-    for (let r = 0; r < 3; r++) h = tvFnv1a32(salt + h + entered);
+    for (let r=0;r<3;r++) h = tvFnv1a32(salt + h + entered);
     return `${salt}:${h}` === stored;
   }
-  return entered === stored; // legado
+  return entered === stored;
 }
+
 async function tvHandleLogin(e) {
   e.preventDefault();
   const login = document.getElementById('tvUser').value.trim();
   const pass  = document.getElementById('tvPass').value;
   try {
     const users = await tvApiGet('ff_users');
-    const user  = users.find(u => u.login===login && tvVerifyPassword(pass, u.password));
+    const user  = users.find(u => u.login===login && tvVerifyPwd(pass, u.password));
     if (!user || !['admin','diretoria','pcp','pcp_lib','manager','tv'].includes(user.role)) {
-      document.getElementById('tvAuthError').style.display = 'block'; return;
+      document.getElementById('tvAuthError').style.display = 'block';
+      return;
     }
     document.getElementById('tvAuthError').style.display = 'none';
     tvState.currentUser = user;
     sessionStorage.setItem('ff_tv', JSON.stringify(user));
     await tvInit();
-  } catch(err) { alert('Erro ao conectar: '+err.message); }
+  } catch(err) { alert('Erro ao conectar: ' + err.message); }
 }
 
-// ===== INIT =====
+// ============================================================
+// INIT
+// ============================================================
 async function tvInit() {
   document.getElementById('tvAuthScreen').style.display = 'none';
   document.getElementById('tvLoading').style.display = 'flex';
@@ -3635,48 +1530,39 @@ async function tvInit() {
     document.getElementById('tvPanel').style.display = 'flex';
     tvRender();
 
-    // Refresh every 5 seconds
+    if (tvUpdateInterval) clearInterval(tvUpdateInterval);
     tvUpdateInterval = setInterval(async () => {
       try { await tvLoadData(); tvRender(); } catch(e){}
     }, 5000);
 
-    // Troca automática entre as páginas de setores
-    if (tvAutoScrollInterval) clearInterval(tvAutoScrollInterval);
-    tvAutoScrollInterval = setInterval(() => {
-      const totalSectorPages = Math.max(1, Math.ceil(TV_ALL_SECTORS.length / TV_COLS_PER_PAGE));
-      const totalPages = totalSectorPages + 3;
-      tvCurrentPage = (tvCurrentPage + 1) % totalPages;
+    if (tvAutoInterval) clearInterval(tvAutoInterval);
+    tvAutoInterval = setInterval(() => {
+      const { total, kb } = tvPageDef();
+      if (tvCurrentPage === 4+kb) tvRoutePageIdx++;
+      tvCurrentPage = (tvCurrentPage + 1) % total;
       tvRender();
     }, 12000);
 
   } catch(err) {
     document.getElementById('tvLoading').innerHTML = `
-      <div class="tv-loading-logo"><i class="fas fa-exclamation-triangle" style="color:#ef4444"></i></div>
-      <h2 style="color:#ef4444">Erro de Conexão</h2>
-      <p style="color:#94a3b8">${err.message}</p>
-      <a href="index.html" style="color:#3b82f6;font-size:.85rem">← Voltar</a>`;
+      <div class="tv-loading-icon"><i class="fas fa-exclamation-triangle" style="color:#ef4444"></i></div>
+      <h2 style="color:#ef4444">Erro de Conexao</h2>
+      <p>${tvE(err.message)}</p>
+      <a href="index.html" style="color:#3b82f6;font-size:.85rem">&#8592; Voltar</a>`;
   }
 }
+
 async function tvCheckAuth() {
   try {
-    const user = sessionStorage.getItem('ff_tv') || sessionStorage.getItem('ff_user');
-    if (!user) return false;
-
-    const parsed = JSON.parse(user);
-
-    // valida se é usuário TV ou superior
-    if (!['admin','diretoria','pcp','pcp_lib','manager','tv'].includes(parsed.role)) {
-      return false;
-    }
-
+    const raw = sessionStorage.getItem('ff_tv') || sessionStorage.getItem('ff_user');
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!['admin','diretoria','pcp','pcp_lib','manager','tv'].includes(parsed.role)) return false;
     tvState.currentUser = parsed;
     return true;
-
-  } catch (e) {
-    return false;
-  }
+  } catch(e) { return false; }
 }
-// ===== STARTUP =====
+
 (async () => {
   updateClock();
   setInterval(updateClock, 1000);
