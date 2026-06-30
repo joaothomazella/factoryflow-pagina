@@ -553,6 +553,31 @@ function ffDashInstallStyles() {
 
     @media(max-width:1200px){.dash-grid{grid-template-columns:1fr}.dash-factory-grid{grid-template-columns:1fr}}
     @media(max-width:640px){.dash-hero{flex-direction:column;align-items:flex-start}.dash-live{align-self:flex-start}}
+
+    .sd-toolbar{display:flex;align-items:center;gap:.85rem;padding:.1rem 0 .6rem}
+    .sd-search-wrap{position:relative;flex:1;max-width:420px}
+    .sd-search-icon{position:absolute;left:.82rem;top:50%;transform:translateY(-50%);color:var(--text3,#64748b);font-size:.83rem;pointer-events:none}
+    .sd-search-input{width:100%;background:var(--bg3,rgba(15,31,60,.85));border:1px solid var(--border,#334155);border-radius:10px;padding:.6rem .9rem .6rem 2.3rem;color:var(--text,#e2f0ff);font-size:.86rem;outline:none;transition:border-color .2s,box-shadow .2s}
+    .sd-search-input:focus{border-color:var(--blue,#3b82f6);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+    .sd-search-input::placeholder{color:var(--text3,#64748b)}
+    .sd-clear-btn{background:rgba(148,163,184,.14);border:1px solid rgba(148,163,184,.24);border-radius:8px;color:var(--text2,#94a3b8);font-size:.8rem;padding:.45rem .8rem;cursor:pointer;white-space:nowrap;transition:background .15s}
+    .sd-clear-btn:hover{background:rgba(148,163,184,.22)}
+
+    .sd-sections{display:flex;flex-direction:column;gap:1.6rem}
+    .sd-group-header{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.62rem 1rem;background:rgba(0,0,0,.18);border:1px solid rgba(148,163,184,.16);border-left:4px solid var(--sd-accent,#3b82f6);border-radius:10px;margin-bottom:.85rem}
+    .sd-group-title{display:flex;align-items:center;gap:.65rem;font-weight:700;font-size:.94rem}
+    .sd-group-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+    .sd-group-count{border-radius:999px;padding:.14rem .65rem;font-size:.72rem;font-weight:800;white-space:nowrap;background:rgba(59,130,246,.14);border:1px solid rgba(59,130,246,.28);color:#93c5fd}
+    .sd-group-stats{display:flex;gap:.45rem}
+    .sd-group-stat{font-size:.7rem;border-radius:999px;padding:.1rem .5rem;font-weight:700;white-space:nowrap}
+    .sd-stat-urgent{background:rgba(245,158,11,.16);color:#fbbf24;border:1px solid rgba(245,158,11,.28)}
+    .sd-stat-late{background:rgba(239,68,68,.16);color:#f87171;border:1px solid rgba(239,68,68,.28)}
+
+    .sd-lots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:.9rem}
+    .sd-lot-wrap{}
+    .sd-lot-wrap > .lot-card{margin:0;height:100%;box-sizing:border-box}
+    .sd-search-empty{display:none;grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--text2,#94a3b8);border:1px dashed rgba(148,163,184,.2);border-radius:12px}
+    .sd-no-results{display:none;padding:1.5rem;text-align:center;color:var(--text2,#94a3b8);grid-column:1/-1;border:1px dashed rgba(148,163,184,.2);border-radius:12px}
   `;
   document.head.appendChild(css);
 }
@@ -623,28 +648,110 @@ function ffDashOrderCard(o) {
 // DASHBOARD DO SETOR
 // ===================================================
 function renderSectorDashboard(page) {
+  ffDashInstallStyles();
+
   const user = STATE.currentUser || {};
-  const setoresVisiveis = typeof getSectorVisibility === 'function' ? getSectorVisibility(user.sector) : [user.sector];
-  const myLots = (STATE.lots || []).filter(l => setoresVisiveis.includes(l.sector) && !l.rejected);
-  const lateLots = myLots.filter(l => typeof isLate === 'function' && isLate(l));
-  const urgentLots = myLots.filter(l => l.priority !== 'normal');
+  const setoresVisiveis = typeof getSectorVisibility === 'function'
+    ? getSectorVisibility(user.sector)
+    : [user.sector];
+
+  const allLots = (STATE.lots || []).filter(l => setoresVisiveis.includes(l.sector) && !l.rejected);
+  const lateLots  = allLots.filter(l => typeof isLate === 'function' && isLate(l));
+  const urgentLots = allLots.filter(l => l.priority !== 'normal');
+
+  const sortLots = arr => [...arr].sort((a, b) => {
+    const pa = (PRIORITY_ORDER || {})[a.priority] ?? 2;
+    const pb = (PRIORITY_ORDER || {})[b.priority] ?? 2;
+    if (pa !== pb) return pa - pb;
+    const la = typeof isLate === 'function' && isLate(a) ? 0 : 1;
+    const lb = typeof isLate === 'function' && isLate(b) ? 0 : 1;
+    if (la !== lb) return la - lb;
+    return (a.deliveryDate || '') < (b.deliveryDate || '') ? -1 : 1;
+  });
+
+  const sectorName = ffDashText((SECTOR_LABELS || {})[user.sector] || user.sector || 'Meu Setor');
+
+  const groupHtml = setoresVisiveis.map(s => {
+    const sLots   = sortLots(allLots.filter(l => l.sector === s));
+    const color   = (SECTOR_COLORS || {})[s] || '#6b7280';
+    const label   = ffDashText((SECTOR_LABELS || {})[s] || s);
+    const lateN   = sLots.filter(l => typeof isLate === 'function' && isLate(l)).length;
+    const urgentN = sLots.filter(l => l.priority !== 'normal').length;
+
+    const statsHtml = [
+      urgentN ? `<span class="sd-group-stat sd-stat-urgent"><i class="fas fa-bolt"></i> ${urgentN} urgente${urgentN > 1 ? 's' : ''}</span>` : '',
+      lateN   ? `<span class="sd-group-stat sd-stat-late"><i class="fas fa-exclamation-triangle"></i> ${lateN} atrasado${lateN > 1 ? 's' : ''}</span>` : ''
+    ].join('');
+
+    const cardsHtml = sLots.map(l => {
+      const searchText = [l.number, l.client, l.paint, l.orderNumber, l.productName]
+        .filter(Boolean).join(' ').toLowerCase();
+      const card = typeof buildLotCard === 'function'
+        ? buildLotCard(l)
+        : `<div class="lot-card"><b>#${ffDashEscape(l.number)}</b><div class="lot-client">${ffDashEscape(l.client)}</div></div>`;
+      return `<div class="sd-lot-wrap" data-search="${ffDashEscape(searchText)}">${card}</div>`;
+    }).join('');
+
+    return `
+      <div class="sd-group" data-sector="${s}">
+        <div class="sd-group-header" style="--sd-accent:${color}">
+          <div class="sd-group-title">
+            <span class="sd-group-dot" style="background:${color}"></span>
+            ${label}
+          </div>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            ${statsHtml ? `<div class="sd-group-stats">${statsHtml}</div>` : ''}
+            <span class="sd-group-count">${sLots.length} lote${sLots.length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+        <div class="sd-lots-grid">
+          ${cardsHtml || '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-check-circle"></i><p>Nenhum lote neste sub-setor</p></div>'}
+          <div class="sd-no-results"><i class="fas fa-search" style="display:block;margin-bottom:.5rem;font-size:1.3rem"></i>Nenhum resultado para esta busca</div>
+        </div>
+      </div>`;
+  }).join('');
 
   page.innerHTML = `
     <div class="page-header">
-      <h2><i class="fas fa-tachometer-alt"></i> Meu Setor – ${ffDashText((SECTOR_LABELS || {})[user.sector] || user.sector || '')}</h2>
+      <h2><i class="fas fa-tachometer-alt"></i> Meu Setor – ${sectorName}</h2>
     </div>
     <div class="metrics-row">
-      <div class="metric-card metric-blue"><div class="metric-num">${myLots.length}</div><div class="metric-label">Lotes no Setor</div></div>
+      <div class="metric-card metric-blue"><div class="metric-num">${allLots.length}</div><div class="metric-label">Total no Setor</div></div>
       <div class="metric-card metric-yellow"><div class="metric-num">${urgentLots.length}</div><div class="metric-label">Urgentes</div></div>
       <div class="metric-card metric-red"><div class="metric-num">${lateLots.length}</div><div class="metric-label">Atrasados</div></div>
     </div>
-    <h3 style="margin:1.5rem 0 1rem"><i class="fas fa-boxes"></i> Lotes no Meu Setor</h3>
-    <div class="lots-grid">
-      ${myLots.length && typeof buildLotCard === 'function'
-        ? myLots.map(l => buildLotCard(l)).join('')
-        : '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Nenhum lote no seu setor</p></div>'}
+    <div class="sd-toolbar">
+      <div class="sd-search-wrap">
+        <i class="fas fa-search sd-search-icon"></i>
+        <input id="sdSearchInput" type="text" class="sd-search-input"
+          placeholder="Buscar por nº do lote, cliente ou cor…"
+          oninput="ffSectorDashSearch(this.value)">
+      </div>
+      <button class="sd-clear-btn" onclick="ffSectorDashSearch('');var i=document.getElementById('sdSearchInput');if(i)i.value=''">
+        <i class="fas fa-times"></i> Limpar
+      </button>
     </div>
+    <div class="sd-sections">${groupHtml}</div>
   `;
+}
+
+function ffSectorDashSearch(q) {
+  const query = (q || '').trim().toLowerCase();
+  const page = document.getElementById('pageDashboard');
+  if (!page) return;
+
+  page.querySelectorAll('.sd-lot-wrap').forEach(el => {
+    const match = !query || (el.dataset.search || '').includes(query);
+    el.style.display = match ? '' : 'none';
+  });
+
+  page.querySelectorAll('.sd-group').forEach(group => {
+    const grid = group.querySelector('.sd-lots-grid');
+    if (!grid) return;
+    const visible = group.querySelectorAll('.sd-lot-wrap:not([style*="display: none"])').length;
+    const noRes   = grid.querySelector('.sd-no-results');
+    if (noRes) noRes.style.display = query && visible === 0 ? '' : 'none';
+  });
 }
 
 // ===================================================
