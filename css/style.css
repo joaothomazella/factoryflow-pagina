@@ -54,7 +54,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Barlow', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -177,7 +177,7 @@ a { text-decoration: none; color: inherit; }
   border-bottom: 1px solid var(--border);
   border-top: 3px solid #FFF000;
   background: linear-gradient(180deg, rgba(20,65,150,.18) 0%, rgba(20,65,150,.06) 100%);
-  font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   letter-spacing: .04em;
   text-transform: uppercase;
 }
