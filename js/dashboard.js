@@ -472,17 +472,115 @@ function ffDashInstallStyles() {
   const css = document.createElement('style');
   css.id = 'ffDashboardRealRoutesStyles';
   css.textContent = `
-    .dash-clean{padding:1.1rem 1.2rem 1.6rem;display:flex;flex-direction:column;gap:1.2rem;color:var(--text,#e2f0ff);max-width:1500px;margin:0 auto}
+    /* ── DASHBOARD WRAP ── */
+    .dash-wrap{padding:1.2rem 1.5rem 2rem;max-width:1600px;margin:0 auto;display:flex;flex-direction:column;gap:1.35rem}
 
+    /* ── HEADER ── */
+    .dash-hdr{display:grid;grid-template-columns:1fr auto;gap:1rem;background:linear-gradient(120deg,rgba(20,65,150,.2) 0%,rgba(8,18,36,.95) 55%),var(--surface,#1e293b);border:1px solid rgba(20,65,150,.4);border-top:3px solid #FFF000;border-radius:18px;padding:1.2rem 1.6rem;align-items:center;overflow:hidden;position:relative}
+    .dash-hdr::after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(20,65,150,.12),transparent 70%);pointer-events:none}
+    .dash-hdr-brand{display:flex;align-items:center;gap:.9rem}
+    .dash-hdr-icon{width:46px;height:46px;background:#144196;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:#fff;box-shadow:0 4px 18px rgba(20,65,150,.5);flex-shrink:0}
+    .dash-hdr-title{font-size:1.25rem;font-weight:800;color:var(--text,#f1f5f9);letter-spacing:-.01em;line-height:1.1}
+    .dash-hdr-sub{font-size:.72rem;color:var(--text2,#94a3b8);margin-top:.18rem}
+    .dash-hdr-right{display:flex;gap:1.2rem;align-items:center;flex-shrink:0}
+    .dash-hdr-clock{text-align:right}
+    .dash-hdr-time{font-size:2rem;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.01em;line-height:1}
+    .dash-hdr-date{font-size:.65rem;color:var(--text2,#94a3b8);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-top:.2rem}
+    .dash-live-badge{display:flex;align-items:center;gap:.45rem;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:999px;padding:.38rem .85rem;font-size:.72rem;font-weight:800;color:#86efac;white-space:nowrap;flex-shrink:0}
+    .dash-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18);animation:dashPulse 2s ease-in-out infinite}
+    @keyframes dashPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* ── KPI GRID ── */
+    .dash-kpis{display:grid;grid-template-columns:repeat(4,1fr) .62fr .62fr .62fr;gap:.85rem}
+    .dash-kpi{background:var(--surface,#1e293b);border:1px solid var(--border,#334155);border-radius:15px;padding:1rem 1.1rem;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;position:relative;overflow:hidden;display:flex;gap:.8rem;align-items:center}
+    .dash-kpi:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.28)}
+    .dash-kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:15px 15px 0 0}
+    .dash-kpi-icon-box{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem}
+    .dash-kpi.kpi-lg .dash-kpi-icon-box{width:50px;height:50px;border-radius:13px;font-size:1.2rem}
+    .dash-kpi-body{flex:1;min-width:0}
+    .dash-kpi-n{font-size:1.85rem;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+    .dash-kpi.kpi-lg .dash-kpi-n{font-size:2.6rem}
+    .dash-kpi-lbl{font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text2,#94a3b8);margin-top:.2rem}
+    .dash-kpi-sub{font-size:.62rem;color:var(--text3,#64748b);margin-top:.08rem}
+    .kpi-blue{border-color:rgba(20,65,150,.35)}.kpi-blue::after{background:#144196}.kpi-blue .dash-kpi-n{color:#7bafd4}.kpi-blue .dash-kpi-icon-box{background:rgba(20,65,150,.16);color:#7bafd4}
+    .kpi-teal{border-color:rgba(45,212,191,.3)}.kpi-teal::after{background:#2dd4bf}.kpi-teal .dash-kpi-n{color:#2dd4bf}.kpi-teal .dash-kpi-icon-box{background:rgba(45,212,191,.16);color:#2dd4bf}
+    .kpi-orange{border-color:rgba(249,115,22,.3)}.kpi-orange::after{background:#f97316}.kpi-orange .dash-kpi-n{color:#fb923c}.kpi-orange .dash-kpi-icon-box{background:rgba(249,115,22,.16);color:#fb923c}
+    .kpi-red{border-color:rgba(239,68,68,.35)}.kpi-red::after{background:#ef4444}.kpi-red .dash-kpi-n{color:#f87171}.kpi-red .dash-kpi-icon-box{background:rgba(239,68,68,.16);color:#f87171}
+    .kpi-green{border-color:rgba(34,197,94,.3)}.kpi-green::after{background:#22c55e}.kpi-green .dash-kpi-n{color:#4ade80}.kpi-green .dash-kpi-icon-box{background:rgba(34,197,94,.16);color:#4ade80}
+    .kpi-purple{border-color:rgba(139,92,246,.3)}.kpi-purple::after{background:#8b5cf6}.kpi-purple .dash-kpi-n{color:#a78bfa}.kpi-purple .dash-kpi-icon-box{background:rgba(139,92,246,.16);color:#a78bfa}
+    .kpi-yellow{border-color:rgba(234,179,8,.3)}.kpi-yellow::after{background:#facc15}.kpi-yellow .dash-kpi-n{color:#facc15}.kpi-yellow .dash-kpi-icon-box{background:rgba(234,179,8,.16);color:#facc15}
+
+    /* ── CONTENT GRID ── */
+    .dash-content{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:1.1rem;align-items:start}
+    .dash-panel-v2{background:var(--surface,#1e293b);border:1px solid var(--border,#334155);border-radius:16px;overflow:hidden}
+    .dash-panel-v2.p-orange{border-color:rgba(249,115,22,.32)}
+    .dash-panel-v2.p-green{border-color:rgba(34,197,94,.28)}
+    .dash-panel-v2.p-blue{border-color:rgba(20,65,150,.35)}
+    .dash-pv2-head{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.1rem;border-bottom:1px solid var(--border,#334155)}
+    .dash-pv2-head h3{font-size:.88rem;font-weight:800;margin:0;display:flex;align-items:center;gap:.5rem;letter-spacing:-.005em}
+    .dash-pv2-body{padding:.85rem}
+    .dash-badge{background:rgba(20,65,150,.16);border:1px solid rgba(20,65,150,.28);color:#7bafd4;border-radius:999px;padding:.14rem .55rem;font-size:.66rem;font-weight:800;white-space:nowrap}
+    .dash-badge.g{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.28);color:#86efac}
+    .dash-badge.o{background:rgba(249,115,22,.14);border-color:rgba(249,115,22,.28);color:#fb923c}
+
+    /* Route cards v2 */
+    .dash-rcard{border:1px solid rgba(249,115,22,.3);border-radius:13px;padding:.9rem;background:rgba(249,115,22,.04);margin-bottom:.65rem;cursor:pointer;transition:background .15s,border-color .15s}
+    .dash-rcard:hover{background:rgba(249,115,22,.09);border-color:rgba(249,115,22,.5)}
+    .dash-rcard:last-child{margin-bottom:0}
+    .dash-rcard.done{border-color:rgba(34,197,94,.32);background:rgba(34,197,94,.04)}
+    .dash-rcard.done:hover{background:rgba(34,197,94,.09)}
+    .dash-rcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem}
+    .dash-rcard-driver{font-weight:800;font-size:.9rem;display:flex;align-items:center;gap:.45rem}
+    .dash-rcard-pct{font-size:1.5rem;font-weight:900;color:#fb923c;line-height:1;flex-shrink:0}
+    .dash-rcard.done .dash-rcard-pct{color:#4ade80}
+    .dash-rcard-status{display:inline-block;margin-top:.28rem;border-radius:999px;padding:.14rem .5rem;font-size:.62rem;font-weight:800;letter-spacing:.04em;background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.28)}
+    .dash-rcard.done .dash-rcard-status{background:rgba(34,197,94,.14);color:#86efac;border-color:rgba(34,197,94,.28)}
+    .dash-rcard-bar{height:5px;background:rgba(148,163,184,.14);border-radius:999px;overflow:hidden;margin:.6rem 0 .38rem}
+    .dash-rcard-bar span{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#86efac);border-radius:999px;transition:width .3s}
+    .dash-rcard-next{font-size:.78rem;color:#93c5fd;margin:.28rem 0;line-height:1.35;overflow-wrap:anywhere}
+    .dash-rcard-next b{color:#fff}
+    .dash-rcard-meta{font-size:.67rem;color:var(--text2,#94a3b8)}
+    .dash-rcard-orders{display:flex;flex-direction:column;gap:.28rem;margin-top:.6rem;padding-top:.55rem;border-top:1px solid rgba(148,163,184,.1)}
+    .dash-rcard-order{display:flex;align-items:center;gap:.45rem;font-size:.75rem;padding:.32rem .5rem;border-radius:8px;background:rgba(15,31,60,.4)}
+    .dash-rcard-order.done{background:rgba(34,197,94,.07)}
+    .dash-rcard-num{font-weight:800;color:#93c5fd;white-space:nowrap}
+    .dash-rcard-order.done .dash-rcard-num{color:#86efac}
+    .dash-rcard-cli{flex:1;color:var(--text2,#94a3b8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.71rem}
+    .dash-rcard-st{font-size:.63rem;font-weight:800;white-space:nowrap}
+    .dash-rcard-order.done .dash-rcard-st{color:#86efac}
+    .dash-rcard-order:not(.done) .dash-rcard-st{color:#64748b}
+
+    /* Order list v2 */
+    .dash-olist{display:flex;flex-direction:column;gap:.45rem;max-height:540px;overflow-y:auto;scrollbar-width:thin;padding-right:.15rem}
+    .dash-olist::-webkit-scrollbar{width:3px}
+    .dash-olist::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:999px}
+    .dash-oitem{display:flex;align-items:flex-start;gap:.65rem;padding:.62rem .75rem;border:1px solid rgba(148,163,184,.11);border-radius:11px;background:rgba(15,31,60,.38);cursor:pointer;transition:border-color .15s,background .15s}
+    .dash-oitem:hover{border-color:rgba(20,65,150,.32);background:rgba(20,65,150,.07)}
+    .dash-oitem-body{flex:1;min-width:0}
+    .dash-oitem-num{font-weight:800;font-size:.83rem;color:var(--text,#f1f5f9)}
+    .dash-oitem-client{font-size:.73rem;color:#7bafd4;font-weight:700;margin-top:.1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .dash-oitem-prod{font-size:.67rem;color:var(--text3,#64748b);margin-top:.08rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .dash-oitem-badge{background:rgba(20,65,150,.14);border:1px solid rgba(20,65,150,.22);color:#7bafd4;border-radius:999px;padding:.12rem .42rem;font-size:.62rem;font-weight:800;white-space:nowrap;flex-shrink:0;align-self:flex-start}
+
+    /* Sector grid */
+    .dash-sectors{background:var(--surface,#1e293b);border:1px solid var(--border,#334155);border-radius:16px;overflow:hidden}
+    .dash-sectors-head{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.1rem;border-bottom:1px solid var(--border,#334155)}
+    .dash-sectors-head h3{font-size:.88rem;font-weight:800;margin:0;display:flex;align-items:center;gap:.5rem}
+    .dash-sectors-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.5rem;padding:.85rem}
+    .dash-sec{display:flex;flex-direction:column;gap:.32rem;padding:.7rem .85rem;border-radius:12px;background:rgba(15,31,60,.38);border:1px solid rgba(148,163,184,.1)}
+    .dash-sec-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+    .dash-sec-name{font-size:.76rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .dash-sec-n{font-size:.95rem;font-weight:900;flex-shrink:0}
+    .dash-sec-bar{height:4px;background:rgba(148,163,184,.12);border-radius:999px;overflow:hidden}
+    .dash-sec-bar span{display:block;height:100%;border-radius:999px;transition:width .3s}
+    .dash-empty-v2{text-align:center;padding:1.8rem;color:var(--text2,#94a3b8);font-size:.82rem;border:1px dashed rgba(148,163,184,.16);border-radius:12px}
+
+    /* Sector dashboard (role=sector) – manter compatibilidade */
+    .dash-clean{padding:1.1rem 1.2rem 1.6rem;display:flex;flex-direction:column;gap:1.2rem;color:var(--text,#e2f0ff);max-width:1500px;margin:0 auto}
     .dash-hero{display:flex;justify-content:space-between;align-items:center;gap:1rem;background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(2,6,23,.92));border:1px solid var(--border,#334155);border-radius:18px;padding:1.15rem 1.4rem;overflow:hidden;position:relative}
     .dash-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 0% 0%,rgba(20,65,150,.14),transparent 55%);pointer-events:none}
     .dash-hero h2{font-size:1.3rem;margin:0 0 .3rem;display:flex;gap:.55rem;align-items:center;letter-spacing:-.01em}
-    .dash-hero h2 i{color:#60a5fa}
     .dash-muted{color:var(--text2,#94a3b8);font-size:.82rem}
-    .dash-live{display:flex;gap:.5rem;align-items:center;color:#93c5fd;font-size:.82rem;white-space:nowrap;background:rgba(20,65,150,.1);border:1px solid rgba(20,65,150,.22);border-radius:999px;padding:.4rem .85rem;flex-shrink:0}
-    .dash-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.15);animation:dashPulse 2s ease-in-out infinite}
-    @keyframes dashPulse{0%,100%{opacity:1}50%{opacity:.45}}
-
     .dash-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:.85rem}
     .dash-metric{background:linear-gradient(160deg,rgba(17,33,63,.92),rgba(8,18,36,.9));border:1px solid var(--border,#334155);border-radius:15px;padding:.95rem 1rem;display:flex;align-items:center;gap:.85rem;min-height:80px;cursor:pointer;overflow:hidden;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
     .dash-metric:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.28)}
@@ -497,63 +595,10 @@ function ffDashInstallStyles() {
     .dash-metric.m-purple{border-color:rgba(139,92,246,.32)}.dash-metric.m-purple i{background:rgba(139,92,246,.16);color:#a78bfa}
     .dash-metric.m-yellow{border-color:rgba(234,179,8,.32)}.dash-metric.m-yellow i{background:rgba(234,179,8,.16);color:#facc15}
     .dash-metric.m-red{border-color:rgba(239,68,68,.34)}.dash-metric.m-red i{background:rgba(239,68,68,.16);color:#f87171}
-
-    .dash-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:1.1rem;align-items:start}
     .dash-panel{background:linear-gradient(180deg,rgba(16,24,43,.9),rgba(2,6,23,.82));border:1px solid var(--border,#334155);border-radius:17px;padding:1.05rem;min-width:0;overflow:hidden}
-    .dash-panel.orange{border-color:rgba(249,115,22,.4)}
-    .dash-panel.green{border-color:rgba(34,197,94,.32)}
-    .dash-panel.purple{border-color:rgba(139,92,246,.32)}
     .dash-panel-title{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.85rem;padding-bottom:.7rem;border-bottom:1px solid rgba(148,163,184,.12)}
     .dash-panel-title h3{font-size:.92rem;margin:0;display:flex;align-items:center;gap:.5rem;min-width:0;font-weight:700;letter-spacing:-.005em}
     .dash-count{background:rgba(20,65,150,.16);border:1px solid rgba(20,65,150,.32);color:#93c5fd;border-radius:999px;padding:.15rem .6rem;font-weight:800;font-size:.72rem;white-space:nowrap}
-
-    .dash-route-card{border:1px solid rgba(249,115,22,.4);border-radius:14px;padding:.9rem;background:rgba(15,23,42,.6);cursor:pointer;overflow:hidden;margin-bottom:.75rem;transition:border-color .15s ease,background .15s ease}
-    .dash-route-card:hover{background:rgba(15,23,42,.85)}
-    .dash-route-card:last-child{margin-bottom:0}
-    .dash-route-card.completed{border-color:rgba(34,197,94,.4)}
-    .dash-route-head{display:flex;justify-content:space-between;gap:.75rem;align-items:flex-start}
-    .dash-route-pct{font-size:1.3rem;color:#fb923c;font-weight:900;text-align:right;line-height:1}
-    .dash-route-card.completed .dash-route-pct{color:#4ade80}
-    .dash-route-status{display:inline-flex;margin-top:.32rem;border-radius:999px;padding:.16rem .5rem;font-size:.65rem;font-weight:800;letter-spacing:.03em;background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.3)}
-    .dash-route-card.completed .dash-route-status{background:rgba(34,197,94,.14);color:#86efac;border-color:rgba(34,197,94,.3)}
-    .dash-next{margin:.7rem 0;color:#bfdbfe;line-height:1.3;overflow-wrap:anywhere;font-size:.84rem}
-    .dash-chips{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.6rem}
-    .dash-chip{display:inline-flex;max-width:100%;border:1px solid rgba(96,165,250,.26);background:rgba(20,65,150,.1);color:#bfdbfe;border-radius:999px;padding:.22rem .58rem;font-size:.72rem;font-weight:700;white-space:nowrap}
-    .dash-chip.done{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.3);color:#86efac}
-    .dash-progress{height:6px;background:rgba(148,163,184,.16);border-radius:999px;overflow:hidden;margin:.5rem 0}
-    .dash-progress span{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#86efac);border-radius:999px;transition:width .3s ease}
-    .dash-route-orders{margin-top:.7rem;border-top:1px solid rgba(148,163,184,.12);padding-top:.6rem;display:flex;flex-direction:column;gap:.4rem}
-    .dash-route-order{display:grid;grid-template-columns:22px 1fr auto;gap:.45rem;align-items:center;border:1px solid rgba(96,165,250,.12);background:rgba(15,31,60,.4);border-radius:10px;padding:.45rem .55rem;min-width:0}
-    .dash-route-order.done{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2)}
-    .dash-route-order-main{min-width:0}
-    .dash-route-order strong,.dash-route-order span{overflow-wrap:anywhere}
-    .dash-route-order strong{font-size:.8rem}
-    .dash-route-confirm{font-size:.68rem;color:#86efac;white-space:nowrap;font-weight:700}
-    .dash-route-pending{font-size:.68rem;color:#cbd5e1;background:rgba(148,163,184,.12);border-radius:999px;padding:.14rem .4rem;white-space:nowrap}
-
-    .dash-list{display:flex;flex-direction:column;gap:.55rem;max-height:540px;overflow:auto;padding-right:.25rem;scrollbar-width:thin}
-    .dash-list::-webkit-scrollbar{width:6px}
-    .dash-list::-webkit-scrollbar-thumb{background:rgba(148,163,184,.25);border-radius:999px}
-    .dash-order{border:1px solid rgba(96,165,250,.16);background:rgba(15,31,60,.6);border-radius:12px;padding:.7rem .75rem;min-width:0;overflow:hidden;transition:border-color .15s ease,background .15s ease}
-    .dash-order:hover{border-color:rgba(96,165,250,.32);background:rgba(15,31,60,.85)}
-    .dash-order-top{display:flex;justify-content:space-between;gap:.5rem;align-items:flex-start}
-    .dash-order strong{display:block;color:#fff;font-size:.86rem;line-height:1.2;overflow-wrap:anywhere;font-weight:700}
-    .dash-client{color:#9fc5ff;font-weight:700;font-size:.77rem;line-height:1.25;overflow-wrap:anywhere;margin-top:.18rem}
-    .dash-product{color:#94a3b8;font-size:.71rem;margin-top:.2rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-    .dash-lot-count{color:#60a5fa;font-size:.68rem;font-weight:800;white-space:nowrap;background:rgba(20,65,150,.12);border-radius:999px;padding:.12rem .45rem}
-    .dash-empty{color:var(--text2,#94a3b8);padding:1.4rem 1rem;text-align:center;border:1px dashed rgba(148,163,184,.2);border-radius:12px;font-size:.83rem}
-
-    .dash-factory-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
-    .dash-sector-list{display:flex;flex-direction:column;gap:.5rem}
-    .dash-sector-row{display:grid;grid-template-columns:140px 1fr 32px;align-items:center;gap:.6rem;background:rgba(15,31,60,.45);border:1px solid rgba(96,165,250,.12);border-radius:11px;padding:.55rem .65rem}
-    .dash-sector-label{font-size:.76rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .dash-sector-bar{height:7px;background:rgba(148,163,184,.14);border-radius:999px;overflow:hidden}
-    .dash-sector-bar span{display:block;height:100%;border-radius:999px;transition:width .3s ease}
-    .dash-sector-count{text-align:right;font-weight:800;color:#e2f0ff;font-size:.85rem}
-
-    @media(max-width:1200px){.dash-grid{grid-template-columns:1fr}.dash-factory-grid{grid-template-columns:1fr}}
-    @media(max-width:640px){.dash-hero{flex-direction:column;align-items:flex-start}.dash-live{align-self:flex-start}}
-
     .sdb-sub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem}
     .sdb-panel{transition:border-color .2s}
     .sdb-status-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.7rem}
@@ -561,8 +606,8 @@ function ffDashInstallStyles() {
     .sdb-status-item strong{font-size:1.35rem;font-weight:800;line-height:1}
     .sdb-status-item span{font-size:.67rem;color:var(--text2,#94a3b8);text-transform:uppercase;letter-spacing:.05em;margin-top:.18rem}
     .sdb-working strong{color:#4ade80}.sdb-working{border:1px solid rgba(34,197,94,.2)}
-    .sdb-paused  strong{color:#fbbf24}.sdb-paused {border:1px solid rgba(245,158,11,.2)}
-    .sdb-idle    strong{color:#94a3b8}.sdb-idle   {border:1px solid rgba(100,116,139,.2)}
+    .sdb-paused strong{color:#fbbf24}.sdb-paused{border:1px solid rgba(245,158,11,.2)}
+    .sdb-idle strong{color:#94a3b8}.sdb-idle{border:1px solid rgba(100,116,139,.2)}
     .sdb-bar{display:flex;height:7px;border-radius:999px;overflow:hidden;background:rgba(100,116,139,.15);margin-bottom:.8rem}
     .sdb-bar-w{background:#22c55e;transition:width .3s}
     .sdb-bar-p{background:#f59e0b;transition:width .3s}
@@ -570,8 +615,8 @@ function ffDashInstallStyles() {
     .sdb-tags{display:flex;flex-wrap:wrap;gap:.4rem}
     .sdb-tag{font-size:.7rem;border-radius:999px;padding:.18rem .55rem;font-weight:700;display:inline-flex;align-items:center;gap:.3rem}
     .sdb-tag-sd{background:rgba(239,68,68,.16);color:#f87171;border:1px solid rgba(239,68,68,.26)}
-    .sdb-tag-u {background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.26)}
-    .sdb-tag-l {background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.22)}
+    .sdb-tag-u{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.26)}
+    .sdb-tag-l{background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.22)}
     .sdb-tag-ok{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.22)}
     .sdb-delivery-list{display:flex;flex-direction:column;gap:.4rem;max-height:280px;overflow:auto;scrollbar-width:thin}
     .sdb-delivery-row{display:grid;grid-template-columns:70px 1fr auto;align-items:center;gap:.65rem;padding:.45rem .6rem;border-radius:9px;border:1px solid rgba(96,165,250,.12);background:rgba(15,31,60,.45);font-size:.8rem}
@@ -582,6 +627,19 @@ function ffDashInstallStyles() {
     .sdb-dr-date{white-space:nowrap;color:var(--text2,#94a3b8);font-size:.72rem}
     .sdb-dr-date b{color:#fca5a5}
     .sdb-dr-today .sdb-dr-date b{color:#fbbf24}
+    .dash-factory-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+    .dash-sector-list{display:flex;flex-direction:column;gap:.5rem}
+    .dash-sector-row{display:grid;grid-template-columns:140px 1fr 32px;align-items:center;gap:.6rem;background:rgba(15,31,60,.45);border:1px solid rgba(96,165,250,.12);border-radius:11px;padding:.55rem .65rem}
+    .dash-sector-label{font-size:.76rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .dash-sector-bar{height:7px;background:rgba(148,163,184,.14);border-radius:999px;overflow:hidden}
+    .dash-sector-bar span{display:block;height:100%;border-radius:999px;transition:width .3s ease}
+    .dash-sector-count{text-align:right;font-weight:800;color:#e2f0ff;font-size:.85rem}
+    .dash-empty{color:var(--text2,#94a3b8);padding:1.4rem 1rem;text-align:center;border:1px dashed rgba(148,163,184,.2);border-radius:12px;font-size:.83rem}
+
+    @media(max-width:1280px){.dash-kpis{grid-template-columns:repeat(4,1fr)}}
+    @media(max-width:1100px){.dash-content{grid-template-columns:1fr}.dash-factory-grid{grid-template-columns:1fr}}
+    @media(max-width:860px){.dash-kpis{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:640px){.dash-hero{flex-direction:column;align-items:flex-start}.dash-hdr{grid-template-columns:1fr}}
   `;
   document.head.appendChild(css);
 }
@@ -598,38 +656,28 @@ function ffDashRouteCard(route) {
   const next = orders.find(o => !o.delivered) || orders[orders.length - 1] || {};
   const time = ffDashRouteTime(route);
 
-  const chips = orders.slice(0, 5).map(o => `
-    <span class="dash-chip ${o.delivered ? 'done' : ''}">${o.delivered ? '✓ ' : ''}Ped. ${ffDashText(o.orderNumber || '—')}</span>
-  `).join('');
-
   const orderRows = orders.slice(0, 5).map(o => `
-    <div class="dash-route-order ${o.delivered ? 'done' : ''}">
-      <div>${o.delivered ? '✅' : '🕘'}</div>
-      <div class="dash-route-order-main">
-        <strong>Ped. ${ffDashText(o.orderNumber || '—')}</strong>
-        <div class="dash-product">${ffDashText(o.client || 'Cliente não informado')}</div>
-      </div>
-      ${o.delivered
-        ? `<span class="dash-route-confirm">${o.deliveredAt ? ffDashFormatDateTime(o.deliveredAt).replace(/.*\//,'') : 'Entregue'}</span>`
-        : '<span class="dash-route-pending">Pendente</span>'}
+    <div class="dash-rcard-order ${o.delivered ? 'done' : ''}">
+      <span>${o.delivered ? '✓' : '·'}</span>
+      <span class="dash-rcard-num">Ped. ${ffDashText(o.orderNumber || '—')}</span>
+      <span class="dash-rcard-cli">${ffDashText(o.client || 'Cliente não informado')}</span>
+      <span class="dash-rcard-st">${o.delivered ? 'Entregue' : 'Pendente'}</span>
     </div>
   `).join('');
 
   return `
-    <div class="dash-route-card ${completed ? 'completed' : ''}" onclick="navigateTo('deliveries')">
-      <div class="dash-route-head">
+    <div class="dash-rcard ${completed ? 'done' : ''}" onclick="navigateTo('deliveries')">
+      <div class="dash-rcard-top">
         <div>
-          <strong><i class="fas fa-truck"></i> ${ffDashText(route.driverName || route.motorista || 'Motorista')}</strong>
-          <div class="dash-muted">Saída: ${time ? ffDashFormatDateTime(time) : '–'}</div>
-          <span class="dash-route-status">${completed ? 'CONCLUÍDA' : 'EM ROTA'}</span>
+          <div class="dash-rcard-driver"><i class="fas fa-truck"></i> ${ffDashText(route.driverName || route.motorista || 'Motorista')}</div>
+          <span class="dash-rcard-status">${completed ? 'CONCLUÍDA' : 'EM ROTA'}</span>
         </div>
-        <div class="dash-route-pct">${pct}%</div>
+        <div class="dash-rcard-pct">${pct}%</div>
       </div>
-      <div class="dash-next">${completed ? 'Última entrega' : 'Próxima'}: <b>${ffDashText(next.client || '—')}</b>${next.orderNumber ? ` · Ped. ${ffDashText(next.orderNumber)}` : ''}</div>
-      <div class="dash-chips">${chips}</div>
-      <div class="dash-progress"><span style="width:${pct}%"></span></div>
-      <div class="dash-muted">${done}/${orders.length} pedido(s) entregues</div>
-      <div class="dash-route-orders">${orderRows}</div>
+      <div class="dash-rcard-bar"><span style="width:${pct}%"></span></div>
+      <div class="dash-rcard-next">${completed ? 'Última' : 'Próxima'}: <b>${ffDashText(next.client || '—')}</b>${next.orderNumber ? ` · Ped. ${ffDashText(next.orderNumber)}` : ''}</div>
+      <div class="dash-rcard-meta">${time ? 'Saída: ' + ffDashFormatDateTime(time) : ''} · ${done}/${orders.length} entregues</div>
+      <div class="dash-rcard-orders">${orderRows}</div>
     </div>
   `;
 }
@@ -637,13 +685,13 @@ function ffDashRouteCard(route) {
 function ffDashOrderCard(o) {
   const lot = o.lots?.[0] || {};
   return `
-    <div class="dash-order">
-      <div class="dash-order-top">
-        <strong>Ped. ${ffDashText(o.orderNumber || '—')}</strong>
-        <span class="dash-lot-count">${o.lots.length} lote(s)</span>
+    <div class="dash-oitem" onclick="navigateTo('orders')">
+      <div class="dash-oitem-body">
+        <div class="dash-oitem-num">Ped. ${ffDashText(o.orderNumber || '—')}</div>
+        <div class="dash-oitem-client">${ffDashText(o.client || 'Cliente não informado')}</div>
+        <div class="dash-oitem-prod">${ffDashText((lot.number ? '#' + lot.number + ' ' : '') + (o.product || lot.paint || ''))}</div>
       </div>
-      <div class="dash-client">${ffDashText(o.client || 'Cliente não informado')}</div>
-      <div class="dash-product">${ffDashText((lot.number ? '#' + lot.number + ' ' : '') + (o.product || lot.paint || ''))}</div>
+      <span class="dash-oitem-badge">${o.lots.length} lote(s)</span>
     </div>
   `;
 }
@@ -806,46 +854,106 @@ function ffDashRenderManagerDashboard(page) {
   const sectorSituationRoles = ['admin', 'diretoria', 'pcp', 'manager'];
   const showSectorSituation = sectorSituationRoles.includes(String(STATE.currentUser?.role || '').toLowerCase());
 
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+
   page.innerHTML = `
-    <div class="dash-clean">
-      <div class="dash-hero">
-        <div>
-          <h2><i class="fas fa-tachometer-alt"></i> Dashboard Geral</h2>
-          <div class="dash-muted">Resumo operacional limpo, com rotas reais da aba Entregas.</div>
+    <div class="dash-wrap">
+
+      <div class="dash-hdr">
+        <div class="dash-hdr-brand">
+          <div class="dash-hdr-icon"><i class="fas fa-industry"></i></div>
+          <div>
+            <div class="dash-hdr-title">Dashboard Operacional</div>
+            <div class="dash-hdr-sub">Visão consolidada em tempo real · FactoryFlow v3.0</div>
+          </div>
         </div>
-        <div class="dash-live"><span class="dash-dot"></span> Atualizado em ${new Date().toLocaleTimeString('pt-BR')}</div>
+        <div class="dash-hdr-right">
+          <div class="dash-live-badge"><span class="dash-dot"></span> Ao vivo</div>
+          <div class="dash-hdr-clock">
+            <div class="dash-hdr-time" id="dashClock">${timeStr}</div>
+            <div class="dash-hdr-date">${dateStr}</div>
+          </div>
+        </div>
       </div>
 
-      <div class="dash-metrics">
-        <div class="dash-metric m-blue" onclick="navigateTo('lots')"><i class="fas fa-industry"></i><div><strong>${inProd.length}</strong><span>Em produção</span><small>Lotes ativos</small></div></div>
-        <div class="dash-metric m-teal" onclick="navigateTo('deliveries')"><i class="fas fa-check"></i><div><strong>${readyLots.length}</strong><span>Prontos</span><small>Aguardando rota</small></div></div>
-        <div class="dash-metric m-orange" onclick="navigateTo('deliveries')"><i class="fas fa-truck"></i><div><strong>${inRouteLots.length}</strong><span>Em rota</span><small>Pedidos/lotes na rua</small></div></div>
-        <div class="dash-metric m-green" onclick="navigateTo('deliveries')"><i class="fas fa-box"></i><div><strong>${deliveredLots.length}</strong><span>Entregues</span><small>Concluídos</small></div></div>
-        <div class="dash-metric m-purple" onclick="navigateTo('orders')"><i class="fas fa-calendar-day"></i><div><strong>${today.length}</strong><span>Hoje</span><small>Entrega hoje</small></div></div>
-        <div class="dash-metric m-yellow" onclick="navigateTo('orders')"><i class="fas fa-bolt"></i><div><strong>${urgent.length}</strong><span>Prioritários</span><small>Urgente/mesmo dia</small></div></div>
-        <div class="dash-metric m-red" onclick="navigateTo('orders')"><i class="fas fa-clock"></i><div><strong>${late.length}</strong><span>Atrasados</span><small>Fora do prazo</small></div></div>
+      <div class="dash-kpis">
+        <div class="dash-kpi kpi-lg kpi-blue" onclick="navigateTo('lots')">
+          <div class="dash-kpi-icon-box"><i class="fas fa-industry"></i></div>
+          <div class="dash-kpi-body"><div class="dash-kpi-n">${inProd.length}</div><div class="dash-kpi-lbl">Em Produção</div><div class="dash-kpi-sub">Lotes ativos nos setores</div></div>
+        </div>
+        <div class="dash-kpi kpi-lg kpi-teal" onclick="navigateTo('deliveries')">
+          <div class="dash-kpi-icon-box"><i class="fas fa-check-circle"></i></div>
+          <div class="dash-kpi-body"><div class="dash-kpi-n">${readyLots.length}</div><div class="dash-kpi-lbl">Prontos</div><div class="dash-kpi-sub">Aguardando rota</div></div>
+        </div>
+        <div class="dash-kpi kpi-lg kpi-orange" onclick="navigateTo('deliveries')">
+          <div class="dash-kpi-icon-box"><i class="fas fa-truck"></i></div>
+          <div class="dash-kpi-body"><div class="dash-kpi-n">${inRouteLots.length}</div><div class="dash-kpi-lbl">Em Rota</div><div class="dash-kpi-sub">Lotes na rua agora</div></div>
+        </div>
+        <div class="dash-kpi kpi-lg kpi-red" onclick="navigateTo('orders')">
+          <div class="dash-kpi-icon-box"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="dash-kpi-body"><div class="dash-kpi-n">${late.length}</div><div class="dash-kpi-lbl">Atrasados</div><div class="dash-kpi-sub">Fora do prazo</div></div>
+        </div>
+        <div class="dash-kpi kpi-green" onclick="navigateTo('deliveries')">
+          <div class="dash-kpi-icon-box"><i class="fas fa-box"></i></div>
+          <div class="dash-kpi-body"><div class="dash-kpi-n">${deliveredLots.length}</div><div class="dash-kpi-lbl">Entregues</div></div>
+        </div>
+        <div class="dash-kpi kpi-purple" onclick="navigateTo('orders')">
+          <div class="dash-kpi-icon-box"><i class="fas fa-calendar-day"></i></div>
+          <div class="dash-kpi-body"><div class="dash-kpi-n">${today.length}</div><div class="dash-kpi-lbl">Hoje</div></div>
+        </div>
+        <div class="dash-kpi kpi-yellow" onclick="navigateTo('orders')">
+          <div class="dash-kpi-icon-box"><i class="fas fa-bolt"></i></div>
+          <div class="dash-kpi-body"><div class="dash-kpi-n">${urgent.length}</div><div class="dash-kpi-lbl">Prioritários</div></div>
+        </div>
       </div>
 
-      <div class="dash-grid">
-        <div class="dash-panel orange">
-          <div class="dash-panel-title"><h3><i class="fas fa-route"></i> Rotas recentes</h3><span class="dash-count">${recentRoutes.length} rota(s)</span></div>
-          ${recentRoutes.length ? recentRoutes.map(ffDashRouteCard).join('') : '<div class="dash-empty">Nenhuma rota encontrada.</div>'}
+      <div class="dash-content">
+        <div class="dash-panel-v2 p-orange">
+          <div class="dash-pv2-head">
+            <h3><i class="fas fa-route"></i> Rotas recentes</h3>
+            <span class="dash-badge o">${recentRoutes.length} rota(s)</span>
+          </div>
+          <div class="dash-pv2-body">
+            ${recentRoutes.length ? recentRoutes.map(ffDashRouteCard).join('') : '<div class="dash-empty-v2"><i class="fas fa-route" style="font-size:1.5rem;opacity:.3;display:block;margin-bottom:.5rem"></i>Nenhuma rota encontrada.</div>'}
+          </div>
         </div>
-
-        <div class="dash-panel green">
-          <div class="dash-panel-title"><h3><i class="fas fa-clipboard-check"></i> Prontos aguardando rota</h3><span class="dash-count">${readyOrders.length}</span></div>
-          <div class="dash-list">${readyOrders.length ? readyOrders.map(ffDashOrderCard).join('') : '<div class="dash-empty">Nenhum pedido pronto aguardando rota.</div>'}</div>
+        <div class="dash-panel-v2 p-green">
+          <div class="dash-pv2-head">
+            <h3><i class="fas fa-clipboard-check"></i> Prontos p/ rota</h3>
+            <span class="dash-badge g">${readyOrders.length}</span>
+          </div>
+          <div class="dash-pv2-body">
+            <div class="dash-olist">
+              ${readyOrders.length ? readyOrders.map(ffDashOrderCard).join('') : '<div class="dash-empty-v2">Nenhum pedido pronto.</div>'}
+            </div>
+          </div>
         </div>
-
-        <div class="dash-panel purple">
-          <div class="dash-panel-title"><h3><i class="fas fa-inbox"></i> Pedidos novos / revisão</h3><span class="dash-count">${newOrders.length}</span></div>
-          <div class="dash-list">${newOrders.length ? newOrders.map(ffDashOrderCard).join('') : '<div class="dash-empty">Nenhum pedido novo/revisão.</div>'}</div>
+        <div class="dash-panel-v2 p-blue">
+          <div class="dash-pv2-head">
+            <h3><i class="fas fa-inbox"></i> Novos / Revisão</h3>
+            <span class="dash-badge">${newOrders.length}</span>
+          </div>
+          <div class="dash-pv2-body">
+            <div class="dash-olist">
+              ${newOrders.length ? newOrders.map(ffDashOrderCard).join('') : '<div class="dash-empty-v2">Nenhum pedido novo.</div>'}
+            </div>
+          </div>
         </div>
       </div>
 
       ${showSectorSituation ? ffDashBuildSectorSituationHtml(inProd) : ''}
     </div>
   `;
+
+  if (!window._dashClockInterval) {
+    window._dashClockInterval = setInterval(() => {
+      const el = document.getElementById('dashClock');
+      if (el) el.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      else { clearInterval(window._dashClockInterval); window._dashClockInterval = null; }
+    }, 1000);
+  }
 }
 
 // ===================================================
@@ -907,18 +1015,27 @@ function ffDashRenderFactoryPanel(page) {
 // ===================================================
 function ffDashBuildSectorSituationHtml(inProd) {
   const maxCount = Math.max(...(SECTORS || []).map(s => inProd.filter(l => l.sector === s).length), 1);
+  const total = inProd.length;
   return `
-    <div class="dash-panel">
-      <div class="dash-panel-title"><h3><i class="fas fa-sitemap"></i> Situação por setor</h3></div>
-      <div class="dash-sector-list">
+    <div class="dash-sectors">
+      <div class="dash-sectors-head">
+        <h3><i class="fas fa-sitemap"></i> Situação por setor</h3>
+        <span class="dash-badge">${total} lote(s) em produção</span>
+      </div>
+      <div class="dash-sectors-grid">
         ${(SECTORS || []).map(s => {
           const count = inProd.filter(l => l.sector === s).length;
           const pct = Math.round((count / maxCount) * 100);
-          return `<div class="dash-sector-row">
-            <div class="dash-sector-label" style="color:${(SECTOR_COLORS || {})[s] || '#93c5fd'}">${ffDashText((SECTOR_LABELS || {})[s] || s)}</div>
-            <div class="dash-sector-bar"><span style="width:${pct}%;background:${(SECTOR_COLORS || {})[s] || '#144196'}"></span></div>
-            <div class="dash-sector-count">${count}</div>
-          </div>`;
+          const color = (SECTOR_COLORS || {})[s] || '#144196';
+          const label = ffDashText((SECTOR_LABELS || {})[s] || s);
+          return `
+            <div class="dash-sec">
+              <div class="dash-sec-top">
+                <span class="dash-sec-name" style="color:${color}">${label}</span>
+                <span class="dash-sec-n" style="color:${color}">${count}</span>
+              </div>
+              <div class="dash-sec-bar"><span style="width:${pct}%;background:${color}"></span></div>
+            </div>`;
         }).join('')}
       </div>
     </div>`;
