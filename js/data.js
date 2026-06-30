@@ -2306,7 +2306,7 @@ function deserializeBridgeLot(row) {
     orderId:       'bridge_order_' + row.numero_pedido,
     orderNumber:   String(row.numero_pedido || ''),
     client:        String(row.cliente_nome  || ''),
-    city:          String(row.cliente_cidade || ''),
+    city:          '', // cliente_cidade do ERP é a cidade da fábrica, não do cliente; acessível via raw_mysql.cliente_cidade quando necessário
     address:       [row.cliente_endereco, row.cliente_bairro].filter(Boolean).join(', '),
     productCode:   String(row.produto_codigo || ''),
     productName:   String(row.produto_nome || ''),
