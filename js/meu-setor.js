@@ -25,58 +25,126 @@ let _msRefreshTimer = null;
 // ───────────────────────────────────────────────────
 // RENDER PRINCIPAL
 // ───────────────────────────────────────────────────
+function _msInstallStyles() {
+  if (document.getElementById('msSectorGroupStyles')) return;
+  const s = document.createElement('style');
+  s.id = 'msSectorGroupStyles';
+  s.textContent = `
+    .ms-search-bar{display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem .55rem;flex-wrap:wrap}
+    .ms-search-wrap{position:relative;flex:1;min-width:220px;max-width:440px}
+    .ms-search-ico{position:absolute;left:.82rem;top:50%;transform:translateY(-50%);color:#64748b;font-size:.83rem;pointer-events:none}
+    .ms-search-inp{width:100%;background:rgba(15,31,60,.85);border:1px solid var(--border,#334155);border-radius:10px;padding:.58rem .9rem .58rem 2.3rem;color:var(--text,#e2f0ff);font-size:.86rem;outline:none;transition:border-color .2s,box-shadow .2s}
+    .ms-search-inp:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+    .ms-search-inp::placeholder{color:#64748b}
+    [data-theme="light"] .ms-search-inp{background:rgba(241,245,249,.9)}
+    .ms-search-clear{background:rgba(100,116,139,.14);border:1px solid rgba(100,116,139,.22);border-radius:8px;color:#94a3b8;font-size:.78rem;padding:.5rem .85rem;cursor:pointer;white-space:nowrap;transition:background .15s}
+    .ms-search-clear:hover{background:rgba(100,116,139,.24)}
+    .ms-search-info{font-size:.78rem;color:#64748b;white-space:nowrap}
+
+    .ms-sections{display:flex;flex-direction:column;gap:1.6rem;padding:0 1rem 1.5rem}
+    .ms-section-hdr{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.6rem .95rem;background:rgba(0,0,0,.2);border:1px solid rgba(148,163,184,.15);border-left:4px solid var(--ms-sec-color,#3b82f6);border-radius:10px;margin-bottom:.8rem}
+    .ms-section-title{display:flex;align-items:center;gap:.65rem;font-weight:700;font-size:.93rem}
+    .ms-section-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.07)}
+    .ms-section-right{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+    .ms-section-count{background:rgba(59,130,246,.14);border:1px solid rgba(59,130,246,.28);color:#93c5fd;border-radius:999px;padding:.12rem .6rem;font-size:.7rem;font-weight:800;white-space:nowrap}
+    .ms-sec-tag{font-size:.68rem;border-radius:999px;padding:.1rem .48rem;font-weight:700;white-space:nowrap}
+    .ms-sec-tag-urgent{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.26)}
+    .ms-sec-tag-late{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.26)}
+    .ms-sec-tag-working{background:rgba(34,197,94,.14);color:#4ade80;border:1px solid rgba(34,197,94,.26)}
+
+    .ms-section-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:.9rem}
+    .ms-card-wrap{display:block}
+    .ms-card-wrap > .ms-card{margin:0;height:100%}
+    .ms-sec-no-results{display:none;grid-column:1/-1;padding:1.4rem;text-align:center;color:#64748b;border:1px dashed rgba(148,163,184,.18);border-radius:12px;font-size:.83rem}
+    @media(max-width:600px){.ms-section-grid{grid-template-columns:1fr}.ms-sections{padding:0 .5rem 1rem}}
+    [data-theme="light"] .ms-section-hdr{background:rgba(241,245,249,.8)}
+  `;
+  document.head.appendChild(s);
+}
+
 function renderMeuSetor() {
   const page = document.getElementById('pageMeuSetor');
   if (!page) return;
 
+  _msInstallStyles();
+
   const main = document.getElementById('mainContent');
   if (main) main.scrollTop = 0;
-
   page.scrollTop = 0;
 
   const user = STATE.currentUser;
   if (!user) return;
 
-  // Determina o setor visível para o usuário
   const userSector = user.sector || '';
   const visibleSectors = userSector
     ? getSectorVisibility(userSector)
     : (isFullAccess(user) ? SECTORS : []);
 
-  // Filtra lotes: apenas do setor do usuário, não reprovados
-  const lots = STATE.lots.filter(l =>
-    !l.rejected &&
-    visibleSectors.includes(l.sector)
-  );
-
-  // Ordena: sameday → urgent → normal; dentro da mesma prioridade: mais antigo primeiro
-  lots.sort((a, b) => {
+  // Ordena por prioridade e depois por tempo no setor (mais antigo primeiro)
+  const sortLots = arr => [...arr].sort((a, b) => {
     const pa = PRIORITY_ORDER[a.priority] ?? 2;
     const pb = PRIORITY_ORDER[b.priority] ?? 2;
     if (pa !== pb) return pa - pb;
     return getLotTimeInSector(b) - getLotTimeInSector(a);
   });
 
-  const sectorLabel = userSector
-    ? (SECTOR_LABELS[userSector] || userSector)
-    : 'Todos os Setores';
+  const allLots = STATE.lots.filter(l => !l.rejected && visibleSectors.includes(l.sector));
 
+  const sectorLabel = userSector ? (SECTOR_LABELS[userSector] || userSector) : 'Todos os Setores';
   const sectorColor = SECTOR_COLORS[userSector] || '#3b82f6';
 
-  // Contadores rápidos
-  const working  = lots.filter(l => l.lotStatus === 'working').length;
-  const paused   = lots.filter(l => l.lotStatus === 'paused').length;
-  const idle     = lots.filter(l => !l.lotStatus || l.lotStatus === 'idle').length;
-  const lateCount = lots.filter(l => isLate(l)).length;
-  const urgentCount = lots.filter(l => l.priority !== 'normal').length;
+  // KPIs globais
+  const working     = allLots.filter(l => l.lotStatus === 'working').length;
+  const paused      = allLots.filter(l => l.lotStatus === 'paused').length;
+  const idle        = allLots.filter(l => !l.lotStatus || l.lotStatus === 'idle').length;
+  const lateCount   = allLots.filter(l => isLate(l)).length;
+  const urgentCount = allLots.filter(l => l.priority !== 'normal').length;
+
+  // Seções agrupadas por sub-setor
+  const sectionsHtml = visibleSectors.map(s => {
+    const sLots     = sortLots(allLots.filter(l => l.sector === s));
+    const color     = SECTOR_COLORS[s] || '#6b7280';
+    const label     = SECTOR_LABELS[s] || s;
+    const lateN     = sLots.filter(l => isLate(l)).length;
+    const urgentN   = sLots.filter(l => l.priority !== 'normal').length;
+    const workingN  = sLots.filter(l => l.lotStatus === 'working').length;
+
+    const tags = [
+      workingN ? `<span class="ms-sec-tag ms-sec-tag-working"><i class="fas fa-play-circle"></i> ${workingN} trabalhando</span>` : '',
+      urgentN  ? `<span class="ms-sec-tag ms-sec-tag-urgent"><i class="fas fa-bolt"></i> ${urgentN} urgente${urgentN > 1 ? 's' : ''}</span>` : '',
+      lateN    ? `<span class="ms-sec-tag ms-sec-tag-late"><i class="fas fa-exclamation-triangle"></i> ${lateN} atrasado${lateN > 1 ? 's' : ''}</span>` : ''
+    ].join('');
+
+    const cardsHtml = sLots.map(lot => {
+      const searchText = [lot.number, lot.client, lot.paint, lot.orderNumber, lot.productCode]
+        .filter(Boolean).join(' ').toLowerCase().replace(/"/g, '&quot;');
+      return `<div class="ms-card-wrap" data-search="${searchText}">${_buildMsCard(lot, user)}</div>`;
+    }).join('');
+
+    return `
+      <div class="ms-section" data-sector="${s}">
+        <div class="ms-section-hdr" style="--ms-sec-color:${color}">
+          <div class="ms-section-title">
+            <span class="ms-section-dot" style="background:${color}"></span>
+            ${escapeHtml(label)}
+          </div>
+          <div class="ms-section-right">
+            ${tags}
+            <span class="ms-section-count">${sLots.length} lote${sLots.length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+        <div class="ms-section-grid">
+          ${cardsHtml || `<div class="ms-empty" style="grid-column:1/-1"><i class="fas fa-check-circle ms-empty-icon"></i><h3>Setor livre</h3><p>${escapeHtml(label)} não tem lotes no momento.</p></div>`}
+          <div class="ms-sec-no-results"><i class="fas fa-search" style="display:block;font-size:1.3rem;margin-bottom:.5rem"></i>Nenhum resultado para esta busca</div>
+        </div>
+      </div>`;
+  }).join('');
 
   page.innerHTML = `
-    <!-- HEADER -->
     <div class="ms-header" style="border-left:4px solid ${sectorColor}">
       <div class="ms-header-left">
         <div class="ms-sector-name" style="color:${sectorColor}">
-          <i class="fas fa-hard-hat"></i>
-          ${escapeHtml(sectorLabel)}
+          <i class="fas fa-hard-hat"></i> ${escapeHtml(sectorLabel)}
         </div>
         <div class="ms-user-line">
           <i class="fas fa-user-circle"></i>
@@ -86,32 +154,12 @@ function renderMeuSetor() {
       </div>
       <div class="ms-header-right">
         <div class="ms-kpi-row">
-          <div class="ms-kpi ms-kpi-total">
-            <span class="ms-kpi-num">${lots.length}</span>
-            <span class="ms-kpi-lbl">Total</span>
-          </div>
-          <div class="ms-kpi ms-kpi-working">
-            <span class="ms-kpi-num">${working}</span>
-            <span class="ms-kpi-lbl">Trabalhando</span>
-          </div>
-          <div class="ms-kpi ms-kpi-paused">
-            <span class="ms-kpi-num">${paused}</span>
-            <span class="ms-kpi-lbl">Pausado</span>
-          </div>
-          <div class="ms-kpi ms-kpi-idle">
-            <span class="ms-kpi-num">${idle}</span>
-            <span class="ms-kpi-lbl">Aguardando</span>
-          </div>
-          ${urgentCount > 0 ? `
-          <div class="ms-kpi ms-kpi-urgent">
-            <span class="ms-kpi-num">${urgentCount}</span>
-            <span class="ms-kpi-lbl">Urgentes</span>
-          </div>` : ''}
-          ${lateCount > 0 ? `
-          <div class="ms-kpi ms-kpi-late">
-            <span class="ms-kpi-num">${lateCount}</span>
-            <span class="ms-kpi-lbl">Atrasados</span>
-          </div>` : ''}
+          <div class="ms-kpi ms-kpi-total"><span class="ms-kpi-num">${allLots.length}</span><span class="ms-kpi-lbl">Total</span></div>
+          <div class="ms-kpi ms-kpi-working"><span class="ms-kpi-num">${working}</span><span class="ms-kpi-lbl">Trabalhando</span></div>
+          <div class="ms-kpi ms-kpi-paused"><span class="ms-kpi-num">${paused}</span><span class="ms-kpi-lbl">Pausado</span></div>
+          <div class="ms-kpi ms-kpi-idle"><span class="ms-kpi-num">${idle}</span><span class="ms-kpi-lbl">Aguardando</span></div>
+          ${urgentCount > 0 ? `<div class="ms-kpi ms-kpi-urgent"><span class="ms-kpi-num">${urgentCount}</span><span class="ms-kpi-lbl">Urgentes</span></div>` : ''}
+          ${lateCount   > 0 ? `<div class="ms-kpi ms-kpi-late"><span class="ms-kpi-num">${lateCount}</span><span class="ms-kpi-lbl">Atrasados</span></div>` : ''}
         </div>
         <button class="ms-refresh-btn" onclick="renderMeuSetor()" title="Atualizar">
           <i class="fas fa-sync-alt"></i> Atualizar
@@ -119,17 +167,43 @@ function renderMeuSetor() {
       </div>
     </div>
 
-    <!-- GRADE DE CARDS -->
-    <div class="ms-grid" id="msGrid">
-      ${lots.length === 0
-        ? _buildMsEmpty(sectorLabel)
-        : lots.map(lot => _buildMsCard(lot, user)).join('')
-      }
+    <div class="ms-search-bar">
+      <div class="ms-search-wrap">
+        <i class="fas fa-search ms-search-ico"></i>
+        <input id="msSearchInput" type="text" class="ms-search-inp"
+          placeholder="Buscar por nº do lote, cliente ou cor…"
+          oninput="msSectorSearch(this.value)">
+      </div>
+      <button class="ms-search-clear" onclick="msSectorSearch('');var i=document.getElementById('msSearchInput');if(i)i.value=''">
+        <i class="fas fa-times"></i> Limpar
+      </button>
+    </div>
+
+    <div class="ms-sections" id="msSections">
+      ${allLots.length === 0 ? _buildMsEmpty(sectorLabel) : sectionsHtml}
     </div>
   `;
 
-  // Inicia ticker de tempo ao vivo (atualiza cronômetros a cada 10s)
   _msStartTicker();
+}
+
+function msSectorSearch(q) {
+  const query = (q || '').trim().toLowerCase();
+  const page  = document.getElementById('pageMeuSetor');
+  if (!page) return;
+
+  page.querySelectorAll('.ms-card-wrap').forEach(el => {
+    const match = !query || (el.dataset.search || '').includes(query);
+    el.style.display = match ? '' : 'none';
+  });
+
+  page.querySelectorAll('.ms-section').forEach(sec => {
+    const grid    = sec.querySelector('.ms-section-grid');
+    if (!grid) return;
+    const visible = sec.querySelectorAll('.ms-card-wrap:not([style*="display: none"])').length;
+    const noRes   = grid.querySelector('.ms-sec-no-results');
+    if (noRes) noRes.style.display = query && visible === 0 ? '' : 'none';
+  });
 }
 
 // ───────────────────────────────────────────────────
