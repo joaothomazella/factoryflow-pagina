@@ -83,30 +83,14 @@
 
 /* Logo IndusColor */
 .il-logo {
-  display: flex; align-items: center; gap: .9rem;
   margin-bottom: 2.2rem;
 }
-.il-logo-icon {
-  width: 60px; height: 60px;
-  background: #144196;
-  border-radius: 16px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.65rem; color: #fff;
-  box-shadow: 0 8px 28px rgba(20,65,150,.55);
-  flex-shrink: 0;
-}
-.il-logo-text { line-height: 1; }
-.il-logo-name {
-  font-family: 'DM Sans', 'Segoe UI', sans-serif;
-  font-size: 2rem; font-weight: 800;
-  letter-spacing: .5px; color: #fff;
-}
-.il-logo-name em { color: #FFF000; font-style: normal; }
-.il-logo-tag {
-  font-size: .62rem; font-weight: 700;
-  color: rgba(255,255,255,.45);
-  letter-spacing: 2.5px; text-transform: uppercase;
-  margin-top: .25rem; display: block;
+.il-logo-img {
+  height: 62px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 6px 18px rgba(20,65,150,.55));
 }
 
 /* Headline */
@@ -286,11 +270,7 @@
   <div class="il-brand">
     <div class="il-brand-inner">
       <div class="il-logo">
-        <div class="il-logo-icon"><i class="fas fa-industry"></i></div>
-        <div class="il-logo-text">
-          <div class="il-logo-name">INDUS<em>COLOR</em></div>
-          <span class="il-logo-tag">Tintas Industriais</span>
-        </div>
+        <img src="images/logo-induscolor.png" alt="IndusColor Tintas Industriais" class="il-logo-img">
       </div>
 
       <h2 class="il-headline">Controle de<br><em>Produção</em> em<br>tempo real</h2>
