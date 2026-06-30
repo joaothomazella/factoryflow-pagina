@@ -746,9 +746,9 @@ function openOrderDetail(orderId) {
                     <strong>#${escapeHtml(l.number)}</strong>
                     <span class="product-type-badge type-${l.productType||'tinta'}">${PRODUCT_TYPES[l.productType||'tinta']||l.productType}</span>
                   </div>
-                  <div style="font-size:.8rem;color:var(--text2)">${escapeHtml(l.paint)} · ${escapeHtml(String(l.qty))}${escapeHtml(l.unit||'Kg')}</div>
+                  <div style="font-size:.8rem;color:var(--text2)">${escapeHtml(l.paint || l.productName || l.nome_produto || l.pits_nome_produto || '–')} · ${escapeHtml(String(l.qty))}${escapeHtml(l.unit||'Kg')}</div>
                   <div class="lot-sector-badge" style="background:${SECTOR_COLORS[l.sector]};font-size:.72rem;padding:.2rem .6rem">
-                    ${SECTOR_LABELS[l.sector]}
+                    <i class="fas fa-map-marker-alt"></i> ${SECTOR_LABELS[l.sector]}
                   </div>
                 </div>`).join('')}
             </div>`}

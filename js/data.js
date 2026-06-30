@@ -2050,7 +2050,15 @@ function checkUrgentSoundOnReload(prevLots, newLots) {
 // ===================================================
 // ORDER HELPERS
 // ===================================================
-function getOrderLots(id){ return STATE.lots.filter(l=>l.orderId===id); }
+function getOrderLots(id){
+  const order = (STATE.orders || []).find(o => o.id === id);
+  const orderNumber = String(order?.number || '').trim();
+  return STATE.lots.filter(l => {
+    if (l.orderId === id) return true;
+    if (!orderNumber) return false;
+    return String(l.orderNumber || '').trim() === orderNumber;
+  });
+}
 function getOrderStatus(order){
   const lots=getOrderLots(order.id);
   if(lots.length===0)return'open';
