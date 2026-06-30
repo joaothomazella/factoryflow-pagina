@@ -518,8 +518,8 @@ const PAGE_MAP = {
   reports:    { el:'pageReports',    label:'Relatórios',        icon:'fas fa-chart-bar',      roles:['admin','diretoria','pcp','pcp_lib','manager','viewer'], group:'relatorios' },
   factory:    { el:'pageFactory',    label:'Painel Geral',      icon:'fas fa-industry',       roles:['admin','diretoria','pcp','manager'], group:'relatorios', hidden:true },
 
-  simulador_entrega:   { el:'pageSimuladorEntrega',  label:'Simulador',             icon:'fas fa-route',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'ferramentas' },
-  import:        { el:'pageImport',        label:'Importar Pedidos',  icon:'fas fa-file-import',    roles:['admin','pcp'], group:'ferramentas' },
+  simulador_entrega:   { el:'pageSimuladorEntrega',  label:'Simulador',             icon:'fas fa-route',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'ferramentas', hidden:true },
+  import:        { el:'pageImport',        label:'Importar Pedidos',  icon:'fas fa-file-import',    roles:['admin','pcp'], group:'ferramentas', hidden:true },
 
   drivers:    { el:'pageDrivers',    label:'Motoristas',        icon:'fas fa-id-card',        roles:['admin','diretoria','pcp','manager'], group:'administracao', hidden:true },
   users:               { el:'pageUsers',             label:'Usuários',              icon:'fas fa-users-cog',      roles:['admin'], group:'administracao', hidden:true },
@@ -586,11 +586,9 @@ function buildSidebar() {
     tvBtn.style.display = ['admin','diretoria','pcp','pcp_lib','manager'].includes(user.role) ? 'flex' : 'none';
   }
 
-  // Botão TV Stats
+  // Botão TV Stats (removido da UI)
   const tvStatsBtn = document.getElementById('btnTVStats');
-  if (tvStatsBtn) {
-    tvStatsBtn.style.display = ['admin','diretoria','pcp','pcp_lib','manager'].includes(user.role) ? 'flex' : 'none';
-  }
+  if (tvStatsBtn) tvStatsBtn.style.display = 'none';
 
   // Botão reset – EXCLUSIVO do admin (diretoria não tem acesso)
   const resetBtn = document.getElementById('btnResetLots');
