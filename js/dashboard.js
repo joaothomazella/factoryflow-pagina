@@ -554,30 +554,34 @@ function ffDashInstallStyles() {
     @media(max-width:1200px){.dash-grid{grid-template-columns:1fr}.dash-factory-grid{grid-template-columns:1fr}}
     @media(max-width:640px){.dash-hero{flex-direction:column;align-items:flex-start}.dash-live{align-self:flex-start}}
 
-    .sd-toolbar{display:flex;align-items:center;gap:.85rem;padding:.1rem 0 .6rem}
-    .sd-search-wrap{position:relative;flex:1;max-width:420px}
-    .sd-search-icon{position:absolute;left:.82rem;top:50%;transform:translateY(-50%);color:var(--text3,#64748b);font-size:.83rem;pointer-events:none}
-    .sd-search-input{width:100%;background:var(--bg3,rgba(15,31,60,.85));border:1px solid var(--border,#334155);border-radius:10px;padding:.6rem .9rem .6rem 2.3rem;color:var(--text,#e2f0ff);font-size:.86rem;outline:none;transition:border-color .2s,box-shadow .2s}
-    .sd-search-input:focus{border-color:var(--blue,#3b82f6);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
-    .sd-search-input::placeholder{color:var(--text3,#64748b)}
-    .sd-clear-btn{background:rgba(148,163,184,.14);border:1px solid rgba(148,163,184,.24);border-radius:8px;color:var(--text2,#94a3b8);font-size:.8rem;padding:.45rem .8rem;cursor:pointer;white-space:nowrap;transition:background .15s}
-    .sd-clear-btn:hover{background:rgba(148,163,184,.22)}
-
-    .sd-sections{display:flex;flex-direction:column;gap:1.6rem}
-    .sd-group-header{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.62rem 1rem;background:rgba(0,0,0,.18);border:1px solid rgba(148,163,184,.16);border-left:4px solid var(--sd-accent,#3b82f6);border-radius:10px;margin-bottom:.85rem}
-    .sd-group-title{display:flex;align-items:center;gap:.65rem;font-weight:700;font-size:.94rem}
-    .sd-group-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
-    .sd-group-count{border-radius:999px;padding:.14rem .65rem;font-size:.72rem;font-weight:800;white-space:nowrap;background:rgba(59,130,246,.14);border:1px solid rgba(59,130,246,.28);color:#93c5fd}
-    .sd-group-stats{display:flex;gap:.45rem}
-    .sd-group-stat{font-size:.7rem;border-radius:999px;padding:.1rem .5rem;font-weight:700;white-space:nowrap}
-    .sd-stat-urgent{background:rgba(245,158,11,.16);color:#fbbf24;border:1px solid rgba(245,158,11,.28)}
-    .sd-stat-late{background:rgba(239,68,68,.16);color:#f87171;border:1px solid rgba(239,68,68,.28)}
-
-    .sd-lots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:.9rem}
-    .sd-lot-wrap{}
-    .sd-lot-wrap > .lot-card{margin:0;height:100%;box-sizing:border-box}
-    .sd-search-empty{display:none;grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--text2,#94a3b8);border:1px dashed rgba(148,163,184,.2);border-radius:12px}
-    .sd-no-results{display:none;padding:1.5rem;text-align:center;color:var(--text2,#94a3b8);grid-column:1/-1;border:1px dashed rgba(148,163,184,.2);border-radius:12px}
+    .sdb-sub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem}
+    .sdb-panel{transition:border-color .2s}
+    .sdb-status-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.7rem}
+    .sdb-status-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.55rem;border-radius:10px;background:rgba(15,31,60,.5)}
+    .sdb-status-item strong{font-size:1.35rem;font-weight:800;line-height:1}
+    .sdb-status-item span{font-size:.67rem;color:var(--text2,#94a3b8);text-transform:uppercase;letter-spacing:.05em;margin-top:.18rem}
+    .sdb-working strong{color:#4ade80}.sdb-working{border:1px solid rgba(34,197,94,.2)}
+    .sdb-paused  strong{color:#fbbf24}.sdb-paused {border:1px solid rgba(245,158,11,.2)}
+    .sdb-idle    strong{color:#94a3b8}.sdb-idle   {border:1px solid rgba(100,116,139,.2)}
+    .sdb-bar{display:flex;height:7px;border-radius:999px;overflow:hidden;background:rgba(100,116,139,.15);margin-bottom:.8rem}
+    .sdb-bar-w{background:#22c55e;transition:width .3s}
+    .sdb-bar-p{background:#f59e0b;transition:width .3s}
+    .sdb-bar-i{flex:1;background:rgba(100,116,139,.25)}
+    .sdb-tags{display:flex;flex-wrap:wrap;gap:.4rem}
+    .sdb-tag{font-size:.7rem;border-radius:999px;padding:.18rem .55rem;font-weight:700;display:inline-flex;align-items:center;gap:.3rem}
+    .sdb-tag-sd{background:rgba(239,68,68,.16);color:#f87171;border:1px solid rgba(239,68,68,.26)}
+    .sdb-tag-u {background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.26)}
+    .sdb-tag-l {background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.22)}
+    .sdb-tag-ok{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.22)}
+    .sdb-delivery-list{display:flex;flex-direction:column;gap:.4rem;max-height:280px;overflow:auto;scrollbar-width:thin}
+    .sdb-delivery-row{display:grid;grid-template-columns:70px 1fr auto;align-items:center;gap:.65rem;padding:.45rem .6rem;border-radius:9px;border:1px solid rgba(96,165,250,.12);background:rgba(15,31,60,.45);font-size:.8rem}
+    .sdb-delivery-row.sdb-dr-late{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.07)}
+    .sdb-delivery-row.sdb-dr-today{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.07)}
+    .sdb-dr-lot{font-weight:800;color:#93c5fd}
+    .sdb-dr-client{color:var(--text,#e2f0ff);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .sdb-dr-date{white-space:nowrap;color:var(--text2,#94a3b8);font-size:.72rem}
+    .sdb-dr-date b{color:#fca5a5}
+    .sdb-dr-today .sdb-dr-date b{color:#fbbf24}
   `;
   document.head.appendChild(css);
 }
@@ -645,7 +649,7 @@ function ffDashOrderCard(o) {
 }
 
 // ===================================================
-// DASHBOARD DO SETOR
+// DASHBOARD DO SETOR – MÉTRICAS
 // ===================================================
 function renderSectorDashboard(page) {
   ffDashInstallStyles();
@@ -655,103 +659,118 @@ function renderSectorDashboard(page) {
     ? getSectorVisibility(user.sector)
     : [user.sector];
 
-  const allLots = (STATE.lots || []).filter(l => setoresVisiveis.includes(l.sector) && !l.rejected);
-  const lateLots  = allLots.filter(l => typeof isLate === 'function' && isLate(l));
-  const urgentLots = allLots.filter(l => l.priority !== 'normal');
+  const allLots    = (STATE.lots || []).filter(l => setoresVisiveis.includes(l.sector) && !l.rejected);
+  const working    = allLots.filter(l => l.lotStatus === 'working').length;
+  const paused     = allLots.filter(l => l.lotStatus === 'paused').length;
+  const idle       = allLots.filter(l => !l.lotStatus || l.lotStatus === 'idle').length;
+  const lateCount  = allLots.filter(l => typeof isLate === 'function' && isLate(l)).length;
+  const urgentCount= allLots.filter(l => l.priority !== 'normal').length;
+  const todayCount = allLots.filter(l => typeof isToday === 'function' && isToday(l.deliveryDate)).length;
+  const samedayCount = allLots.filter(l => l.priority === 'sameday').length;
 
-  const sortLots = arr => [...arr].sort((a, b) => {
-    const pa = (PRIORITY_ORDER || {})[a.priority] ?? 2;
-    const pb = (PRIORITY_ORDER || {})[b.priority] ?? 2;
-    if (pa !== pb) return pa - pb;
-    const la = typeof isLate === 'function' && isLate(a) ? 0 : 1;
-    const lb = typeof isLate === 'function' && isLate(b) ? 0 : 1;
-    if (la !== lb) return la - lb;
-    return (a.deliveryDate || '') < (b.deliveryDate || '') ? -1 : 1;
-  });
+  const sectorName  = ffDashText((SECTOR_LABELS || {})[user.sector] || user.sector || 'Meu Setor');
+  const sectorColor = (SECTOR_COLORS || {})[user.sector] || '#3b82f6';
 
-  const sectorName = ffDashText((SECTOR_LABELS || {})[user.sector] || user.sector || 'Meu Setor');
-
-  const groupHtml = setoresVisiveis.map(s => {
-    const sLots   = sortLots(allLots.filter(l => l.sector === s));
-    const color   = (SECTOR_COLORS || {})[s] || '#6b7280';
-    const label   = ffDashText((SECTOR_LABELS || {})[s] || s);
-    const lateN   = sLots.filter(l => typeof isLate === 'function' && isLate(l)).length;
-    const urgentN = sLots.filter(l => l.priority !== 'normal').length;
-
-    const statsHtml = [
-      urgentN ? `<span class="sd-group-stat sd-stat-urgent"><i class="fas fa-bolt"></i> ${urgentN} urgente${urgentN > 1 ? 's' : ''}</span>` : '',
-      lateN   ? `<span class="sd-group-stat sd-stat-late"><i class="fas fa-exclamation-triangle"></i> ${lateN} atrasado${lateN > 1 ? 's' : ''}</span>` : ''
-    ].join('');
-
-    const cardsHtml = sLots.map(l => {
-      const searchText = [l.number, l.client, l.paint, l.orderNumber, l.productName]
-        .filter(Boolean).join(' ').toLowerCase();
-      const card = typeof buildLotCard === 'function'
-        ? buildLotCard(l)
-        : `<div class="lot-card"><b>#${ffDashEscape(l.number)}</b><div class="lot-client">${ffDashEscape(l.client)}</div></div>`;
-      return `<div class="sd-lot-wrap" data-search="${ffDashEscape(searchText)}">${card}</div>`;
-    }).join('');
+  // Painel por sub-setor
+  const subPanels = setoresVisiveis.map(s => {
+    const sLots    = allLots.filter(l => l.sector === s);
+    const color    = (SECTOR_COLORS || {})[s] || '#6b7280';
+    const label    = ffDashText((SECTOR_LABELS || {})[s] || s);
+    const sWorking = sLots.filter(l => l.lotStatus === 'working').length;
+    const sPaused  = sLots.filter(l => l.lotStatus === 'paused').length;
+    const sIdle    = sLots.filter(l => !l.lotStatus || l.lotStatus === 'idle').length;
+    const sLate    = sLots.filter(l => typeof isLate === 'function' && isLate(l)).length;
+    const sUrgent  = sLots.filter(l => l.priority !== 'normal').length;
+    const sSameday = sLots.filter(l => l.priority === 'sameday').length;
+    const total    = sLots.length;
+    const wPct     = total ? Math.round(sWorking / total * 100) : 0;
+    const pPct     = total ? Math.round(sPaused  / total * 100) : 0;
+    const iPct     = 100 - wPct - pPct;
 
     return `
-      <div class="sd-group" data-sector="${s}">
-        <div class="sd-group-header" style="--sd-accent:${color}">
-          <div class="sd-group-title">
-            <span class="sd-group-dot" style="background:${color}"></span>
-            ${label}
+      <div class="dash-panel sdb-panel" style="border-color:${color}40">
+        <div class="dash-panel-title">
+          <h3><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:.4rem;flex-shrink:0"></span>${label}</h3>
+          <span class="dash-count">${total} lote${total !== 1 ? 's' : ''}</span>
+        </div>
+
+        <div class="sdb-status-row">
+          <div class="sdb-status-item sdb-working">
+            <strong>${sWorking}</strong><span>Trabalhando</span>
           </div>
-          <div style="display:flex;align-items:center;gap:.6rem">
-            ${statsHtml ? `<div class="sd-group-stats">${statsHtml}</div>` : ''}
-            <span class="sd-group-count">${sLots.length} lote${sLots.length !== 1 ? 's' : ''}</span>
+          <div class="sdb-status-item sdb-paused">
+            <strong>${sPaused}</strong><span>Pausado</span>
+          </div>
+          <div class="sdb-status-item sdb-idle">
+            <strong>${sIdle}</strong><span>Aguardando</span>
           </div>
         </div>
-        <div class="sd-lots-grid">
-          ${cardsHtml || '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-check-circle"></i><p>Nenhum lote neste sub-setor</p></div>'}
-          <div class="sd-no-results"><i class="fas fa-search" style="display:block;margin-bottom:.5rem;font-size:1.3rem"></i>Nenhum resultado para esta busca</div>
+
+        <div class="sdb-bar" title="${wPct}% trabalhando · ${pPct}% pausado · ${iPct}% aguardando">
+          <div class="sdb-bar-w" style="width:${wPct}%"></div>
+          <div class="sdb-bar-p" style="width:${pPct}%"></div>
+          <div class="sdb-bar-i" style="flex:1"></div>
+        </div>
+
+        <div class="sdb-tags">
+          ${sSameday ? `<span class="sdb-tag sdb-tag-sd"><i class="fas fa-fire"></i> ${sSameday} Mesmo Dia</span>` : ''}
+          ${sUrgent  ? `<span class="sdb-tag sdb-tag-u"><i class="fas fa-bolt"></i> ${sUrgent} Urgente${sUrgent > 1 ? 's' : ''}</span>` : ''}
+          ${sLate    ? `<span class="sdb-tag sdb-tag-l"><i class="fas fa-exclamation-triangle"></i> ${sLate} Atrasado${sLate > 1 ? 's' : ''}</span>` : ''}
+          ${!sSameday && !sUrgent && !sLate ? '<span class="sdb-tag sdb-tag-ok"><i class="fas fa-check-circle"></i> Sem pendências</span>' : ''}
         </div>
       </div>`;
   }).join('');
 
+  // Próximas entregas do setor (lotes com entrega hoje ou passada)
+  const upcoming = allLots
+    .filter(l => l.deliveryDate)
+    .sort((a, b) => (a.deliveryDate || '') < (b.deliveryDate || '') ? -1 : 1)
+    .slice(0, 8);
+
+  const upcomingHtml = upcoming.length ? upcoming.map(l => {
+    const late  = typeof isLate  === 'function' && isLate(l);
+    const today = typeof isToday === 'function' && isToday(l.deliveryDate);
+    return `
+      <div class="sdb-delivery-row ${late ? 'sdb-dr-late' : today ? 'sdb-dr-today' : ''}">
+        <span class="sdb-dr-lot">#${ffDashText(l.number || '–')}</span>
+        <span class="sdb-dr-client">${ffDashText(l.client || '–')}</span>
+        <span class="sdb-dr-date">${ffDashText(l.deliveryDate || '–')}${late ? ' <b>ATRASADO</b>' : today ? ' <b>HOJE</b>' : ''}</span>
+      </div>`;
+  }).join('') : `<div class="dash-empty">Nenhum lote com data de entrega cadastrada.</div>`;
+
   page.innerHTML = `
-    <div class="page-header">
-      <h2><i class="fas fa-tachometer-alt"></i> Meu Setor – ${sectorName}</h2>
-    </div>
-    <div class="metrics-row">
-      <div class="metric-card metric-blue"><div class="metric-num">${allLots.length}</div><div class="metric-label">Total no Setor</div></div>
-      <div class="metric-card metric-yellow"><div class="metric-num">${urgentLots.length}</div><div class="metric-label">Urgentes</div></div>
-      <div class="metric-card metric-red"><div class="metric-num">${lateLots.length}</div><div class="metric-label">Atrasados</div></div>
-    </div>
-    <div class="sd-toolbar">
-      <div class="sd-search-wrap">
-        <i class="fas fa-search sd-search-icon"></i>
-        <input id="sdSearchInput" type="text" class="sd-search-input"
-          placeholder="Buscar por nº do lote, cliente ou cor…"
-          oninput="ffSectorDashSearch(this.value)">
+    <div class="dash-clean">
+      <div class="dash-hero" style="border-color:${sectorColor}40">
+        <div>
+          <h2 style="color:${sectorColor}"><i class="fas fa-hard-hat"></i> ${sectorName}</h2>
+          <div class="dash-muted">Métricas do seu setor em tempo real</div>
+        </div>
+        <div class="dash-live"><span class="dash-dot"></span> ${new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</div>
       </div>
-      <button class="sd-clear-btn" onclick="ffSectorDashSearch('');var i=document.getElementById('sdSearchInput');if(i)i.value=''">
-        <i class="fas fa-times"></i> Limpar
-      </button>
+
+      <div class="dash-metrics">
+        <div class="dash-metric m-blue"  onclick="navigateTo('meu_setor')"><i class="fas fa-boxes"></i><div><strong>${allLots.length}</strong><span>Total</span><small>Lotes no setor</small></div></div>
+        <div class="dash-metric m-green" onclick="navigateTo('meu_setor')"><i class="fas fa-play-circle"></i><div><strong>${working}</strong><span>Trabalhando</span><small>Em produção agora</small></div></div>
+        <div class="dash-metric m-yellow"onclick="navigateTo('meu_setor')"><i class="fas fa-pause-circle"></i><div><strong>${paused}</strong><span>Pausados</span><small>Aguardando retomada</small></div></div>
+        <div class="dash-metric m-teal"  onclick="navigateTo('meu_setor')"><i class="fas fa-clock"></i><div><strong>${idle}</strong><span>Aguardando</span><small>Sem início</small></div></div>
+        <div class="dash-metric m-purple"onclick="navigateTo('orders')"><i class="fas fa-calendar-day"></i><div><strong>${todayCount}</strong><span>Hoje</span><small>Entrega hoje</small></div></div>
+        <div class="dash-metric m-orange"onclick="navigateTo('meu_setor')"><i class="fas fa-bolt"></i><div><strong>${urgentCount}</strong><span>Urgentes</span><small>Prioritários</small></div></div>
+        <div class="dash-metric m-red"   onclick="navigateTo('meu_setor')"><i class="fas fa-exclamation-triangle"></i><div><strong>${lateCount}</strong><span>Atrasados</span><small>Fora do prazo</small></div></div>
+      </div>
+
+      <div class="sdb-sub-grid">
+        ${subPanels}
+      </div>
+
+      <div class="dash-panel" style="border-color:rgba(139,92,246,.32)">
+        <div class="dash-panel-title">
+          <h3><i class="fas fa-calendar-alt"></i> Próximas entregas do setor</h3>
+          <span class="dash-count">${upcoming.length}</span>
+        </div>
+        <div class="sdb-delivery-list">${upcomingHtml}</div>
+      </div>
     </div>
-    <div class="sd-sections">${groupHtml}</div>
   `;
-}
-
-function ffSectorDashSearch(q) {
-  const query = (q || '').trim().toLowerCase();
-  const page = document.getElementById('pageDashboard');
-  if (!page) return;
-
-  page.querySelectorAll('.sd-lot-wrap').forEach(el => {
-    const match = !query || (el.dataset.search || '').includes(query);
-    el.style.display = match ? '' : 'none';
-  });
-
-  page.querySelectorAll('.sd-group').forEach(group => {
-    const grid = group.querySelector('.sd-lots-grid');
-    if (!grid) return;
-    const visible = group.querySelectorAll('.sd-lot-wrap:not([style*="display: none"])').length;
-    const noRes   = grid.querySelector('.sd-no-results');
-    if (noRes) noRes.style.display = query && visible === 0 ? '' : 'none';
-  });
 }
 
 // ===================================================
