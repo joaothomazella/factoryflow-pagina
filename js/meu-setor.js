@@ -357,7 +357,7 @@ function _buildMsCard(lot, user) {
 
         <div class="ms-card-product">
           <span class="product-type-badge type-${pt}">${PRODUCT_TYPES[pt] || pt}</span>
-          <span class="ms-card-paint">${escapeHtml(lot.paint || lot.productCode || '–')}</span>
+          <span class="ms-card-paint">${escapeHtml(lot.paint || lot.productName || lot.nome_produto || lot.pits_nome_produto || lot.productCode || '–')}</span>
         </div>
 
         <div class="ms-card-qty">

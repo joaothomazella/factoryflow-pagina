@@ -386,10 +386,10 @@ function buildKanbanCard(lot, user, currentSector) {
   const opBadge = isMysql && lot.op
     ? `<span class="badge-op" title="Ordem de Produção">OP ${escapeHtml(String(lot.op))}</span>`
     : '';
-  // Para lotes MySQL mostramos produto em vez de paint
-  const paintOrProduct = isMysql
-    ? escapeHtml(lot.productCode ? `${lot.productCode}` : '')
-    : (lot.paint || '');
+  // Mostramos sempre o nome do produto (nunca o código)
+  const paintOrProduct = escapeHtml(
+    lot.paint || lot.productName || lot.nome_produto || lot.pits_nome_produto || ''
+  );
   const clientDisplay  = escapeHtml(lot.client || '');
   const cityDisplay    = escapeHtml(lot.city   || '');
   const numDisplay     = escapeHtml(String(lot.number || ''));
