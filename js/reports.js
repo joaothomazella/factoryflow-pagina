@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // REPORTS.JS – Relatórios e métricas avançadas
 // ===================================================
 
@@ -95,8 +95,8 @@ function renderReports() {
         <div class="metric-num" style="color:#f59e0b">${paused.length}</div>
         <div class="metric-label">Pausados Agora</div>
       </div>
-      <div class="metric-card" style="border-color:rgba(59,130,246,.3)">
-        <div class="metric-num" style="color:#3b82f6;font-size:1.1rem">${formatMs(globalWorked)}</div>
+      <div class="metric-card" style="border-color:rgba(20,65,150,.3)">
+        <div class="metric-num" style="color:#144196;font-size:1.1rem">${formatMs(globalWorked)}</div>
         <div class="metric-label">Total Trabalhado (todos)</div>
       </div>
       <div class="metric-card" style="border-color:rgba(249,115,22,.3)">

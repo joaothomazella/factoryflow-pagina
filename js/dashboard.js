@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // DASHBOARD.JS – Dashboard clean + rotas reais por pedido
 // PATCH INDUSCOLOR
 // - Dashboard e Painel Geral sem tela em branco
@@ -475,11 +475,11 @@ function ffDashInstallStyles() {
     .dash-clean{padding:1.1rem 1.2rem 1.6rem;display:flex;flex-direction:column;gap:1.2rem;color:var(--text,#e2f0ff);max-width:1500px;margin:0 auto}
 
     .dash-hero{display:flex;justify-content:space-between;align-items:center;gap:1rem;background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(2,6,23,.92));border:1px solid var(--border,#334155);border-radius:18px;padding:1.15rem 1.4rem;overflow:hidden;position:relative}
-    .dash-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 0% 0%,rgba(59,130,246,.14),transparent 55%);pointer-events:none}
+    .dash-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 0% 0%,rgba(20,65,150,.14),transparent 55%);pointer-events:none}
     .dash-hero h2{font-size:1.3rem;margin:0 0 .3rem;display:flex;gap:.55rem;align-items:center;letter-spacing:-.01em}
     .dash-hero h2 i{color:#60a5fa}
     .dash-muted{color:var(--text2,#94a3b8);font-size:.82rem}
-    .dash-live{display:flex;gap:.5rem;align-items:center;color:#93c5fd;font-size:.82rem;white-space:nowrap;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.22);border-radius:999px;padding:.4rem .85rem;flex-shrink:0}
+    .dash-live{display:flex;gap:.5rem;align-items:center;color:#93c5fd;font-size:.82rem;white-space:nowrap;background:rgba(20,65,150,.1);border:1px solid rgba(20,65,150,.22);border-radius:999px;padding:.4rem .85rem;flex-shrink:0}
     .dash-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.15);animation:dashPulse 2s ease-in-out infinite}
     @keyframes dashPulse{0%,100%{opacity:1}50%{opacity:.45}}
 
@@ -490,7 +490,7 @@ function ffDashInstallStyles() {
     .dash-metric strong{display:block;font-size:1.5rem;line-height:1.1;font-weight:800;color:#fff}
     .dash-metric span{font-size:.7rem;color:#a9c7ef;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
     .dash-metric small{display:block;color:var(--text2,#94a3b8);font-size:.7rem;margin-top:.1rem}
-    .dash-metric.m-blue{border-color:rgba(59,130,246,.3)}.dash-metric.m-blue i{background:rgba(59,130,246,.16);color:#60a5fa}
+    .dash-metric.m-blue{border-color:rgba(20,65,150,.3)}.dash-metric.m-blue i{background:rgba(20,65,150,.16);color:#60a5fa}
     .dash-metric.m-teal{border-color:rgba(45,212,191,.3)}.dash-metric.m-teal i{background:rgba(45,212,191,.16);color:#2dd4bf}
     .dash-metric.m-orange{border-color:rgba(249,115,22,.32)}.dash-metric.m-orange i{background:rgba(249,115,22,.16);color:#fb923c}
     .dash-metric.m-green{border-color:rgba(34,197,94,.3)}.dash-metric.m-green i{background:rgba(34,197,94,.16);color:#4ade80}
@@ -505,7 +505,7 @@ function ffDashInstallStyles() {
     .dash-panel.purple{border-color:rgba(139,92,246,.32)}
     .dash-panel-title{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.85rem;padding-bottom:.7rem;border-bottom:1px solid rgba(148,163,184,.12)}
     .dash-panel-title h3{font-size:.92rem;margin:0;display:flex;align-items:center;gap:.5rem;min-width:0;font-weight:700;letter-spacing:-.005em}
-    .dash-count{background:rgba(59,130,246,.16);border:1px solid rgba(59,130,246,.32);color:#93c5fd;border-radius:999px;padding:.15rem .6rem;font-weight:800;font-size:.72rem;white-space:nowrap}
+    .dash-count{background:rgba(20,65,150,.16);border:1px solid rgba(20,65,150,.32);color:#93c5fd;border-radius:999px;padding:.15rem .6rem;font-weight:800;font-size:.72rem;white-space:nowrap}
 
     .dash-route-card{border:1px solid rgba(249,115,22,.4);border-radius:14px;padding:.9rem;background:rgba(15,23,42,.6);cursor:pointer;overflow:hidden;margin-bottom:.75rem;transition:border-color .15s ease,background .15s ease}
     .dash-route-card:hover{background:rgba(15,23,42,.85)}
@@ -518,7 +518,7 @@ function ffDashInstallStyles() {
     .dash-route-card.completed .dash-route-status{background:rgba(34,197,94,.14);color:#86efac;border-color:rgba(34,197,94,.3)}
     .dash-next{margin:.7rem 0;color:#bfdbfe;line-height:1.3;overflow-wrap:anywhere;font-size:.84rem}
     .dash-chips{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.6rem}
-    .dash-chip{display:inline-flex;max-width:100%;border:1px solid rgba(96,165,250,.26);background:rgba(59,130,246,.1);color:#bfdbfe;border-radius:999px;padding:.22rem .58rem;font-size:.72rem;font-weight:700;white-space:nowrap}
+    .dash-chip{display:inline-flex;max-width:100%;border:1px solid rgba(96,165,250,.26);background:rgba(20,65,150,.1);color:#bfdbfe;border-radius:999px;padding:.22rem .58rem;font-size:.72rem;font-weight:700;white-space:nowrap}
     .dash-chip.done{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.3);color:#86efac}
     .dash-progress{height:6px;background:rgba(148,163,184,.16);border-radius:999px;overflow:hidden;margin:.5rem 0}
     .dash-progress span{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#86efac);border-radius:999px;transition:width .3s ease}
@@ -540,7 +540,7 @@ function ffDashInstallStyles() {
     .dash-order strong{display:block;color:#fff;font-size:.86rem;line-height:1.2;overflow-wrap:anywhere;font-weight:700}
     .dash-client{color:#9fc5ff;font-weight:700;font-size:.77rem;line-height:1.25;overflow-wrap:anywhere;margin-top:.18rem}
     .dash-product{color:#94a3b8;font-size:.71rem;margin-top:.2rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-    .dash-lot-count{color:#60a5fa;font-size:.68rem;font-weight:800;white-space:nowrap;background:rgba(59,130,246,.12);border-radius:999px;padding:.12rem .45rem}
+    .dash-lot-count{color:#60a5fa;font-size:.68rem;font-weight:800;white-space:nowrap;background:rgba(20,65,150,.12);border-radius:999px;padding:.12rem .45rem}
     .dash-empty{color:var(--text2,#94a3b8);padding:1.4rem 1rem;text-align:center;border:1px dashed rgba(148,163,184,.2);border-radius:12px;font-size:.83rem}
 
     .dash-factory-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
@@ -669,7 +669,7 @@ function renderSectorDashboard(page) {
   const samedayCount = allLots.filter(l => l.priority === 'sameday').length;
 
   const sectorName  = ffDashText((SECTOR_LABELS || {})[user.sector] || user.sector || 'Meu Setor');
-  const sectorColor = (SECTOR_COLORS || {})[user.sector] || '#3b82f6';
+  const sectorColor = (SECTOR_COLORS || {})[user.sector] || '#144196';
 
   // Painel por sub-setor
   const subPanels = setoresVisiveis.map(s => {
@@ -916,7 +916,7 @@ function ffDashBuildSectorSituationHtml(inProd) {
           const pct = Math.round((count / maxCount) * 100);
           return `<div class="dash-sector-row">
             <div class="dash-sector-label" style="color:${(SECTOR_COLORS || {})[s] || '#93c5fd'}">${ffDashText((SECTOR_LABELS || {})[s] || s)}</div>
-            <div class="dash-sector-bar"><span style="width:${pct}%;background:${(SECTOR_COLORS || {})[s] || '#3b82f6'}"></span></div>
+            <div class="dash-sector-bar"><span style="width:${pct}%;background:${(SECTOR_COLORS || {})[s] || '#144196'}"></span></div>
             <div class="dash-sector-count">${count}</div>
           </div>`;
         }).join('')}

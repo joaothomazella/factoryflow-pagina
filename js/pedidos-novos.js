@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // PEDIDOS-NOVOS.JS – Aba "Pedidos Novos" (ERP → Kanban)
 // Busca pedidos do backend e permite ao PCP classificar
 // e liberar cada item para o fluxo do FactoryFlow.
@@ -939,7 +939,7 @@ window._pnOverlayClick = _pnOverlayClick;
       padding: .95rem 1rem;
       border-radius: 14px;
       border: 1px solid rgba(45, 212, 191, .35);
-      background: linear-gradient(135deg, rgba(45,212,191,.12), rgba(59,130,246,.08));
+      background: linear-gradient(135deg, rgba(45,212,191,.12), rgba(20,65,150,.08));
     }
 
     .pn-amostra-option {

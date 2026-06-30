@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // SIMULADOR-ENTREGA.JS – Simulador Inteligente de Entrega
 // FactoryFlow v1.1 – PATCH: exclui Pronto/Entregue da fila produtiva
 //
@@ -636,7 +636,7 @@ function ffBuildSectorPlan(productType, kg, startFromNow, sectorLoad) {
 function ffFormatSimulationDecision(result) {
   const map = {
     recommended:              { label: '✅ Recomendado',                    color: '#22c55e', icon: 'fas fa-check-circle' },
-    recommended_with_reorder: { label: '🔵 Recomendado com Reordenação',   color: '#3b82f6', icon: 'fas fa-sort-amount-up' },
+    recommended_with_reorder: { label: '🔵 Recomendado com Reordenação',   color: '#144196', icon: 'fas fa-sort-amount-up' },
     overtime:                 { label: '⚡ Possível com Hora Extra',        color: '#f59e0b', icon: 'fas fa-bolt' },
     not_recommended:          { label: '⛔ Não Recomendado',               color: '#ef4444', icon: 'fas fa-times-circle' },
     impossible:               { label: '🚫 Impossível no Prazo',            color: '#dc2626', icon: 'fas fa-ban' }

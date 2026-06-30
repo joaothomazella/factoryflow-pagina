@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // AUTH.JS – Autenticação via Backend Central, navegação, alertas e tema
 // ===================================================
 
@@ -853,7 +853,7 @@ function openBridgeConfigModal() {
         <div class="bridge-config-section" style="margin-top:.8rem">
           <h4><i class="fas fa-terminal"></i> Comandos rápidos</h4>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-            <button class="btn btn-sm" onclick="testBridgeConnection()" style="background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.3)">
+            <button class="btn btn-sm" onclick="testBridgeConnection()" style="background:rgba(20,65,150,.15);color:#93c5fd;border:1px solid rgba(20,65,150,.3)">
               <i class="fas fa-heartbeat"></i> Testar conexão
             </button>
             <button class="btn btn-sm" onclick="triggerManualSync()" style="background:rgba(34,197,94,.1);color:#86efac;border:1px solid rgba(34,197,94,.25)">

@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // DATA.JS – Estado global, helpers e API compartilhada
 // ===================================================
 
@@ -83,7 +83,7 @@ const SECTOR_COLORS = {
   coloracao_revisao:   '#e879f9',   // fuchsia
   laboratorio_revisao: '#2dd4bf',   // teal
   pcp_liberacao:       '#f43f5e',   // rose
-  pesagem:             '#3b82f6',
+  pesagem:             '#144196',
   producao:            '#8b5cf6',
   coloracao:           '#f59e0b',
   coloracao_amostras:  '#facc15',

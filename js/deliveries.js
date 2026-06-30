@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // DELIVERIES.JS – Entregas por PEDIDO + status em tempo real
 // PATCH INDUSCOLOR
 // - Rota aparece por PEDIDO, não por lote
@@ -303,7 +303,7 @@ function ffDeliveryBuildRouteCard(route, lots, completed = false) {
       </div>
 
       <div style="height:7px;background:rgba(148,163,184,.18);border-radius:999px;overflow:hidden;margin:.75rem 0 .45rem">
-        <div style="height:100%;width:${percent}%;background:${completed ? '#22c55e' : '#3b82f6'};border-radius:999px"></div>
+        <div style="height:100%;width:${percent}%;background:${completed ? '#22c55e' : '#144196'};border-radius:999px"></div>
       </div>
       <div style="font-size:.85rem;color:var(--text2,#94a3b8);font-weight:700">${done}/${total} pedido(s) entregues</div>
     </div>`;

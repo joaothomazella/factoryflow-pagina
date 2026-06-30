@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -25,7 +25,7 @@ html, body {
    ============================================================ */
 .tv-bg {
   position: fixed; inset: 0; z-index: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,130,246,.12) 0%, transparent 60%),
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(20,65,150,.12) 0%, transparent 60%),
               radial-gradient(ellipse 50% 40% at 100% 100%, rgba(139,92,246,.08) 0%, transparent 50%),
               radial-gradient(ellipse 40% 30% at 0% 100%, rgba(6,182,212,.06) 0%, transparent 50%),
               #020617;
@@ -34,8 +34,8 @@ html, body {
 .tv-grid-overlay {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background-image:
-    linear-gradient(rgba(59,130,246,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59,130,246,.035) 1px, transparent 1px);
+    linear-gradient(rgba(20,65,150,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20,65,150,.035) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
@@ -50,7 +50,7 @@ html, body {
 
 .tv-auth-box {
   background: rgba(15,23,42,.96);
-  border: 1px solid rgba(59,130,246,.25);
+  border: 1px solid rgba(20,65,150,.25);
   border-radius: 24px;
   padding: 2.5rem 3rem;
   width: 100%; max-width: 420px;
@@ -60,8 +60,8 @@ html, body {
 
 .tv-auth-icon {
   width: 72px; height: 72px;
-  background: linear-gradient(135deg, rgba(59,130,246,.2), rgba(139,92,246,.15));
-  border: 1px solid rgba(59,130,246,.3);
+  background: linear-gradient(135deg, rgba(20,65,150,.2), rgba(139,92,246,.15));
+  border: 1px solid rgba(20,65,150,.3);
   border-radius: 20px;
   display: flex; align-items: center; justify-content: center;
   font-size: 2rem; color: #60a5fa;
@@ -79,7 +79,7 @@ html, body {
   border-radius: 12px; color: #fff; font-size: .95rem;
   outline: none; transition: border-color .2s;
 }
-.tv-auth-form input:focus { border-color: rgba(59,130,246,.6); }
+.tv-auth-form input:focus { border-color: rgba(20,65,150,.6); }
 
 .tv-auth-error {
   color: #fb7185; font-size: .82rem; text-align: center;
@@ -89,13 +89,13 @@ html, body {
 
 .tv-auth-btn {
   padding: .75rem;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: linear-gradient(135deg, #144196, #6366f1);
   border: none; border-radius: 12px; color: #fff;
   font-size: .95rem; font-weight: 700; cursor: pointer;
   transition: opacity .2s;
 }
 .tv-auth-btn:hover { opacity: .9; }
-.tv-auth-back { color: #3b82f6; font-size: .8rem; text-decoration: none; }
+.tv-auth-back { color: #144196; font-size: .8rem; text-decoration: none; }
 
 /* ============================================================
    LOADING
@@ -107,8 +107,8 @@ html, body {
 }
 .tv-loading-icon {
   width: 80px; height: 80px;
-  background: linear-gradient(135deg, rgba(59,130,246,.2), rgba(139,92,246,.15));
-  border: 1px solid rgba(59,130,246,.3);
+  background: linear-gradient(135deg, rgba(20,65,150,.2), rgba(139,92,246,.15));
+  border: 1px solid rgba(20,65,150,.3);
   border-radius: 22px;
   display: flex; align-items: center; justify-content: center;
   font-size: 2.2rem; color: #60a5fa;
@@ -118,7 +118,7 @@ html, body {
 .tv-loading h2 { font-size: 1.4rem; font-weight: 800; color: #fff; }
 .tv-loading p  { color: #64748b; font-size: .85rem; }
 .tv-loading-bar { width: 220px; height: 4px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; }
-.tv-loading-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #6366f1); animation: loadbar 2s ease-in-out infinite; }
+.tv-loading-fill { height: 100%; background: linear-gradient(90deg, #144196, #6366f1); animation: loadbar 2s ease-in-out infinite; }
 @keyframes loadbar { 0% { width:0%;margin-left:0%; } 50% { width:70%;margin-left:15%; } 100% { width:0%;margin-left:100%; } }
 
 /* ============================================================
@@ -144,8 +144,8 @@ html, body {
 .tv-brand { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
 .tv-brand-icon {
   width: 36px; height: 36px;
-  background: linear-gradient(135deg, rgba(59,130,246,.25), rgba(139,92,246,.2));
-  border: 1px solid rgba(59,130,246,.3);
+  background: linear-gradient(135deg, rgba(20,65,150,.25), rgba(139,92,246,.2));
+  border: 1px solid rgba(20,65,150,.3);
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   color: #60a5fa; font-size: 1rem;
@@ -167,7 +167,7 @@ html, body {
   text-transform: uppercase; letter-spacing: .4px;
   transition: all .3s; white-space: nowrap; flex-shrink: 0;
 }
-.tv-page-tab.active { background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.3); color: #93c5fd; }
+.tv-page-tab.active { background: rgba(20,65,150,.15); border-color: rgba(20,65,150,.3); color: #93c5fd; }
 
 .tv-topbar-right { flex-shrink: 0; display: flex; align-items: center; gap: .6rem; }
 .tv-live-badge {
@@ -240,8 +240,8 @@ html, body {
 .tv-kpi-value { font-size: 2rem; font-weight: 900; line-height: 1; letter-spacing: -.5px; }
 .tv-kpi-label { font-size: .58rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; text-align: center; }
 
-.tv-kpi-card.k-blue    { border-color: rgba(59,130,246,.2); }
-.tv-kpi-card.k-blue    .tv-kpi-icon  { background: rgba(59,130,246,.15); color: #60a5fa; }
+.tv-kpi-card.k-blue    { border-color: rgba(20,65,150,.2); }
+.tv-kpi-card.k-blue    .tv-kpi-icon  { background: rgba(20,65,150,.15); color: #60a5fa; }
 .tv-kpi-card.k-blue    .tv-kpi-value { color: #60a5fa; }
 .tv-kpi-card.k-green   { border-color: rgba(34,197,94,.2); }
 .tv-kpi-card.k-green   .tv-kpi-icon  { background: rgba(34,197,94,.12); color: #4ade80; }
@@ -352,7 +352,7 @@ html, body {
 .tv-deliv-date   { font-size: .62rem; font-weight: 900; padding: .1rem .32rem; border-radius: 6px; flex-shrink: 0; }
 .tv-deliv-date.dl { background: rgba(239,68,68,.15); color: #f87171; }
 .tv-deliv-date.dt { background: rgba(250,204,21,.15); color: #fde047; }
-.tv-deliv-date.ds { background: rgba(59,130,246,.12); color: #93c5fd; }
+.tv-deliv-date.ds { background: rgba(20,65,150,.12); color: #93c5fd; }
 
 /* ============================================================
    LOT CARDS (used in all pages)
@@ -380,7 +380,7 @@ html, body {
 .tv-lot-paint   { font-size: .58rem; color: #64748b; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: .26rem; }
 .tv-card-meta   { display: flex; align-items: center; gap: .28rem; flex-wrap: wrap; }
 .tv-meta-chip   { font-size: .48rem; font-weight: 800; padding: .1rem .26rem; border-radius: 5px; }
-.tv-meta-chip.mtype  { background: rgba(59,130,246,.1); color: #93c5fd; }
+.tv-meta-chip.mtype  { background: rgba(20,65,150,.1); color: #93c5fd; }
 .tv-meta-chip.mtime  { background: rgba(255,255,255,.06); color: #94a3b8; }
 .tv-meta-chip.mtime.alert { background: rgba(239,68,68,.12); color: #f87171; }
 .tv-meta-chip.mdate  { background: rgba(255,255,255,.05); color: #94a3b8; }
@@ -470,13 +470,13 @@ html, body {
   padding: .36rem .42rem; border-radius: 10px;
   background: rgba(20,83,45,.12); border: 1px solid rgba(34,197,94,.18);
 }
-.tv-ready-item.in-route { background: rgba(30,64,175,.12); border-color: rgba(59,130,246,.2); }
+.tv-ready-item.in-route { background: rgba(30,64,175,.12); border-color: rgba(20,65,150,.2); }
 .tv-ready-num    { font-size: .68rem; font-weight: 900; color: #fff; }
 .tv-ready-client { font-size: .58rem; color: #9fc5ff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tv-ready-paint  { font-size: .5rem; color: #64748b; font-weight: 600; margin-top: .05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tv-ready-badge  { font-size: .44rem; font-weight: 900; padding: .1rem .3rem; border-radius: 99px; text-transform: uppercase; flex-shrink: 0; }
 .tv-ready-badge.ready { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
-.tv-ready-badge.route { background: rgba(59,130,246,.12); color: #60a5fa; border: 1px solid rgba(59,130,246,.25); }
+.tv-ready-badge.route { background: rgba(20,65,150,.12); color: #60a5fa; border: 1px solid rgba(20,65,150,.25); }
 
 /* ============================================================
    PAGE: KANBAN
@@ -526,13 +526,13 @@ html, body {
   background: rgba(20,83,45,.12); border: 1px solid rgba(34,197,94,.2);
   display: grid; grid-template-columns: 58px 1fr auto; gap: .28rem; align-items: center;
 }
-.tv-rgc.route { background: rgba(30,64,175,.1); border-color: rgba(59,130,246,.22); }
+.tv-rgc.route { background: rgba(30,64,175,.1); border-color: rgba(20,65,150,.22); }
 .tv-rgc-num    { font-size: .65rem; font-weight: 900; color: #fff; }
 .tv-rgc-client { font-size: .55rem; color: #9fc5ff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tv-rgc-paint  { font-size: .47rem; color: #64748b; margin-top: .05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tv-rgc-status { font-size: .42rem; font-weight: 900; padding: .1rem .28rem; border-radius: 99px; text-transform: uppercase; flex-shrink: 0; }
 .tv-rgc-status.ready { background: rgba(34,197,94,.1); color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
-.tv-rgc-status.route { background: rgba(59,130,246,.1); color: #60a5fa; border: 1px solid rgba(59,130,246,.25); }
+.tv-rgc-status.route { background: rgba(20,65,150,.1); color: #60a5fa; border: 1px solid rgba(20,65,150,.25); }
 
 /* ============================================================
    PAGE: PEDIDOS
@@ -595,21 +595,21 @@ html, body {
 }
 .tv-route-panel {
   border-radius: 18px; background: rgba(15,23,42,.88);
-  border: 1px solid rgba(59,130,246,.18);
+  border: 1px solid rgba(20,65,150,.18);
   overflow: hidden; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: .9rem; padding: 1.4rem;
 }
 .tv-route-driver-icon {
   width: 76px; height: 76px;
-  background: linear-gradient(135deg, rgba(59,130,246,.2), rgba(6,182,212,.15));
-  border: 1px solid rgba(59,130,246,.3); border-radius: 22px;
+  background: linear-gradient(135deg, rgba(20,65,150,.2), rgba(6,182,212,.15));
+  border: 1px solid rgba(20,65,150,.3); border-radius: 22px;
   display: flex; align-items: center; justify-content: center; font-size: 2.1rem; color: #60a5fa;
 }
 .tv-route-driver-name { font-size: 1.15rem; font-weight: 900; color: #fff; text-align: center; }
 .tv-route-driver-sub  { font-size: .68rem; color: #64748b; font-weight: 700; }
 .tv-route-progress-track { width: 100%; height: 8px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; }
-.tv-route-progress-fill  { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4); border-radius: 99px; transition: width .6s; }
+.tv-route-progress-fill  { height: 100%; background: linear-gradient(90deg, #144196, #06b6d4); border-radius: 99px; transition: width .6s; }
 .tv-route-pct { font-size: .75rem; color: #94a3b8; font-weight: 800; text-align: center; }
 .tv-route-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: .45rem; width: 100%; }
 .tv-route-stat { border-radius: 12px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); padding: .55rem; text-align: center; }
@@ -627,10 +627,10 @@ html, body {
   background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
   display: grid; grid-template-columns: 32px 1fr auto; gap: .5rem; align-items: center;
 }
-.tv-stop-card.next { background: rgba(30,64,175,.12); border-color: rgba(59,130,246,.25); }
+.tv-stop-card.next { background: rgba(30,64,175,.12); border-color: rgba(20,65,150,.25); }
 .tv-stop-num { width: 32px; height: 32px; border-radius: 9px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.07); display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 900; color: #fff; }
-.tv-stop-card.next .tv-stop-num { background: rgba(59,130,246,.2); border-color: rgba(59,130,246,.3); color: #60a5fa; }
-.tv-stop-next-b { font-size: .44rem; font-weight: 900; color: #60a5fa; background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.25); border-radius: 4px; padding: .07rem .26rem; text-transform: uppercase; display: inline-block; margin-bottom: .16rem; }
+.tv-stop-card.next .tv-stop-num { background: rgba(20,65,150,.2); border-color: rgba(20,65,150,.3); color: #60a5fa; }
+.tv-stop-next-b { font-size: .44rem; font-weight: 900; color: #60a5fa; background: rgba(20,65,150,.12); border: 1px solid rgba(20,65,150,.25); border-radius: 4px; padding: .07rem .26rem; text-transform: uppercase; display: inline-block; margin-bottom: .16rem; }
 .tv-stop-client  { font-size: .72rem; font-weight: 800; color: #fff; }
 .tv-stop-product { font-size: .58rem; color: #64748b; font-weight: 600; }
 .tv-stop-meta    { text-align: right; }
@@ -645,7 +645,7 @@ html, body {
 .tv-rk-row { display: flex; justify-content: space-between; align-items: center; padding: .42rem .5rem; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); }
 .tv-rk-label { font-size: .64rem; color: #64748b; font-weight: 700; }
 .tv-rk-value { font-size: .82rem; font-weight: 900; color: #fff; }
-.tv-route-next-box { border-radius: 14px; background: rgba(59,130,246,.07); border: 1px solid rgba(59,130,246,.2); padding: .75rem; }
+.tv-route-next-box { border-radius: 14px; background: rgba(20,65,150,.07); border: 1px solid rgba(20,65,150,.2); padding: .75rem; }
 .tv-rn-label   { font-size: .6rem; color: #60a5fa; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin-bottom: .38rem; }
 .tv-rn-client  { font-size: 1rem; font-weight: 900; color: #fff; margin-bottom: .18rem; }
 .tv-rn-product { font-size: .66rem; color: #9fc5ff; font-weight: 700; }
@@ -791,7 +791,7 @@ const TV_SECTOR_COLORS = {
   coloracao_revisao:    '#e879f9',
   laboratorio_revisao:  '#2dd4bf',
   pcp_liberacao:        '#f43f5e',
-  pesagem:              '#3b82f6',
+  pesagem:              '#144196',
   producao:             '#8b5cf6',
   coloracao:            '#f59e0b',
   laboratorio:          '#10b981',
@@ -1548,7 +1548,7 @@ async function tvInit() {
       <div class="tv-loading-icon"><i class="fas fa-exclamation-triangle" style="color:#ef4444"></i></div>
       <h2 style="color:#ef4444">Erro de Conexao</h2>
       <p>${tvE(err.message)}</p>
-      <a href="index.html" style="color:#3b82f6;font-size:.85rem">&#8592; Voltar</a>`;
+      <a href="index.html" style="color:#144196;font-size:.85rem">&#8592; Voltar</a>`;
   }
 }
 

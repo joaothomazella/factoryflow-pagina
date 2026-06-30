@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // EXPEDIENTE-ALERTS.JS – Alertas de Expediente
 // FactoryFlow v1.0
 //
@@ -58,7 +58,7 @@ function ffGetExpedienteAlertsForToday() {
       hora:        '13:05',
       titulo:      '🔄 REABRIR EXPEDIENTE',
       mensagem:    'Favor reabrir o expediente do seu setor. O horário de almoço encerrou.',
-      cor:         '#3b82f6',
+      cor:         '#144196',
       icone:       'fas fa-redo',
       // Só exibe se expediente estiver FECHADO
       condicao:    'expediente_fechado'

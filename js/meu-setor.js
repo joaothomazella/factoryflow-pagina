@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // MEU-SETOR.JS – Tela do operador: lotes do seu setor
 // Interface focada, simples e rápida para uso em chão de fábrica
 // 2===================================================
@@ -34,7 +34,7 @@ function _msInstallStyles() {
     .ms-search-wrap{position:relative;flex:1;min-width:220px;max-width:440px}
     .ms-search-ico{position:absolute;left:.82rem;top:50%;transform:translateY(-50%);color:#64748b;font-size:.83rem;pointer-events:none}
     .ms-search-inp{width:100%;background:rgba(15,31,60,.85);border:1px solid var(--border,#334155);border-radius:10px;padding:.58rem .9rem .58rem 2.3rem;color:var(--text,#e2f0ff);font-size:.86rem;outline:none;transition:border-color .2s,box-shadow .2s}
-    .ms-search-inp:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+    .ms-search-inp:focus{border-color:#144196;box-shadow:0 0 0 3px rgba(20,65,150,.15)}
     .ms-search-inp::placeholder{color:#64748b}
     [data-theme="light"] .ms-search-inp{background:rgba(241,245,249,.9)}
     .ms-search-clear{background:rgba(100,116,139,.14);border:1px solid rgba(100,116,139,.22);border-radius:8px;color:#94a3b8;font-size:.78rem;padding:.5rem .85rem;cursor:pointer;white-space:nowrap;transition:background .15s}
@@ -42,11 +42,11 @@ function _msInstallStyles() {
     .ms-search-info{font-size:.78rem;color:#64748b;white-space:nowrap}
 
     .ms-sections{display:flex;flex-direction:column;gap:1.6rem;padding:0 1rem 1.5rem}
-    .ms-section-hdr{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.6rem .95rem;background:rgba(0,0,0,.2);border:1px solid rgba(148,163,184,.15);border-left:4px solid var(--ms-sec-color,#3b82f6);border-radius:10px;margin-bottom:.8rem}
+    .ms-section-hdr{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.6rem .95rem;background:rgba(0,0,0,.2);border:1px solid rgba(148,163,184,.15);border-left:4px solid var(--ms-sec-color,#144196);border-radius:10px;margin-bottom:.8rem}
     .ms-section-title{display:flex;align-items:center;gap:.65rem;font-weight:700;font-size:.93rem}
     .ms-section-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.07)}
     .ms-section-right{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-    .ms-section-count{background:rgba(59,130,246,.14);border:1px solid rgba(59,130,246,.28);color:#93c5fd;border-radius:999px;padding:.12rem .6rem;font-size:.7rem;font-weight:800;white-space:nowrap}
+    .ms-section-count{background:rgba(20,65,150,.14);border:1px solid rgba(20,65,150,.28);color:#93c5fd;border-radius:999px;padding:.12rem .6rem;font-size:.7rem;font-weight:800;white-space:nowrap}
     .ms-sec-tag{font-size:.68rem;border-radius:999px;padding:.1rem .48rem;font-weight:700;white-space:nowrap}
     .ms-sec-tag-urgent{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.26)}
     .ms-sec-tag-late{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.26)}
@@ -91,7 +91,7 @@ function renderMeuSetor() {
   const allLots = STATE.lots.filter(l => !l.rejected && visibleSectors.includes(l.sector));
 
   const sectorLabel = userSector ? (SECTOR_LABELS[userSector] || userSector) : 'Todos os Setores';
-  const sectorColor = SECTOR_COLORS[userSector] || '#3b82f6';
+  const sectorColor = SECTOR_COLORS[userSector] || '#144196';
 
   // KPIs globais
   const working     = allLots.filter(l => l.lotStatus === 'working').length;

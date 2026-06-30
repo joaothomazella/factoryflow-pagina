@@ -1,4 +1,4 @@
-// ===================================================
+﻿// ===================================================
 // RELATORIO-TEMPOS.JS – Relatório de Tempos por Setor
 // FactoryFlow v7.0 – Fix timestamps, totais gerais, Excel/PDF limpos
 //
@@ -1312,7 +1312,7 @@ function renderRelatorioTemposSummary(rows) {
   area.innerHTML = `
     <div class="rt-summary-grid">
       <div class="rt-summary-card">
-        <div class="rt-sum-icon" style="background:rgba(59,130,246,.15);color:#60a5fa">
+        <div class="rt-sum-icon" style="background:rgba(20,65,150,.15);color:#60a5fa">
           <i class="fas fa-list-ol"></i>
         </div>
         <div class="rt-sum-body">
@@ -2005,7 +2005,7 @@ function _rtRenderRelatorioTemposGroupedBySector(area, normalized) {
   }).join('');
 
   const totalRow = `
-    <tr class="rt-tr-totals" style="background:rgba(59,130,246,.08);font-weight:700;border-top:2px solid rgba(59,130,246,.3)">
+    <tr class="rt-tr-totals" style="background:rgba(20,65,150,.08);font-weight:700;border-top:2px solid rgba(20,65,150,.3)">
       <td class="rt-td" style="color:var(--blue)"><i class="fas fa-sigma" style="margin-right:.4rem"></i>TOTAIS POR SETOR</td>
       <td class="rt-td rt-td-center">${totalPedidos}</td>
       <td class="rt-td rt-td-center">${totalLotes}</td>
@@ -2326,7 +2326,7 @@ function _rtRenderDetailedByLot(area, normalized) {
     const lineLabel = (typeof PRODUCT_TYPES !== 'undefined' ? PRODUCT_TYPES[lineType] : '') || group.productLine || '–';
 
     return `
-      <tr class="rt-tr rt-lot-summary-row ${isOpen ? 'rt-lot-open' : ''}" onclick="_rtToggleLotDetails('${keyEncoded}')" style="cursor:pointer;background:${isOpen ? 'rgba(59,130,246,.12)' : 'transparent'}">
+      <tr class="rt-tr rt-lot-summary-row ${isOpen ? 'rt-lot-open' : ''}" onclick="_rtToggleLotDetails('${keyEncoded}')" style="cursor:pointer;background:${isOpen ? 'rgba(20,65,150,.12)' : 'transparent'}">
         <td class="rt-td rt-td-mono" style="font-weight:800;color:#e5efff">
           <i class="fas ${isOpen ? 'fa-chevron-down' : 'fa-chevron-right'}" style="color:var(--blue);margin-right:.45rem"></i>${escapeHtml(group.lotNumber)}
         </td>
@@ -2350,7 +2350,7 @@ function _rtRenderDetailedByLot(area, normalized) {
   const groupsTotalKg = groups.reduce((sum, g) => sum + _rtParseKgFromQty(g.qty), 0);
 
   const totalRow = `
-    <tr class="rt-tr-totals" style="background:rgba(59,130,246,.08);font-weight:700;border-top:2px solid rgba(59,130,246,.3)">
+    <tr class="rt-tr-totals" style="background:rgba(20,65,150,.08);font-weight:700;border-top:2px solid rgba(20,65,150,.3)">
       <td class="rt-td" colspan="5" style="color:var(--blue);letter-spacing:.03em">
         <i class="fas fa-sigma" style="margin-right:.4rem"></i>TOTAIS (${groups.length} lote${groups.length !== 1 ? 's' : ''})
       </td>
@@ -2797,7 +2797,7 @@ function _rtSectorColorForExport(sector, label = '') {
 
   const fallback = {
     pcp_liberacao: '#ff3b5c',
-    pesagem: '#3b82f6',
+    pesagem: '#144196',
     producao: '#8b5cf6',
     moagem: '#6366f1',
     laboratorio_revisao: '#14b8a6',
@@ -2812,8 +2812,8 @@ function _rtSectorColorForExport(sector, label = '') {
     entrega: '#64748b'
   };
 
-  const color = String(fromMap || fallback[normalized] || '#3b82f6').trim();
-  return color.startsWith('#') ? color : '#3b82f6';
+  const color = String(fromMap || fallback[normalized] || '#144196').trim();
+  return color.startsWith('#') ? color : '#144196';
 }
 
 function _rtExportFiltersTitle() {
