@@ -764,7 +764,97 @@ function openOrderDetail(orderId) {
 let _pendingSendLotId  = null;
 let _pendingSendSector = null;
 
-function openSendSector(lotId) {
+// Guarda de duplo-avanço: se o lote entrou no setor atual há menos de ADVANCE_GUARD_MS ms,
+// pede confirmação antes de abrir o modal de avanço.
+const ADVANCE_GUARD_MS = 120_000; // 2 minutos
+
+function _installAdvanceGuardStyles() {
+  if (document.getElementById('advanceGuardStyles')) return;
+  const s = document.createElement('style');
+  s.id = 'advanceGuardStyles';
+  s.textContent = `
+    .ag-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem; animation: agFadeIn .18s ease;
+    }
+    @keyframes agFadeIn { from { opacity:0 } to { opacity:1 } }
+    .ag-card {
+      background: var(--surface, #1e293b);
+      border: 1px solid rgba(251,191,36,.35);
+      border-top: 3px solid #fbbf24;
+      border-radius: 16px; padding: 1.6rem 1.5rem 1.3rem;
+      max-width: 360px; width: 100%; text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,.5);
+      animation: agSlide .22s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes agSlide { from { transform: scale(.93) translateY(12px); opacity:0 } to { transform: none; opacity:1 } }
+    .ag-icon { font-size: 2rem; color: #fbbf24; margin-bottom: .7rem; }
+    .ag-title { font-size: 1rem; font-weight: 800; color: var(--text,#f1f5f9); margin-bottom: .35rem; }
+    .ag-msg { font-size: .82rem; color: var(--text2,#94a3b8); margin-bottom: 1.2rem; line-height: 1.5; }
+    .ag-msg strong { color: #fbbf24; }
+    .ag-actions { display: flex; gap: .6rem; }
+    .ag-btn { flex: 1; border: none; border-radius: 10px; padding: .7rem; font-size: .85rem; font-weight: 700; cursor: pointer; transition: opacity .15s, transform .1s; }
+    .ag-btn:active { transform: scale(.97); }
+    .ag-cancel { background: rgba(148,163,184,.12); color: var(--text2,#94a3b8); border: 1px solid rgba(148,163,184,.2); }
+    .ag-cancel:hover { background: rgba(148,163,184,.2); }
+    .ag-confirm { background: #fbbf24; color: #1e1206; }
+    .ag-confirm:hover { opacity: .88; }
+    [data-theme="light"] .ag-card { background: #fff; }
+    [data-theme="light"] .ag-cancel { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+    @media (max-width: 480px) {
+      .ag-card { border-radius: 16px 16px 0 0; }
+      .ag-overlay { align-items: flex-end; padding: 0; }
+    }
+  `;
+  document.head.appendChild(s);
+}
+
+function _showAdvanceGuard(lotId, elapsedMs, proceedFn) {
+  _installAdvanceGuardStyles();
+  const existing = document.getElementById('advanceGuardOverlay');
+  if (existing) existing.remove();
+
+  const secs = Math.round(elapsedMs / 1000);
+  const timeStr = secs < 60
+    ? `${secs} segundo${secs !== 1 ? 's' : ''}`
+    : `${Math.round(secs / 60)} minuto${Math.round(secs / 60) !== 1 ? 's' : ''}`;
+
+  const lot = STATE.lots.find(l => l.id === lotId);
+  const num = lot ? `#${lot.number}` : '';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'advanceGuardOverlay';
+  overlay.className = 'ag-overlay';
+  overlay.innerHTML = `
+    <div class="ag-card" onclick="event.stopPropagation()">
+      <div class="ag-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="ag-title">Lote já foi avançado recentemente</div>
+      <div class="ag-msg">
+        O lote <strong>${num}</strong> foi avançado de setor há
+        <strong>${timeStr}</strong>.<br>Deseja avançar novamente?
+      </div>
+      <div class="ag-actions">
+        <button class="ag-btn ag-cancel" onclick="document.getElementById('advanceGuardOverlay').remove()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button class="ag-btn ag-confirm" id="agConfirmBtn">
+          <i class="fas fa-arrow-right"></i> Avançar mesmo assim
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', () => overlay.remove());
+
+  document.getElementById('agConfirmBtn').addEventListener('click', () => {
+    overlay.remove();
+    proceedFn();
+  });
+}
+
+function _openSendSectorCore(lotId) {
   _pendingSendLotId  = lotId;
   _pendingSendSector = null;
 
@@ -823,6 +913,20 @@ function openSendSector(lotId) {
 
   document.getElementById('sendSectorNote').value = '';
   openModal('modalSendSector');
+}
+
+function openSendSector(lotId) {
+  const lot = STATE.lots.find(l => l.id === lotId);
+  if (!lot) return _openSendSectorCore(lotId);
+
+  const enteredAt = Number(lot.sectorEnteredAt || lot.raw_mysql?.ff_sectorEnteredAt || 0);
+  const elapsed   = enteredAt ? Date.now() - enteredAt : Infinity;
+
+  if (elapsed < ADVANCE_GUARD_MS) {
+    _showAdvanceGuard(lotId, elapsed, () => _openSendSectorCore(lotId));
+  } else {
+    _openSendSectorCore(lotId);
+  }
 }
 
 async function confirmSendToSector() {
