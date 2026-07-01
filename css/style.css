@@ -6376,204 +6376,191 @@ input[type="date"].rt-filter-input {
 }
 
 /* =============================================================
-   MOBILE DESIGN SYSTEM
-   Princípios: touch targets ≥ 44px · scroll-snap kanban
-   bottom-sheet modals · font 16px em inputs (sem zoom iOS)
-   thumb zone: ações primárias no centro/baixo
+   MOBILE DESIGN SYSTEM  v2
+   touch targets ≥ 44px · scroll-snap kanban · bottom-sheet
+   font 16px inputs (no iOS zoom) · thumb-zone primary actions
    ============================================================= */
 
-/* Botão de fechar sidebar – oculto em desktop */
+/* Logo no topbar – só aparece no mobile */
+.topbar-logo-mobile {
+  display: none;
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  flex: 1;
+}
+
+/* Botão fechar sidebar – oculto em desktop */
 .sidebar-mobile-close {
   display: none;
   background: none;
   border: none;
   color: rgba(255,255,255,.55);
   cursor: pointer;
-  font-size: 1.25rem;
-  padding: .3rem .4rem;
+  font-size: 1.2rem;
+  padding: .35rem .45rem;
   border-radius: 8px;
   line-height: 1;
   flex-shrink: 0;
   margin-left: auto;
+  min-width: 40px; min-height: 40px;
+  align-items: center; justify-content: center;
   -webkit-tap-highlight-color: transparent;
 }
-.sidebar-mobile-close:hover { color: #fff; background: rgba(255,255,255,.1); }
+.sidebar-mobile-close:active { background: rgba(255,255,255,.15); }
 
-/* ── 768px: tablets + phones ── */
+/* ══════════════════════════════════════════════════
+   ≤ 768px  —  tablets e phones
+   ══════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* Sidebar mobile: mostra botão fechar */
-  .sidebar-mobile-close { display: flex; align-items: center; justify-content: center; }
-  .sidebar-header { gap: .6rem; }
+  /* ── Sidebar ── */
   .sidebar { z-index: 100; }
+  .sidebar-mobile-close { display: flex; }
+  .sidebar-header { gap: .5rem; }
   .sidebar-overlay { cursor: pointer; }
 
-  /* Topbar */
-  .topbar { padding: .6rem .85rem; gap: .6rem; }
+  /* ── Topbar ── */
+  .topbar { padding: .55rem .85rem; gap: .55rem; height: 54px; }
   .sidebar-toggle {
     min-width: 44px; min-height: 44px;
     display: flex; align-items: center; justify-content: center;
-    border-radius: 10px;
-    background: rgba(20,65,150,.12);
-    font-size: 1.1rem;
-    flex-shrink: 0;
+    border-radius: 10px; background: rgba(20,65,150,.14);
+    font-size: 1.1rem; flex-shrink: 0; border: none;
+    color: var(--text); cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
-  .topbar-title { font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .topbar-actions { gap: .45rem; flex-shrink: 0; }
-  .alert-bell { min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+  .topbar-logo-mobile { display: block; }
+  .topbar-title { display: none; }                    /* logo substitui o título */
+  .topbar-actions { gap: .4rem; flex-shrink: 0; }
+  .alert-bell { min-width: 42px; min-height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
+  .btn-lote-manual-topbar { padding: .48rem .65rem !important; font-size: .78rem !important; }
 
-  /* Lote manual button compact */
-  .btn-lote-manual-topbar { font-size: .78rem !important; padding: .5rem .7rem !important; }
-  .btn-lote-manual-topbar span { display: none; }
-
-  /* Page */
+  /* ── Pages ── */
   .page { padding: .75rem .85rem 5rem; }
-  .page-header { flex-direction: column; align-items: stretch; gap: .6rem; }
+  #pageDashboard.page { padding: 0; }
+  .page-header { flex-direction: column; align-items: stretch; gap: .55rem; margin-bottom: .85rem; }
   .page-header h2 { font-size: 1rem; }
-  .page-header .header-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
-  .page-header .header-actions .btn { flex: 1; min-width: 120px; justify-content: center; }
-  .search-input { width: 100%; font-size: 16px !important; }
+  .page-header .header-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .page-header .header-actions .btn,
+  .page-header .header-actions button { min-height: 44px; flex: 1; min-width: 110px; justify-content: center; }
+  .search-input { width: 100%; font-size: 16px !important; min-height: 44px; }
 
-  /* Tabs: horizontal scroll sem barra */
+  /* ── Filter / Section tabs ── */
   .section-tabs, .filter-tabs {
     display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; gap: .35rem; padding-bottom: .25rem;
-    flex-wrap: nowrap;
+    scrollbar-width: none; gap: .35rem; padding-bottom: .25rem; flex-wrap: nowrap;
   }
-  .section-tabs::-webkit-scrollbar,
-  .filter-tabs::-webkit-scrollbar { display: none; }
-  .tab-btn {
-    white-space: nowrap; flex-shrink: 0;
-    min-height: 40px; padding: .42rem .85rem; font-size: .78rem;
-  }
+  .section-tabs::-webkit-scrollbar, .filter-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { white-space: nowrap; flex-shrink: 0; min-height: 40px; padding: .42rem .9rem; font-size: .78rem; }
 
-  /* Metrics */
-  .metrics-row { grid-template-columns: repeat(2,1fr); gap: .6rem; margin-bottom: .9rem; }
-  .metric-card { padding: .85rem .7rem; }
-  .metric-num { font-size: 1.75rem; }
-  .metric-label { font-size: .65rem; }
+  /* ── Metrics row (páginas internas) ── */
+  .metrics-row { grid-template-columns: repeat(2,1fr); gap: .55rem; margin-bottom: .85rem; }
+  .metric-card { padding: .85rem .75rem; }
+  .metric-num { font-size: 1.7rem; }
+  .metric-label { font-size: .64rem; }
 
-  /* Kanban: 1 coluna visível com scroll-snap */
-  .kanban-board {
-    scroll-snap-type: x mandatory;
-    padding: 0 .85rem 1rem; gap: .75rem;
-    cursor: default;
-  }
-  .kanban-col {
-    scroll-snap-align: start;
-    min-width: calc(100vw - 2.5rem);
-    max-width: calc(100vw - 2.5rem);
-  }
+  /* ── Kanban: scroll-snap 1 coluna ── */
+  .kanban-board { scroll-snap-type: x mandatory; padding: 0 .85rem 1rem; gap: .75rem; cursor: default; }
+  .kanban-col { scroll-snap-align: start; min-width: calc(100vw - 2.5rem); max-width: calc(100vw - 2.5rem); }
   .kanban-card { padding: .85rem; }
-  .kanban-card:hover { transform: none; }
-  .kanban-card-actions { display: flex; flex-direction: column; gap: .4rem; }
+  .kanban-card:hover { transform: none; box-shadow: none; }
+  .kanban-card-actions { flex-direction: column; gap: .38rem; }
   .kanban-card-actions .btn { min-height: 42px; font-size: .8rem; width: 100%; justify-content: center; }
+  .kanban-snap-hint {
+    display: flex; align-items: center; justify-content: center;
+    gap: .4rem; padding: .38rem; font-size: .68rem; color: var(--text3);
+  }
 
-  /* Lots grid */
-  .lots-grid { grid-template-columns: 1fr; gap: .6rem; }
+  /* ── Lots / Pedidos grid ── */
+  .lots-grid { grid-template-columns: 1fr; gap: .55rem; }
   .lot-card { padding: .85rem; }
-
-  /* Order/pedido cards */
   .order-card { padding: .85rem; }
-  .lot-flow-mini { flex-wrap: wrap; gap: .3rem; }
+  .lot-card-header { margin-bottom: .45rem; }
+  .lot-flow-mini { flex-wrap: wrap; gap: .28rem; }
+  .flow-step-dot { width: 14px !important; height: 14px !important; }
 
-  /* Formulários – font-size 16px evita zoom automático iOS */
-  input:not([type="checkbox"]):not([type="radio"]),
-  select,
-  textarea {
-    font-size: 16px !important;
-    min-height: 44px;
+  /* ── Formulários: 16px evita zoom no iOS ── */
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+    font-size: 16px !important; min-height: 44px;
   }
   textarea { min-height: 80px; }
+  .form-grid { grid-template-columns: 1fr !important; gap: .65rem !important; }
 
-  /* Botões */
+  /* ── Botões ── */
   .btn { min-height: 42px; font-size: .85rem; }
   .btn-sm { min-height: 36px; font-size: .78rem; }
 
-  /* Modais → bottom sheet */
+  /* ── Modais → bottom sheet ── */
   #modalOverlay { align-items: flex-end !important; padding: 0 !important; }
   .modal {
-    border-radius: 20px 20px 0 0 !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    max-height: 92vh !important;
-    border-bottom: none !important;
-    position: relative;
+    border-radius: 22px 22px 0 0 !important;
+    max-width: 100% !important; width: 100% !important;
+    max-height: 92vh !important; border-bottom: none !important;
   }
   .modal::before {
-    content: '';
-    display: block;
-    width: 42px; height: 4px;
-    background: rgba(148,163,184,.28);
-    border-radius: 999px;
-    margin: .65rem auto -.2rem;
-    flex-shrink: 0;
+    content: ''; display: block; width: 40px; height: 4px;
+    background: rgba(148,163,184,.25); border-radius: 999px;
+    margin: .7rem auto 0; flex-shrink: 0;
   }
   .modal-large { max-width: 100% !important; }
-  .modal-header { padding: 1rem 1.1rem; }
-  .modal-header h3 { font-size: 1rem; }
-  .modal-body { padding: 1rem 1.1rem; }
+  .modal-header { padding: .9rem 1.1rem; }
+  .modal-header h3 { font-size: .95rem; }
+  .modal-body { padding: .9rem 1.1rem; }
 
-  /* Tabelas: scroll horizontal */
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* ── Tabelas: scroll horizontal ── */
+  .table-wrap, .rt-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { min-width: 480px; }
 
-  /* Dashboard: remove padding duplo (dash-wrap tem o próprio padding) */
-  #pageDashboard.page { padding: 0; }
+  /* ── Detalhes ── */
+  .detail-grid { grid-template-columns: 1fr !important; gap: .75rem !important; }
+  .order-lots-list { gap: .45rem; }
+  .order-lot-row { flex-wrap: wrap; gap: .35rem; }
 
-  /* Login */
+  /* ── Login ── */
   .il-brand { display: none; }
-  .il-form-panel { flex: 1; border-radius: 0; }
+  .il-form-panel { flex: 1; border-radius: 0; min-height: 100svh; }
+  .il-card { border-radius: 0; box-shadow: none; border: none; }
 
-  /* Detalhes de pedido/lote */
-  .detail-grid { grid-template-columns: 1fr !important; }
-  .order-lots-list { gap: .5rem; }
-  .order-lot-row { flex-direction: column; align-items: flex-start; gap: .35rem; }
+  /* ── Relatórios / grids internos ── */
+  #pageRelatorioTempos table, #pageReports table { min-width: 600px; }
+  #pageRelatorioTempos .page-header, #pageReports .page-header { flex-direction: column; }
+  .charts-row, .factory-grid { grid-template-columns: 1fr !important; }
 
-  /* Relatórios – scroll horizontal em tabelas pesadas */
-  #pageRelatorioTempos table,
-  #pageReports table { min-width: 600px; }
-  #pageRelatorioTempos .page-header,
-  #pageReports .page-header { flex-direction: column; }
-
-  /* Área de delivery / programação */
+  /* ── Entregas ── */
   .route-live-grid { grid-template-columns: 1fr !important; }
   .delivery-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Sidebar footer buttons ── */
+  .btn-theme-toggle, .btn-logout, .btn-expediente { min-height: 44px; }
 }
 
-/* ── 480px: smartphones compactos ── */
+/* ══════════════════════════════════════════════════
+   ≤ 480px  —  smartphones compactos
+   ══════════════════════════════════════════════════ */
 @media (max-width: 480px) {
-  .topbar { padding: .5rem .7rem; }
+  .topbar { padding: .48rem .7rem; height: 50px; }
+  .topbar-logo-mobile { height: 24px; }
   .page { padding: .6rem .7rem 5rem; }
+  #pageDashboard.page { padding: 0; }
 
-  .metrics-row { grid-template-columns: repeat(2,1fr); gap: .45rem; }
-  .metric-card { padding: .7rem .55rem; }
+  .metrics-row { grid-template-columns: repeat(2,1fr); gap: .4rem; }
+  .metric-card { padding: .72rem .55rem; }
   .metric-num { font-size: 1.5rem; }
 
-  .kanban-col {
-    min-width: calc(100vw - 1.8rem);
-    max-width: calc(100vw - 1.8rem);
-  }
+  .kanban-col { min-width: calc(100vw - 1.7rem); max-width: calc(100vw - 1.7rem); }
 
-  /* dash-* layout mobile controlado pelos media queries do dashboard.js (CSS injetado) */
-
-  .section-tabs .tab-btn, .filter-tabs .tab-btn { font-size: .72rem; padding: .38rem .65rem; }
-
-  .modal-header h3 { font-size: .92rem; }
+  .tab-btn { font-size: .72rem; padding: .38rem .65rem; min-height: 38px; }
+  .modal-header h3 { font-size: .9rem; }
   .btn { min-height: 44px; }
+  .sidebar-toggle { min-width: 42px; min-height: 42px; }
 }
 
-/* Kanban: indicador de coluna atual (scroll-snap) */
-@media (max-width: 768px) {
-  .kanban-snap-hint {
-    display: flex; justify-content: center; align-items: center;
-    gap: .35rem; padding: .4rem 0 .6rem;
-    font-size: .68rem; color: var(--text3);
-  }
-  .kanban-snap-hint i { font-size: .6rem; }
-}
+/* ══════════════════════════════════════════════════
+   Desktop: ocultar elementos exclusivos do mobile
+   ══════════════════════════════════════════════════ */
 @media (min-width: 769px) {
-  .kanban-snap-hint { display: none; }
   .sidebar-mobile-close { display: none !important; }
+  .topbar-logo-mobile { display: none !important; }
+  .kanban-snap-hint { display: none !important; }
 }
