@@ -23,6 +23,161 @@ const MS_REFRESH_INTERVAL = 10000;
 let _msRefreshTimer = null;
 
 // ───────────────────────────────────────────────────
+// SECTOR WATCHER – sons + modal de conclusão
+// ───────────────────────────────────────────────────
+let _msPrevLotIds   = null; // null = primeira chamada (inicializa sem tocar som)
+let _msPrevLotSnaps = new Map(); // id → snapshot do lote (para métricas ao sair)
+
+function _msSectorWatch(lots) {
+  const currentIds = new Set(lots.map(l => l.id));
+
+  if (_msPrevLotIds === null) {
+    // Primeira renderização: apenas registra estado inicial sem tocar sons
+    _msPrevLotIds = currentIds;
+    lots.forEach(l => _msPrevLotSnaps.set(l.id, l));
+    return;
+  }
+
+  // Detecção de chegadas (IDs novos)
+  currentIds.forEach(id => {
+    if (!_msPrevLotIds.has(id)) {
+      const lot = lots.find(l => l.id === id);
+      if (lot && typeof ffSoundForPriority === 'function') {
+        ffSoundForPriority(lot.priority);
+      }
+    }
+  });
+
+  // Detecção de saídas (IDs removidos)
+  _msPrevLotIds.forEach(id => {
+    if (!currentIds.has(id)) {
+      const snap = _msPrevLotSnaps.get(id);
+      if (snap) {
+        if (typeof ffSoundCompletion === 'function') ffSoundCompletion();
+        _msShowCompletionModal(snap);
+      }
+    }
+  });
+
+  // Atualiza estado
+  _msPrevLotIds = currentIds;
+  _msPrevLotSnaps.clear();
+  lots.forEach(l => _msPrevLotSnaps.set(l.id, l));
+}
+
+function _msFmt(ms) {
+  if (!ms || ms < 0) return '0min';
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (h > 0) return `${h}h ${m}min`;
+  return `${m}min`;
+}
+
+function _msShowCompletionModal(lot) {
+  const overlay = document.getElementById('sectorCompletionOverlay');
+  if (!overlay) return;
+
+  // Métricas
+  const ts = (typeof getLotTimeSummary === 'function')
+    ? getLotTimeSummary(lot)
+    : { total: 0, worked: 0, paused: 0, idle: 0, efficiency: 0 };
+
+  const lotNum  = lot.number || lot.id || '–';
+  const cliente = lot.client || lot.cliente || lot.customer || '';
+  document.getElementById('scLotInfo').textContent =
+    `Lote #${lotNum}${cliente ? ' – ' + cliente : ''}`;
+
+  // Cards de métricas
+  const metricsEl = document.getElementById('scMetrics');
+  metricsEl.innerHTML = `
+    <div class="sc-metric-card sc-m-total">
+      <i class="fas fa-clock sc-metric-icon" style="color:#FFF000"></i>
+      <span class="sc-metric-val">${_msFmt(ts.total)}</span>
+      <span class="sc-metric-lbl">Tempo Total</span>
+    </div>
+    <div class="sc-metric-card sc-m-worked">
+      <i class="fas fa-hammer sc-metric-icon"></i>
+      <span class="sc-metric-val">${_msFmt(ts.worked)}</span>
+      <span class="sc-metric-lbl">Trabalhado</span>
+    </div>
+    <div class="sc-metric-card sc-m-paused">
+      <i class="fas fa-pause sc-metric-icon"></i>
+      <span class="sc-metric-val">${_msFmt(ts.paused)}</span>
+      <span class="sc-metric-lbl">Pausado</span>
+    </div>
+    <div class="sc-metric-card sc-m-idle">
+      <i class="fas fa-moon sc-metric-icon"></i>
+      <span class="sc-metric-val">${_msFmt(ts.idle)}</span>
+      <span class="sc-metric-lbl">Ocioso</span>
+    </div>
+  `;
+
+  // Motivos de pausa
+  const pauseEl = document.getElementById('scPauseReasons');
+  const pauseList = document.getElementById('scPauseList');
+  const sessions = Array.isArray(lot.workSessions) ? lot.workSessions : [];
+  const reasons = sessions
+    .map(s => (s.pauseReason || s.pause_reason || '').trim())
+    .filter(Boolean);
+  const uniqueReasons = [...new Set(reasons)];
+  if (uniqueReasons.length > 0) {
+    pauseList.innerHTML = uniqueReasons
+      .map(r => `<span class="sc-pause-tag"><i class="fas fa-tag"></i>${r}</span>`)
+      .join('');
+    pauseEl.style.display = '';
+  } else {
+    pauseEl.style.display = 'none';
+  }
+
+  // Barra de progresso
+  const total = ts.total || 1;
+  const wpct  = Math.round((ts.worked / total) * 100);
+  const ppct  = Math.round((ts.paused / total) * 100);
+  document.getElementById('scProgressBar').innerHTML = `
+    <div class="sc-bar-worked" style="width:${wpct}%"></div>
+    <div class="sc-bar-paused" style="width:${ppct}%"></div>
+    <div class="sc-bar-idle"></div>
+  `;
+
+  // Eficiência
+  const eff = typeof ts.efficiency === 'number' ? Math.round(ts.efficiency * 100) : wpct;
+  const effEl = document.getElementById('scEfficiency');
+  let effClass = 'sc-eff-low';
+  let effLabel = 'Eficiência baixa';
+  if (eff >= 75)      { effClass = 'sc-eff-great'; effLabel = 'Ótima eficiência'; }
+  else if (eff >= 50) { effClass = 'sc-eff-ok';    effLabel = 'Eficiência razoável'; }
+  effEl.className = `sc-efficiency ${effClass}`;
+  effEl.innerHTML = `<i class="fas fa-bolt"></i> ${eff}% – ${effLabel}`;
+
+  // Mostra overlay
+  overlay.style.display = 'flex';
+  requestAnimationFrame(() => overlay.style.opacity = '1');
+
+  // Auto-close em 15s
+  let countdown = 15;
+  const cdEl = document.getElementById('scCountdown');
+  if (cdEl) cdEl.textContent = countdown;
+  if (overlay._autoCloseTimer) clearInterval(overlay._autoCloseTimer);
+  overlay._autoCloseTimer = setInterval(() => {
+    countdown--;
+    if (cdEl) cdEl.textContent = countdown;
+    if (countdown <= 0) closeSectorCompletion();
+  }, 1000);
+}
+
+function closeSectorCompletion() {
+  const overlay = document.getElementById('sectorCompletionOverlay');
+  if (!overlay) return;
+  if (overlay._autoCloseTimer) {
+    clearInterval(overlay._autoCloseTimer);
+    overlay._autoCloseTimer = null;
+  }
+  overlay.style.display = 'none';
+}
+
+window.closeSectorCompletion = closeSectorCompletion;
+
+// ───────────────────────────────────────────────────
 // RENDER PRINCIPAL
 // ───────────────────────────────────────────────────
 function _msInstallStyles() {
@@ -89,6 +244,9 @@ function renderMeuSetor() {
   });
 
   const allLots = STATE.lots.filter(l => !l.rejected && visibleSectors.includes(l.sector));
+
+  // Sons e modal de conclusão: detecta chegadas/saídas
+  _msSectorWatch(allLots);
 
   const sectorLabel = userSector ? (SECTOR_LABELS[userSector] || userSector) : 'Todos os Setores';
   const sectorColor = SECTOR_COLORS[userSector] || '#144196';

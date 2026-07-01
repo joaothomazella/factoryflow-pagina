@@ -874,7 +874,48 @@
 <script src="js/auth.js?v=5010"></script>
 <script src="js/lots.js?v=21"></script>
 <script src="js/kanban.js?v=18"></script>
-<script src="js/meu-setor.js?v=4"></script>
+<script src="js/sounds.js?v=1"></script>
+<script src="js/meu-setor.js?v=6"></script>
+
+<!-- Modal de Conclusão de Lote – fora do modalOverlay para não conflitar -->
+<div id="sectorCompletionOverlay" class="sc-overlay" style="display:none" onclick="closeSectorCompletion()">
+  <div class="sc-card" onclick="event.stopPropagation()">
+    <div class="sc-trophy-wrap">
+      <i class="fas fa-trophy sc-trophy-icon"></i>
+      <div class="sc-fireworks"></div>
+    </div>
+    <h2 class="sc-title">Lote Avançado!</h2>
+    <p class="sc-subtitle" id="scLotInfo">Lote #000 – Cliente</p>
+
+    <div class="sc-metrics" id="scMetrics">
+      <!-- preenchido por JS -->
+    </div>
+
+    <div class="sc-pause-reasons" id="scPauseReasons" style="display:none">
+      <div class="sc-section-label"><i class="fas fa-comment-alt"></i> Motivos de Pausa</div>
+      <div id="scPauseList"></div>
+    </div>
+
+    <div class="sc-progress-section">
+      <div class="sc-prog-label">Como você foi neste lote</div>
+      <div class="sc-progress-bar" id="scProgressBar">
+        <!-- barras coloridas injetadas por JS -->
+      </div>
+      <div class="sc-prog-legend">
+        <span class="sc-leg sc-leg-worked"><i class="fas fa-circle"></i> Trabalhado</span>
+        <span class="sc-leg sc-leg-paused"><i class="fas fa-circle"></i> Pausado</span>
+        <span class="sc-leg sc-leg-idle"><i class="fas fa-circle"></i> Ocioso</span>
+      </div>
+    </div>
+
+    <div class="sc-efficiency" id="scEfficiency"></div>
+
+    <button class="sc-close-btn" onclick="closeSectorCompletion()">
+      <i class="fas fa-check"></i> Fechar
+    </button>
+    <div class="sc-auto-close" id="scAutoClose">Fecha automaticamente em <span id="scCountdown">15</span>s</div>
+  </div>
+</div>
 <script src="js/deliveries.js?v=4"></script>
 <script src="js/dashboard.js?v=10"></script>
 <script src="js/reports.js"></script>
