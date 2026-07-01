@@ -639,7 +639,67 @@ function ffDashInstallStyles() {
     @media(max-width:1280px){.dash-kpis{grid-template-columns:repeat(4,1fr)}}
     @media(max-width:1100px){.dash-content{grid-template-columns:1fr}.dash-factory-grid{grid-template-columns:1fr}}
     @media(max-width:860px){.dash-kpis{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:640px){.dash-hero{flex-direction:column;align-items:flex-start}.dash-hdr{grid-template-columns:1fr}}
+
+    /* ── MOBILE ≤768px ── */
+    @media(max-width:768px){
+      .dash-wrap{padding:.7rem .85rem 2rem;gap:.85rem}
+      .dash-hdr{display:flex;flex-direction:column;gap:.6rem;padding:1rem 1.1rem;border-top-width:3px}
+      .dash-hdr::after{display:none}
+      .dash-hdr-brand{gap:.65rem}
+      .dash-hdr-icon{width:38px;height:38px;font-size:1rem;border-radius:11px}
+      .dash-hdr-title{font-size:1rem}
+      .dash-hdr-sub{font-size:.62rem}
+      .dash-hdr-right{flex-direction:row;justify-content:space-between;align-items:center}
+      .dash-hdr-time{font-size:1.55rem}
+      .dash-hdr-date{font-size:.6rem}
+      .dash-live-badge{font-size:.65rem;padding:.3rem .7rem}
+
+      /* KPIs: 2 colunas, cards em coluna (ícone em cima, número + label embaixo) */
+      .dash-kpis{grid-template-columns:repeat(2,1fr);gap:.55rem}
+      .dash-kpi{flex-direction:column;align-items:center;text-align:center;padding:.8rem .6rem;gap:.45rem;min-height:90px;justify-content:center}
+      .dash-kpi.kpi-lg{padding:.9rem .6rem;min-height:105px}
+      .dash-kpi-icon-box{width:38px;height:38px;border-radius:11px;font-size:.9rem;flex-shrink:0}
+      .dash-kpi.kpi-lg .dash-kpi-icon-box{width:44px;height:44px;font-size:1.05rem}
+      .dash-kpi-body{min-width:0;width:100%}
+      .dash-kpi-n{font-size:1.55rem;line-height:1.05}
+      .dash-kpi.kpi-lg .dash-kpi-n{font-size:1.9rem}
+      .dash-kpi-lbl{font-size:.62rem;margin-top:.12rem}
+      .dash-kpi-sub{display:none}
+      .dash-kpi.kpi-lg .dash-kpi-sub{display:block;font-size:.57rem}
+
+      /* Painéis de conteúdo: 1 coluna */
+      .dash-content{grid-template-columns:1fr;gap:.7rem}
+      .dash-pv2-head{padding:.7rem .9rem}
+      .dash-pv2-body{padding:.7rem .9rem}
+
+      /* Route cards: esconde lista de ordens para economizar espaço */
+      .dash-rcard-orders{display:none}
+      .dash-rcard{padding:.75rem;margin-bottom:.5rem}
+      .dash-rcard-pct{font-size:1.25rem}
+
+      /* Setores: 2 colunas */
+      .dash-sectors-grid{grid-template-columns:repeat(2,1fr);gap:.4rem;padding:.7rem}
+      .dash-sectors-head{padding:.7rem .9rem}
+      .dash-sec{padding:.55rem .65rem}
+
+      /* Lista de pedidos/ordens */
+      .dash-olist{max-height:280px}
+    }
+
+    /* ── MOBILE ≤480px ── */
+    @media(max-width:480px){
+      .dash-wrap{padding:.55rem .65rem 2rem;gap:.7rem}
+      .dash-kpis{gap:.4rem}
+      .dash-kpi{padding:.7rem .45rem;min-height:82px;gap:.35rem}
+      .dash-kpi.kpi-lg{min-height:96px;padding:.8rem .45rem}
+      .dash-kpi-icon-box{width:34px;height:34px;font-size:.82rem}
+      .dash-kpi.kpi-lg .dash-kpi-icon-box{width:40px;height:40px;font-size:.95rem}
+      .dash-kpi-n{font-size:1.35rem}
+      .dash-kpi.kpi-lg .dash-kpi-n{font-size:1.65rem}
+      .dash-kpi-lbl{font-size:.58rem;letter-spacing:.04em}
+      .dash-hdr-time{font-size:1.35rem}
+      .dash-sectors-grid{grid-template-columns:1fr 1fr}
+    }
   `;
   document.head.appendChild(css);
 }

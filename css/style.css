@@ -6519,19 +6519,8 @@ input[type="date"].rt-filter-input {
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { min-width: 480px; }
 
-  /* Dashboard (dash-*) */
-  .dash-wrap { padding: .75rem .85rem 1.5rem; gap: .9rem; }
-  .dash-hdr { grid-template-columns: 1fr; gap: .7rem; }
-  .dash-hdr::after { display: none; }
-  .dash-hdr-right { justify-content: space-between; align-items: center; }
-  .dash-hdr-time { font-size: 1.6rem; }
-  .dash-kpis { grid-template-columns: repeat(2,1fr); gap: .6rem; }
-  .dash-kpi { padding: .75rem .85rem; }
-  .dash-kpi.kpi-lg .dash-kpi-n { font-size: 2rem; }
-  .dash-kpi-n { font-size: 1.55rem; }
-  .dash-content { grid-template-columns: 1fr; }
-  .dash-sectors-grid { grid-template-columns: repeat(2,1fr); gap: .45rem; }
-  .dash-sec { padding: .6rem .75rem; }
+  /* Dashboard: remove padding duplo (dash-wrap tem o próprio padding) */
+  #pageDashboard.page { padding: 0; }
 
   /* Login */
   .il-brand { display: none; }
@@ -6567,17 +6556,7 @@ input[type="date"].rt-filter-input {
     max-width: calc(100vw - 1.8rem);
   }
 
-  .dash-kpis { grid-template-columns: repeat(2,1fr); gap: .45rem; }
-  .dash-kpi { padding: .65rem .7rem; gap: .55rem; }
-  .dash-kpi-icon-box { width: 36px; height: 36px; font-size: .9rem; }
-  .dash-kpi.kpi-lg .dash-kpi-icon-box { width: 40px; height: 40px; }
-  .dash-kpi-n { font-size: 1.35rem; }
-  .dash-kpi.kpi-lg .dash-kpi-n { font-size: 1.65rem; }
-  .dash-kpi-sub { display: none; }
-  .dash-kpi.kpi-lg .dash-kpi-sub { display: block; }
-  .dash-sectors-grid { grid-template-columns: 1fr 1fr; }
-  .dash-hdr-time { font-size: 1.35rem; }
-  .dash-live-badge { font-size: .65rem; padding: .3rem .65rem; }
+  /* dash-* layout mobile controlado pelos media queries do dashboard.js (CSS injetado) */
 
   .section-tabs .tab-btn, .filter-tabs .tab-btn { font-size: .72rem; padding: .38rem .65rem; }
 
