@@ -237,6 +237,7 @@ function renderKanban() {
         ${['admin','pcp'].includes(user.role) ? `<button onclick="openNewOrderModal()" class="btn btn-primary"><i class="fas fa-plus"></i> Novo Pedido</button>` : ''}
       </div>
     </div>
+    <div class="kanban-snap-hint"><i class="fas fa-hand-point-left"></i> Deslize para ver os setores <i class="fas fa-hand-point-right"></i></div>
     <div class="kanban-board" id="kanbanBoard">
       ${columns.map(sector => buildKanbanColumn(sector, user)).join('')}
     </div>

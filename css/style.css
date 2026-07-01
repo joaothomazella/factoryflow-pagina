@@ -6374,3 +6374,227 @@ input[type="date"].rt-filter-input {
 [data-theme="induscolor"] .lot-card:hover {
   border-color: #fff000;
 }
+
+/* =============================================================
+   MOBILE DESIGN SYSTEM
+   Princípios: touch targets ≥ 44px · scroll-snap kanban
+   bottom-sheet modals · font 16px em inputs (sem zoom iOS)
+   thumb zone: ações primárias no centro/baixo
+   ============================================================= */
+
+/* Botão de fechar sidebar – oculto em desktop */
+.sidebar-mobile-close {
+  display: none;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,.55);
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: .3rem .4rem;
+  border-radius: 8px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.sidebar-mobile-close:hover { color: #fff; background: rgba(255,255,255,.1); }
+
+/* ── 768px: tablets + phones ── */
+@media (max-width: 768px) {
+
+  /* Sidebar mobile: mostra botão fechar */
+  .sidebar-mobile-close { display: flex; align-items: center; justify-content: center; }
+  .sidebar-header { gap: .6rem; }
+  .sidebar { z-index: 100; }
+  .sidebar-overlay { cursor: pointer; }
+
+  /* Topbar */
+  .topbar { padding: .6rem .85rem; gap: .6rem; }
+  .sidebar-toggle {
+    min-width: 44px; min-height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    background: rgba(20,65,150,.12);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .topbar-title { font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar-actions { gap: .45rem; flex-shrink: 0; }
+  .alert-bell { min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+
+  /* Lote manual button compact */
+  .btn-lote-manual-topbar { font-size: .78rem !important; padding: .5rem .7rem !important; }
+  .btn-lote-manual-topbar span { display: none; }
+
+  /* Page */
+  .page { padding: .75rem .85rem 5rem; }
+  .page-header { flex-direction: column; align-items: stretch; gap: .6rem; }
+  .page-header h2 { font-size: 1rem; }
+  .page-header .header-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .page-header .header-actions .btn { flex: 1; min-width: 120px; justify-content: center; }
+  .search-input { width: 100%; font-size: 16px !important; }
+
+  /* Tabs: horizontal scroll sem barra */
+  .section-tabs, .filter-tabs {
+    display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; gap: .35rem; padding-bottom: .25rem;
+    flex-wrap: nowrap;
+  }
+  .section-tabs::-webkit-scrollbar,
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    white-space: nowrap; flex-shrink: 0;
+    min-height: 40px; padding: .42rem .85rem; font-size: .78rem;
+  }
+
+  /* Metrics */
+  .metrics-row { grid-template-columns: repeat(2,1fr); gap: .6rem; margin-bottom: .9rem; }
+  .metric-card { padding: .85rem .7rem; }
+  .metric-num { font-size: 1.75rem; }
+  .metric-label { font-size: .65rem; }
+
+  /* Kanban: 1 coluna visível com scroll-snap */
+  .kanban-board {
+    scroll-snap-type: x mandatory;
+    padding: 0 .85rem 1rem; gap: .75rem;
+    cursor: default;
+  }
+  .kanban-col {
+    scroll-snap-align: start;
+    min-width: calc(100vw - 2.5rem);
+    max-width: calc(100vw - 2.5rem);
+  }
+  .kanban-card { padding: .85rem; }
+  .kanban-card:hover { transform: none; }
+  .kanban-card-actions { display: flex; flex-direction: column; gap: .4rem; }
+  .kanban-card-actions .btn { min-height: 42px; font-size: .8rem; width: 100%; justify-content: center; }
+
+  /* Lots grid */
+  .lots-grid { grid-template-columns: 1fr; gap: .6rem; }
+  .lot-card { padding: .85rem; }
+
+  /* Order/pedido cards */
+  .order-card { padding: .85rem; }
+  .lot-flow-mini { flex-wrap: wrap; gap: .3rem; }
+
+  /* Formulários – font-size 16px evita zoom automático iOS */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+  textarea { min-height: 80px; }
+
+  /* Botões */
+  .btn { min-height: 42px; font-size: .85rem; }
+  .btn-sm { min-height: 36px; font-size: .78rem; }
+
+  /* Modais → bottom sheet */
+  #modalOverlay { align-items: flex-end !important; padding: 0 !important; }
+  .modal {
+    border-radius: 20px 20px 0 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: 92vh !important;
+    border-bottom: none !important;
+    position: relative;
+  }
+  .modal::before {
+    content: '';
+    display: block;
+    width: 42px; height: 4px;
+    background: rgba(148,163,184,.28);
+    border-radius: 999px;
+    margin: .65rem auto -.2rem;
+    flex-shrink: 0;
+  }
+  .modal-large { max-width: 100% !important; }
+  .modal-header { padding: 1rem 1.1rem; }
+  .modal-header h3 { font-size: 1rem; }
+  .modal-body { padding: 1rem 1.1rem; }
+
+  /* Tabelas: scroll horizontal */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 480px; }
+
+  /* Dashboard (dash-*) */
+  .dash-wrap { padding: .75rem .85rem 1.5rem; gap: .9rem; }
+  .dash-hdr { grid-template-columns: 1fr; gap: .7rem; }
+  .dash-hdr::after { display: none; }
+  .dash-hdr-right { justify-content: space-between; align-items: center; }
+  .dash-hdr-time { font-size: 1.6rem; }
+  .dash-kpis { grid-template-columns: repeat(2,1fr); gap: .6rem; }
+  .dash-kpi { padding: .75rem .85rem; }
+  .dash-kpi.kpi-lg .dash-kpi-n { font-size: 2rem; }
+  .dash-kpi-n { font-size: 1.55rem; }
+  .dash-content { grid-template-columns: 1fr; }
+  .dash-sectors-grid { grid-template-columns: repeat(2,1fr); gap: .45rem; }
+  .dash-sec { padding: .6rem .75rem; }
+
+  /* Login */
+  .il-brand { display: none; }
+  .il-form-panel { flex: 1; border-radius: 0; }
+
+  /* Detalhes de pedido/lote */
+  .detail-grid { grid-template-columns: 1fr !important; }
+  .order-lots-list { gap: .5rem; }
+  .order-lot-row { flex-direction: column; align-items: flex-start; gap: .35rem; }
+
+  /* Relatórios – scroll horizontal em tabelas pesadas */
+  #pageRelatorioTempos table,
+  #pageReports table { min-width: 600px; }
+  #pageRelatorioTempos .page-header,
+  #pageReports .page-header { flex-direction: column; }
+
+  /* Área de delivery / programação */
+  .route-live-grid { grid-template-columns: 1fr !important; }
+  .delivery-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ── 480px: smartphones compactos ── */
+@media (max-width: 480px) {
+  .topbar { padding: .5rem .7rem; }
+  .page { padding: .6rem .7rem 5rem; }
+
+  .metrics-row { grid-template-columns: repeat(2,1fr); gap: .45rem; }
+  .metric-card { padding: .7rem .55rem; }
+  .metric-num { font-size: 1.5rem; }
+
+  .kanban-col {
+    min-width: calc(100vw - 1.8rem);
+    max-width: calc(100vw - 1.8rem);
+  }
+
+  .dash-kpis { grid-template-columns: repeat(2,1fr); gap: .45rem; }
+  .dash-kpi { padding: .65rem .7rem; gap: .55rem; }
+  .dash-kpi-icon-box { width: 36px; height: 36px; font-size: .9rem; }
+  .dash-kpi.kpi-lg .dash-kpi-icon-box { width: 40px; height: 40px; }
+  .dash-kpi-n { font-size: 1.35rem; }
+  .dash-kpi.kpi-lg .dash-kpi-n { font-size: 1.65rem; }
+  .dash-kpi-sub { display: none; }
+  .dash-kpi.kpi-lg .dash-kpi-sub { display: block; }
+  .dash-sectors-grid { grid-template-columns: 1fr 1fr; }
+  .dash-hdr-time { font-size: 1.35rem; }
+  .dash-live-badge { font-size: .65rem; padding: .3rem .65rem; }
+
+  .section-tabs .tab-btn, .filter-tabs .tab-btn { font-size: .72rem; padding: .38rem .65rem; }
+
+  .modal-header h3 { font-size: .92rem; }
+  .btn { min-height: 44px; }
+}
+
+/* Kanban: indicador de coluna atual (scroll-snap) */
+@media (max-width: 768px) {
+  .kanban-snap-hint {
+    display: flex; justify-content: center; align-items: center;
+    gap: .35rem; padding: .4rem 0 .6rem;
+    font-size: .68rem; color: var(--text3);
+  }
+  .kanban-snap-hint i { font-size: .6rem; }
+}
+@media (min-width: 769px) {
+  .kanban-snap-hint { display: none; }
+  .sidebar-mobile-close { display: none !important; }
+}
