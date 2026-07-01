@@ -647,32 +647,33 @@ function ffDashInstallStyles() {
       /* Sem padding duplo (pageDashboard.page já zerado) – bottom respeita bottom nav */
       .dash-wrap{padding:.65rem .8rem calc(5rem + env(safe-area-inset-bottom,0px));gap:.8rem}
 
-      /* Header compacto: 2 linhas em vez de coluna longa */
+      /* Header compacto: brand+relógio lado a lado numa linha */
       .dash-hdr{
-        display:grid;
-        grid-template-columns:1fr auto;
-        grid-template-rows:auto auto;
-        gap:.35rem .5rem;
+        display:flex;
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+        gap:.6rem;
         padding:.85rem 1rem;
         border-top-width:3px;
-        align-items:center;
+        overflow:hidden;
       }
       .dash-hdr::after{display:none}
 
-      /* Linha 1: brand à esquerda, relógio à direita */
-      .dash-hdr-brand{grid-column:1;grid-row:1;gap:.55rem}
-      .dash-hdr-icon{width:34px;height:34px;font-size:.88rem;border-radius:10px}
-      .dash-hdr-title{font-size:.95rem;white-space:nowrap}
+      /* Brand: pode encolher mas não perde o ícone */
+      .dash-hdr-brand{gap:.55rem;flex:1;min-width:0;overflow:hidden}
+      .dash-hdr-icon{width:34px;height:34px;font-size:.88rem;border-radius:10px;flex-shrink:0}
+      .dash-hdr-title{font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .dash-hdr-sub{display:none}
 
-      /* Relógio: canto superior direito */
-      .dash-hdr-right{grid-column:2;grid-row:1 / 3;flex-direction:column;align-items:flex-end;gap:.25rem}
-      .dash-hdr-clock{text-align:right}
-      .dash-hdr-time{font-size:1.45rem;line-height:1}
-      .dash-hdr-date{font-size:.58rem;margin-top:.1rem}
+      /* Live badge: oculto no mobile (topbar já tem o indicador) */
+      .dash-live-badge{display:none}
 
-      /* Linha 2: live badge */
-      .dash-live-badge{grid-column:1;grid-row:2;font-size:.62rem;padding:.28rem .65rem;align-self:center;justify-self:start}
+      /* Relógio: coluna direita compacta */
+      .dash-hdr-right{flex-direction:column;align-items:flex-end;gap:.15rem;flex-shrink:0}
+      .dash-hdr-clock{text-align:right}
+      .dash-hdr-time{font-size:1.4rem;line-height:1}
+      .dash-hdr-date{font-size:.55rem;margin-top:.1rem;white-space:nowrap}
 
       /* KPIs: 2 colunas, cards verticais (ícone → número → label) */
       .dash-kpis{grid-template-columns:repeat(2,1fr);gap:.5rem}
@@ -725,10 +726,10 @@ function ffDashInstallStyles() {
        ══════════════════════════════════════════ */
     @media(max-width:480px){
       .dash-wrap{padding:.5rem .65rem calc(5rem + env(safe-area-inset-bottom,0px));gap:.65rem}
-      .dash-hdr{padding:.75rem .85rem;gap:.3rem .4rem}
+      .dash-hdr{padding:.7rem .85rem;gap:.5rem}
       .dash-hdr-icon{width:30px;height:30px;font-size:.78rem}
-      .dash-hdr-title{font-size:.88rem}
-      .dash-hdr-time{font-size:1.25rem}
+      .dash-hdr-title{font-size:.82rem}
+      .dash-hdr-time{font-size:1.2rem}
 
       .dash-kpis{gap:.4rem}
       .dash-kpi{padding:.75rem .4rem;min-height:80px;gap:.32rem}

@@ -602,6 +602,19 @@ function buildSidebar() {
   buildMobileBottomNav();
 }
 
+const MBN_SHORT_LABELS = {
+  dashboard: 'Início',
+  kanban: 'Kanban',
+  meu_setor: 'Setor',
+  lots: 'Lotes',
+  pedidos_novos: 'Novos',
+  orders: 'Pedidos',
+  programacao_entregas: 'Agenda',
+  deliveries: 'Entrega',
+  relatorio_tempos: 'Tempos',
+  reports: 'Relatório',
+};
+
 function buildMobileBottomNav() {
   const nav = document.getElementById('mobileBottomNav');
   if (!nav) return;
@@ -621,10 +634,11 @@ function buildMobileBottomNav() {
   const currentPage = document.querySelector('.nav-item.active')?.dataset.page || '';
   nav.innerHTML = allowed.map(key => {
     const cfg = PAGE_MAP[key];
+    const label = MBN_SHORT_LABELS[key] || cfg.label;
     const isActive = key === currentPage ? ' active' : '';
     return `<button class="mbn-item${isActive}" data-page="${key}" onclick="navigateTo('${key}')" aria-label="${cfg.label}">
       <i class="${cfg.icon}"></i>
-      <span>${cfg.label}</span>
+      <span>${label}</span>
     </button>`;
   }).join('');
 }

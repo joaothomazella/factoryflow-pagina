@@ -6708,7 +6708,7 @@ input[type="date"].rt-filter-input {
   .btn-lote-manual-topbar { min-height: 40px !important; }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 420px) {
   .mbn-item span { display: none; }           /* icon-only on very small screens */
   .mbn-item { min-height: 52px; }
   .mbn-item i { font-size: 1.25rem; }
