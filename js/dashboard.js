@@ -644,8 +644,8 @@ function ffDashInstallStyles() {
        MOBILE ≤768px  (injetado após style.css → maior precedência)
        ══════════════════════════════════════════ */
     @media(max-width:768px){
-      /* Sem padding duplo (pageDashboard.page já zerado) */
-      .dash-wrap{padding:.65rem .8rem 2.5rem;gap:.8rem}
+      /* Sem padding duplo (pageDashboard.page já zerado) – bottom respeita bottom nav */
+      .dash-wrap{padding:.65rem .8rem calc(5rem + env(safe-area-inset-bottom,0px));gap:.8rem}
 
       /* Header compacto: 2 linhas em vez de coluna longa */
       .dash-hdr{
@@ -724,7 +724,7 @@ function ffDashInstallStyles() {
        MOBILE ≤480px  (smartphones compactos)
        ══════════════════════════════════════════ */
     @media(max-width:480px){
-      .dash-wrap{padding:.5rem .65rem 2rem;gap:.65rem}
+      .dash-wrap{padding:.5rem .65rem calc(5rem + env(safe-area-inset-bottom,0px));gap:.65rem}
       .dash-hdr{padding:.75rem .85rem;gap:.3rem .4rem}
       .dash-hdr-icon{width:30px;height:30px;font-size:.78rem}
       .dash-hdr-title{font-size:.88rem}

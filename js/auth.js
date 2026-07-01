@@ -598,6 +598,35 @@ function buildSidebar() {
   if (['admin','diretoria','pcp','pcp_lib','manager'].includes(user.role)) {
     renderBridgeStatusChip();
   }
+
+  buildMobileBottomNav();
+}
+
+function buildMobileBottomNav() {
+  const nav = document.getElementById('mobileBottomNav');
+  if (!nav) return;
+  const user = STATE.currentUser;
+  if (!user) return;
+
+  // Pick up to 5 most relevant pages for the user (non-hidden, role-allowed)
+  const priorityOrder = [
+    'dashboard','kanban','meu_setor','lots','pedidos_novos','orders',
+    'programacao_entregas','deliveries','relatorio_tempos','reports'
+  ];
+  const allowed = priorityOrder.filter(key => {
+    const cfg = PAGE_MAP[key];
+    return cfg && !cfg.hidden && cfg.roles.includes(user.role);
+  }).slice(0, 5);
+
+  const currentPage = document.querySelector('.nav-item.active')?.dataset.page || '';
+  nav.innerHTML = allowed.map(key => {
+    const cfg = PAGE_MAP[key];
+    const isActive = key === currentPage ? ' active' : '';
+    return `<button class="mbn-item${isActive}" data-page="${key}" onclick="navigateTo('${key}')" aria-label="${cfg.label}">
+      <i class="${cfg.icon}"></i>
+      <span>${cfg.label}</span>
+    </button>`;
+  }).join('');
 }
 
 function navigateTo(page) {
@@ -609,6 +638,11 @@ function navigateTo(page) {
   document.getElementById(cfg.el).classList.add('active');
   document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
   document.getElementById('topbarTitle').textContent = cfg.label;
+
+  // Update bottom nav active state
+  document.querySelectorAll('.mbn-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === page);
+  });
 
   // Fecha sidebar no mobile
   const sidebar = document.getElementById('sidebar');

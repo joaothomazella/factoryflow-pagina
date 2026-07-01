@@ -6599,4 +6599,118 @@ input[type="date"].rt-filter-input {
   .sidebar-mobile-close { display: none !important; }
   .topbar-logo-mobile { display: none !important; }
   .kanban-snap-hint { display: none !important; }
+  .mobile-bottom-nav { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════
+   BOTTOM NAVIGATION BAR – mobile thumb-zone nav
+   ══════════════════════════════════════════════════ */
+.mobile-bottom-nav {
+  display: none; /* shown only on mobile via media query below */
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 90;
+  background: var(--surface, #1e293b);
+  border-top: 1px solid var(--border, rgba(255,255,255,.1));
+  flex-direction: row;
+  align-items: stretch;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -4px 20px rgba(0,0,0,.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.mbn-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .18rem;
+  min-height: 56px;
+  padding: .45rem .3rem;
+  background: none;
+  border: none;
+  color: var(--text3, #64748b);
+  cursor: pointer;
+  font-size: .6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  line-height: 1.2;
+  transition: color .15s, background .15s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.mbn-item i {
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform .15s, color .15s;
+}
+
+.mbn-item span {
+  font-size: .57rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 56px;
+}
+
+.mbn-item:active {
+  background: rgba(20,65,150,.12);
+}
+
+.mbn-item.active {
+  color: var(--blue, #144196);
+}
+
+.mbn-item.active i {
+  transform: translateY(-1px);
+}
+
+.mbn-item.active::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 2.5px;
+  background: var(--blue, #144196);
+  border-radius: 0 0 3px 3px;
+}
+
+[data-theme="light"] .mobile-bottom-nav {
+  background: rgba(255,255,255,.96);
+  border-top-color: rgba(0,0,0,.1);
+  box-shadow: 0 -2px 16px rgba(0,0,0,.1);
+}
+
+[data-theme="light"] .mbn-item {
+  color: #94a3b8;
+}
+
+[data-theme="light"] .mbn-item.active {
+  color: #144196;
+}
+
+/* Show bottom nav on mobile */
+@media (max-width: 768px) {
+  .mobile-bottom-nav { display: flex; }
+
+  /* Extra bottom padding so content doesn't hide under the nav */
+  .page { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)) !important; }
+  #pageDashboard.page { padding-bottom: 0 !important; }
+
+  /* ms-btn: proper 44px touch target */
+  .ms-btn { min-height: 44px !important; font-size: .82rem !important; }
+  .ms-card-actions { gap: .5rem; padding: .75rem .9rem 1rem; }
+
+  /* FAB: Lote Manual – bigger hit area, always above bottom nav */
+  .btn-lote-manual-topbar { min-height: 40px !important; }
+}
+
+@media (max-width: 480px) {
+  .mbn-item span { display: none; }           /* icon-only on very small screens */
+  .mbn-item { min-height: 52px; }
+  .mbn-item i { font-size: 1.25rem; }
+  .mbn-item.active::after { left: 25%; right: 25%; }
 }
