@@ -1299,13 +1299,23 @@ function renderRelatorioTemposSummary(rows) {
       : 0;
 
   // Soma de Kg uma vez por lote (um lote pode ter várias linhas, uma por setor/passagem).
+  // Chave: r.id (único por lote no DB). Fallback: lotNumber desde que não seja '–'.
+  // Sem chave confiável: soma diretamente para não perder nenhum peso.
   const kgByLot = new Map();
+  let kgSemChave = 0;
   summaryRows.forEach(r => {
-    const lotKey = String(r.lotNumber || r.op || r.id || '').trim();
     const kg = _rtParseKgFromQty(r.qty);
-    if (lotKey && kg > 0 && !kgByLot.has(lotKey)) kgByLot.set(lotKey, kg);
+    if (!(kg > 0)) return;
+    const id  = String(r.id  || '').trim();
+    const num = String(r.lotNumber || '').trim();
+    const key = id || (num && num !== '–' ? num : '');
+    if (key) {
+      if (!kgByLot.has(key)) kgByLot.set(key, kg);
+    } else {
+      kgSemChave += kg;
+    }
   });
-  const totalKg = Array.from(kgByLot.values()).reduce((a, b) => a + b, 0);
+  const totalKg = Array.from(kgByLot.values()).reduce((a, b) => a + b, 0) + kgSemChave;
 
   const effColor = avgEff >= 70 ? '#4ade80' : avgEff >= 40 ? '#fbbf24' : '#f87171';
 
@@ -1608,7 +1618,15 @@ function _rtShouldRenderGroupedBySector(normalizedRows) {
 function _rtParseKgFromQty(value) {
   if (value == null) return 0;
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
-  const raw = String(value || '').replace(/\./g, '').replace(',', '.');
+  const str = String(value || '').trim();
+  let raw;
+  if (str.includes(',')) {
+    // Formato brasileiro: "1.234,56 Kg" → ponto=milhar, vírgula=decimal
+    raw = str.replace(/\./g, '').replace(',', '.');
+  } else {
+    // Formato internacional ou número puro: "514.553 Kg" → ponto=decimal, não remover
+    raw = str;
+  }
   const match = raw.match(/-?\d+(?:\.\d+)?/);
   const n = match ? Number(match[0]) : 0;
   return Number.isFinite(n) && n > 0 ? n : 0;
@@ -1912,8 +1930,16 @@ function _rtBuildGroupedBySectorRows(rows, alreadyDetailedSource = false) {
 
     // Soma kg uma vez por lote dentro do setor, para evitar duplicidade se houver linhas repetidas.
     const kg = _rtParseKgFromQty(r.qty);
-    if (lotKey && kg > 0 && !item.kgByLot.has(lotKey)) {
-      item.kgByLot.set(lotKey, kg);
+    if (kg > 0) {
+      const idKey  = String(r.id  || '').trim();
+      const numKey = String(r.lotNumber || '').trim();
+      const kgKey  = idKey || (numKey && numKey !== '–' ? numKey : '');
+      if (kgKey) {
+        if (!item.kgByLot.has(kgKey)) item.kgByLot.set(kgKey, kg);
+      } else {
+        // Sem chave confiável: usa chave sintética única para não perder o valor
+        item.kgByLot.set(`_r${item.registros}`, kg);
+      }
     }
 
     item.totalMs += Number(r.totalMs || 0);
