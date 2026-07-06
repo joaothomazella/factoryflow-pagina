@@ -2618,6 +2618,47 @@ a { text-decoration: none; color: inherit; }
   letter-spacing: .5px;
 }
 
+/* Card de lote reprovado (nova estrutura) */
+.lot-card-rejected {
+  border-color: rgba(239,68,68,.45) !important;
+  border-top: 3px solid #ef4444 !important;
+  background: rgba(239,68,68,.05) !important;
+  opacity: .88;
+}
+.lot-card-rejected .lot-number { color: #fca5a5; }
+.rejected-badge {
+  background: rgba(239,68,68,.18);
+  color: #f87171;
+  border: 1px solid rgba(239,68,68,.35);
+  border-radius: 6px;
+  font-size: .65rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  padding: .18rem .55rem;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+.rejected-sector {
+  font-size: .78rem;
+  color: #fca5a5;
+  margin: .3rem 0 .2rem;
+}
+.rejected-reason {
+  font-size: .78rem;
+  color: var(--text2, #94a3b8);
+  background: rgba(239,68,68,.06);
+  border-left: 3px solid rgba(239,68,68,.4);
+  padding: .35rem .6rem;
+  border-radius: 0 6px 6px 0;
+  margin: .35rem 0;
+  font-style: italic;
+}
+/* Tab de reprovados */
+.tab-btn-rejected { color: #f87171 !important; border-color: rgba(239,68,68,.3) !important; }
+.tab-btn-rejected.active { background: #ef4444 !important; border-color: #ef4444 !important; color: #fff !important; }
+.tab-btn-rejected:hover { background: rgba(239,68,68,.12) !important; }
+
 /* Badge de reprovado no histórico */
 .reject-badge {
   display: inline-flex; align-items: center; gap: .3rem;

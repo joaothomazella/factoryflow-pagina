@@ -374,7 +374,54 @@ function ffGetLotProductName(lot) {
 }
 
 // ===== LOT CARD BUILDER (shared) =====
+function buildRejectedLotCard(lot) {
+  const productName = typeof ffGetLotProductName === 'function' ? ffGetLotProductName(lot) : (lot.paint || lot.productName || '');
+  const rejectedAt  = lot.rejectedAt ? new Date(lot.rejectedAt).toLocaleString('pt-BR') : '–';
+  const reason      = escapeHtml(lot.rejectedReason || '');
+  const by          = escapeHtml(lot.rejectedBy || '');
+  const sector      = escapeHtml(SECTOR_LABELS[lot.rejectedSector || lot.sector] || lot.rejectedSector || lot.sector || '');
+
+  // Tenta recuperar do histórico se os campos diretos estiverem vazios (lotes pré-feature)
+  let reasonDisplay = reason;
+  let byDisplay = by;
+  let atDisplay = rejectedAt;
+  if (!reasonDisplay || !byDisplay) {
+    const history = Array.isArray(lot.history) ? lot.history : [];
+    const ev = [...history].reverse().find(h => String(h.action||'').includes('REPROVADO'));
+    if (ev) {
+      if (!reasonDisplay) {
+        const m = String(ev.action).match(/Motivo:\s*(.+)/i);
+        if (m) reasonDisplay = escapeHtml(m[1].trim());
+      }
+      if (!byDisplay) byDisplay = escapeHtml(ev.userName || ev.user || '');
+      if (atDisplay === '–' && ev.timestamp) atDisplay = new Date(Number(ev.timestamp)).toLocaleString('pt-BR');
+    }
+  }
+
+  return `
+    <div class="lot-card lot-card-rejected" onclick="openLotDetail('${lot.id}')">
+      <div class="lot-card-header">
+        <div class="lot-number">#${escapeHtml(lot.number)}</div>
+        <div class="rejected-badge"><i class="fas fa-ban"></i> REPROVADO</div>
+      </div>
+      <div class="lot-client"><i class="fas fa-building"></i> ${escapeHtml(lot.client)}</div>
+      <div class="lot-paint"><i class="fas fa-paint-roller"></i> ${escapeHtml(productName)} – ${escapeHtml(String(lot.qty||''))} ${escapeHtml(lot.unit||'Kg')}</div>
+      ${sector ? `<div class="rejected-sector"><i class="fas fa-map-marker-alt"></i> Reprovado em: <strong>${sector}</strong></div>` : ''}
+      ${reasonDisplay ? `<div class="rejected-reason"><i class="fas fa-comment-alt"></i> ${reasonDisplay}</div>` : ''}
+      <div class="lot-meta" style="margin-top:.5rem">
+        ${byDisplay ? `<span><i class="fas fa-user"></i> ${byDisplay}</span>` : ''}
+        <span><i class="fas fa-clock"></i> ${atDisplay}</span>
+      </div>
+      <div class="lot-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-outline" onclick="openLotDetail('${lot.id}')">
+          <i class="fas fa-eye"></i> Detalhes
+        </button>
+      </div>
+    </div>`;
+}
+
 function buildLotCard(lot) {
+  if (lot.rejected) return buildRejectedLotCard(lot);
   const user = STATE.currentUser;
   const late  = isLate(lot);
   const today = isToday(lot.deliveryDate);
@@ -498,7 +545,9 @@ function buildOrderCard(order) {
 function renderLots() {
   const page = document.getElementById('pageLots');
   const user = STATE.currentUser;
-  const lots = getLotsForUser(user);
+  const allLots = getLotsForUser(user);
+  const activeLots   = allLots.filter(l => !l.rejected);
+  const rejectedLots = allLots.filter(l => l.rejected);
   const canCreate = ['admin','pcp','pcp_lib'].includes(user.role);
 
   page.innerHTML = `
@@ -510,15 +559,16 @@ function renderLots() {
       </div>
     </div>
     <div class="filter-tabs" id="lotFilterTabs">
-      <button class="tab-btn active" onclick="filterByStatus('all',this)">Todos (${lots.length})</button>
+      <button class="tab-btn active" onclick="filterByStatus('all',this)">Todos (${activeLots.length})</button>
       <button class="tab-btn" onclick="filterByStatus('active',this)">Em Produção</button>
       <button class="tab-btn" onclick="filterByStatus('pronto',this)">Pronto</button>
       <button class="tab-btn" onclick="filterByStatus('late',this)">⚠️ Atrasados</button>
       <button class="tab-btn" onclick="filterByStatus('sameday',this)">🔴 Mesmo Dia</button>
+      ${rejectedLots.length > 0 ? `<button class="tab-btn tab-btn-rejected" onclick="filterByStatus('rejected',this)">⛔ Reprovados (${rejectedLots.length})</button>` : ''}
     </div>
     <div id="lotsGrid" class="lots-grid"></div>
   `;
-  renderLotsGrid(lots);
+  renderLotsGrid(activeLots);
 }
 
 let _lotsFilter = 'all';
@@ -531,18 +581,26 @@ function filterByStatus(status, btn) {
 
 function filterLots() {
   const user = STATE.currentUser;
-  let lots = getLotsForUser(user);
+  const allLots = getLotsForUser(user);
   const q = document.getElementById('lotSearch')?.value.toLowerCase() || '';
+
+  let lots;
+  if (_lotsFilter === 'rejected') {
+    lots = allLots.filter(l => l.rejected);
+  } else {
+    lots = allLots.filter(l => !l.rejected);
+    if (_lotsFilter === 'active')   lots = lots.filter(l => !['pronto','entrega','entregue'].includes(l.sector));
+    else if (_lotsFilter === 'pronto')  lots = lots.filter(l => l.sector === 'pronto');
+    else if (_lotsFilter === 'late')    lots = lots.filter(l => isLate(l));
+    else if (_lotsFilter === 'sameday') lots = lots.filter(l => l.priority === 'sameday');
+  }
+
   if (q) lots = lots.filter(l =>
-    l.number.toLowerCase().includes(q) ||
-    l.client.toLowerCase().includes(q) ||
+    (l.number||'').toLowerCase().includes(q) ||
+    (l.client||'').toLowerCase().includes(q) ||
     (l.paint||'').toLowerCase().includes(q) ||
     (l.productType||'').toLowerCase().includes(q)
   );
-  if (_lotsFilter === 'active') lots = lots.filter(l => !['pronto','entrega','entregue'].includes(l.sector));
-  else if (_lotsFilter === 'pronto')  lots = lots.filter(l => l.sector === 'pronto');
-  else if (_lotsFilter === 'late')    lots = lots.filter(l => isLate(l));
-  else if (_lotsFilter === 'sameday') lots = lots.filter(l => l.priority === 'sameday');
   renderLotsGrid(lots);
 }
 
@@ -573,10 +631,31 @@ function openLotDetail(lotId) {
   const flow = getProductFlow(pt);
   const currentIdx = flow.indexOf(lot.sector);
 
-  document.getElementById('modalLotDetailTitle').innerHTML =
-    `<i class="fas fa-box"></i> Lote #${escapeHtml(lot.number)} – ${escapeHtml(lot.client)}`;
+  document.getElementById('modalLotDetailTitle').innerHTML = lot.rejected
+    ? `<i class="fas fa-ban" style="color:#ef4444"></i> Lote #${escapeHtml(lot.number)} – ${escapeHtml(lot.client)} <span style="font-size:.7em;color:#f87171;font-weight:700;vertical-align:middle">REPROVADO</span>`
+    : `<i class="fas fa-box"></i> Lote #${escapeHtml(lot.number)} – ${escapeHtml(lot.client)}`;
 
-  document.getElementById('modalLotDetailBody').innerHTML = `
+  // Banner de reprovação no topo do modal
+  const rejectedBanner = lot.rejected ? (() => {
+    const history = Array.isArray(lot.history) ? lot.history : [];
+    const ev = [...history].reverse().find(h => String(h.action||'').includes('REPROVADO'));
+    const reason = lot.rejectedReason || (ev ? (String(ev.action).match(/Motivo:\s*(.+)/i)||[])[1]||'' : '');
+    const by     = lot.rejectedBy || ev?.userName || ev?.user || '';
+    const at     = lot.rejectedAt
+      ? new Date(Number(lot.rejectedAt)).toLocaleString('pt-BR')
+      : (ev?.timestamp ? new Date(Number(ev.timestamp)).toLocaleString('pt-BR') : '');
+    const sector = SECTOR_LABELS[lot.rejectedSector || lot.sector] || lot.rejectedSector || lot.sector || '';
+    return `
+      <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-left:4px solid #ef4444;border-radius:10px;padding:1rem 1.1rem;margin-bottom:1.2rem">
+        <div style="font-weight:800;color:#f87171;font-size:.95rem;margin-bottom:.4rem"><i class="fas fa-ban"></i> LOTE REPROVADO</div>
+        ${sector ? `<div style="font-size:.82rem;color:#fca5a5"><i class="fas fa-map-marker-alt"></i> Reprovado em: <strong>${escapeHtml(sector)}</strong></div>` : ''}
+        ${reason ? `<div style="font-size:.82rem;color:var(--text2,#94a3b8);margin-top:.3rem"><i class="fas fa-comment-alt"></i> Motivo: <em>${escapeHtml(reason)}</em></div>` : ''}
+        ${by     ? `<div style="font-size:.78rem;color:var(--text3,#64748b);margin-top:.2rem"><i class="fas fa-user"></i> Por: ${escapeHtml(by)}</div>` : ''}
+        ${at     ? `<div style="font-size:.78rem;color:var(--text3,#64748b)"><i class="fas fa-clock"></i> Em: ${escapeHtml(at)}</div>` : ''}
+      </div>`;
+  })() : '';
+
+  document.getElementById('modalLotDetailBody').innerHTML = rejectedBanner + `
     <div class="detail-grid">
       <div class="detail-col">
         <h4><i class="fas fa-info-circle"></i> Informações</h4>
