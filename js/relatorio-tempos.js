@@ -806,7 +806,7 @@ function renderRelatorioTempos() {
         <div class="rt-filter-group">
           <label class="rt-filter-label">OP / Lote</label>
           <input type="text" id="rtFilterOpLote" class="rt-filter-input"
-            placeholder="Ex: 087153 ou L-001"
+            placeholder="Ex: 088088; 088089"
             value="${escapeHtml(_rtFilters.opLote)}"
             oninput="_rtSyncFilters()" />
         </div>
@@ -1220,11 +1220,13 @@ function _rtApplyFilters(rows) {
       if (!String(r.productName || '').toLowerCase().includes(q)) return false;
     }
 
-    // ── OP/Lote ──
+    // ── OP/Lote (suporta múltiplos separados por ponto e vírgula) ──
     if (_rtFilters.opLote) {
-      const q = _rtFilters.opLote.toLowerCase();
-      const hay = `${r.lotNumber} ${r.op || ''}`.toLowerCase();
-      if (!hay.includes(q)) return false;
+      const terms = _rtFilters.opLote.split(/[;,]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+      if (terms.length > 0) {
+        const hay = `${r.lotNumber} ${r.op || ''}`.toLowerCase();
+        if (!terms.some(t => hay.includes(t))) return false;
+      }
     }
 
     // ── Pedido ──
