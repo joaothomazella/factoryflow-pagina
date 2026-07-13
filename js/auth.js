@@ -471,6 +471,11 @@ async function showApp() {
     startAutoUpdate();
     // Inicia sistema de alertas de expediente
     if (typeof ffInitExpedienteAlerts === 'function') ffInitExpedienteAlerts();
+    // Registra push notifications (silencioso se não suportado)
+    if (typeof ffInitPush === 'function' && STATE.currentUser) {
+      const u = STATE.currentUser;
+      ffInitPush(u.id, u.name, u.sector || '').catch(() => {});
+    }
 
   } catch (err) {
     console.warn('⚠️ initData demorou demais:', err.message);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'factoryflow-v1';
+const CACHE_NAME = 'factoryflow-v2';
 const PRECACHE_URLS = [
   './index.html',
   './manifest.json',
@@ -37,5 +37,49 @@ self.addEventListener('fetch', (event) => {
         return res;
       })
       .catch(() => caches.match(req))
+  );
+});
+
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (_) {}
+
+  const title = data.title || 'FactoryFlow';
+  const body  = data.body  || 'Novo lote no seu setor.';
+  const icon  = './icons/icon-192.png';
+  const badge = './icons/icon-192.png';
+  const tag   = data.tag || ('ff-push-' + (data.lotId || Date.now()));
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon,
+      badge,
+      tag,
+      renotify: true,
+      data: data,
+      vibrate: [200, 100, 200],
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const data = event.notification.data || {};
+  const lotId = data.lotId;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ('focus' in client) {
+          client.focus();
+          if (lotId) client.postMessage({ type: 'OPEN_LOT', lotId });
+          return;
+        }
+      }
+      const url = self.registration.scope + (lotId ? '?openLot=' + lotId : '');
+      self.clients.openWindow(url);
+    })
   );
 });

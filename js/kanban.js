@@ -502,6 +502,11 @@ function buildKanbanCard(lot, user, currentSector) {
 
       ${alertThr ? `<div class="kc2-alert-chip"><i class="fas fa-triangle-exclamation"></i> Possível atraso no processo</div>` : ''}
 
+      ${(lot.comments||[]).length > 0 ? `
+        <div class="kc2-cmts-chip" onclick="event.stopPropagation(); openLotDetail('${lot.id}')">
+          <i class="fas fa-comment-dots"></i> ${(lot.comments||[]).length} comentário${(lot.comments||[]).length > 1 ? 's' : ''}
+        </div>` : ''}
+
       <!-- Ações -->
       <div class="kc2-actions" onclick="event.stopPropagation()">
         ${workBtnsHtml}

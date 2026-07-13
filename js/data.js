@@ -287,10 +287,11 @@ function serializeLot(lot) {
   };
 }
 function deserializeLot(row) {
-  let history = [], workSessions = [], sectorMetrics = [];
+  let history = [], workSessions = [], sectorMetrics = [], comments = [];
   try { history      = typeof row.history      === 'string' ? JSON.parse(row.history)      : (row.history      || []); } catch(e){ history=[]; }
   try { workSessions = typeof row.workSessions === 'string' ? JSON.parse(row.workSessions) : (row.workSessions || []); } catch(e){ workSessions=[]; }
   try { sectorMetrics = typeof row.sectorMetrics === 'string' ? JSON.parse(row.sectorMetrics) : (row.sectorMetrics || []); } catch(e){ sectorMetrics=[]; }
+  try { comments = typeof row.ff_comments === 'string' ? JSON.parse(row.ff_comments || '[]') : (Array.isArray(row.ff_comments) ? row.ff_comments : []); } catch(e){ comments=[]; }
   // sectorEnteredAt: fallback to last history entry or createdAt (backward compat)
   const sea = Number(row.sectorEnteredAt) || (history.length>0 ? Number(history[history.length-1].timestamp) : Number(row.createdAt)) || Date.now();
   return {
@@ -314,7 +315,8 @@ function deserializeLot(row) {
     deliveryDateManual:   row.deliveryDateManual   || '',
     endurecedorRoute:     row.endurecedorRoute     || '',
     destinoEndurecedor:   row.destinoEndurecedor   || '',
-    expedientePausedStatus: row.expedientePausedStatus || row.ff_expedientePausedStatus || ''
+    expedientePausedStatus: row.expedientePausedStatus || row.ff_expedientePausedStatus || '',
+    comments
   };
 }
 
@@ -880,7 +882,8 @@ async function apiUpdateLot(lot) {
       ff_workSessions: JSON.stringify(ffSafeParseArray(lot.workSessions)),
       ff_sectorMetrics: JSON.stringify(ffSafeParseArray(lot.sectorMetrics)),
       ff_history: JSON.stringify(ffSafeParseArray(lot.history)),
-      ff_expedientePausedStatus: lot.expedientePausedStatus || ''
+      ff_expedientePausedStatus: lot.expedientePausedStatus || '',
+      ff_comments: JSON.stringify(Array.isArray(lot.comments) ? lot.comments : [])
     };
 
     const baseUrl = typeof PEDIDOS_API !== 'undefined'
@@ -2302,6 +2305,13 @@ function deserializeBridgeLot(row) {
       : (Array.isArray(row.ff_sectorMetrics) ? row.ff_sectorMetrics : []);
   } catch (_) { ffSectorMetrics = []; }
 
+  let ffComments = [];
+  try {
+    ffComments = typeof row.ff_comments === 'string'
+      ? JSON.parse(row.ff_comments || '[]')
+      : (Array.isArray(row.ff_comments) ? row.ff_comments : []);
+  } catch (_) { ffComments = []; }
+
   return {
     id:            'bridge_' + row.id,
     _bridgeId:     row.id,              // ID numérico original no MySQL
@@ -2351,7 +2361,8 @@ function deserializeBridgeLot(row) {
     cliente_bairro:  String(row.cliente_bairro || ''),
     mysql_status:    String(row.status || 'aguardando'),
     backendStatus:   String(row.status || 'aguardando'),
-    expedientePausedStatus: String(row.ff_expedientePausedStatus || '')
+    expedientePausedStatus: String(row.ff_expedientePausedStatus || ''),
+    comments: ffComments
   };
 }
 

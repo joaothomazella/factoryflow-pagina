@@ -780,11 +780,91 @@ function openLotDetail(lotId) {
           ? renderLotSectorTimesHistory(lot)
           : ''}
 
+        <!-- COMENTÁRIOS INTERNOS -->
+        <div class="lot-comments-section" id="lotCommentsSection_${lot.id}">
+          <h4 style="margin:1.2rem 0 .6rem"><i class="fas fa-comments"></i> Comentários Internos
+            ${(lot.comments||[]).length > 0 ? `<span class="cmts-badge">${(lot.comments||[]).length}</span>` : ''}
+          </h4>
+          <div class="cmts-list" id="cmt_list_${lot.id}">
+            ${(lot.comments||[]).length === 0
+              ? '<div class="cmts-empty">Nenhum comentário ainda.</div>'
+              : (lot.comments||[]).map(c => `
+                <div class="cmt-item">
+                  <div class="cmt-meta">
+                    <span class="cmt-user"><i class="fas fa-user-circle"></i> ${escapeHtml(c.userName||'?')}</span>
+                    <span class="cmt-sector">${escapeHtml(SECTOR_LABELS[c.sector]||c.sector||'')}</span>
+                    <span class="cmt-time">${c.timestamp ? new Date(c.timestamp).toLocaleString('pt-BR') : ''}</span>
+                  </div>
+                  <div class="cmt-text">${escapeHtml(c.text)}</div>
+                </div>`).join('')}
+          </div>
+          ${!lot.rejected ? `
+          <div class="cmt-add">
+            <textarea id="cmt_input_${lot.id}" class="cmt-textarea" placeholder="Deixe um recado para o próximo setor..." rows="2" maxlength="400"></textarea>
+            <button class="btn btn-sm cmt-send-btn" onclick="saveComment('${lot.id}')">
+              <i class="fas fa-paper-plane"></i> Enviar
+            </button>
+          </div>` : ''}
+        </div>
       </div>
     </div>`;
   openModal('modalLotDetail');
   if (typeof ffLoadHistoricalCompareRemote === 'function') ffLoadHistoricalCompareRemote(lot.id);
 }
+
+async function saveComment(lotId) {
+  const lot = STATE.lots.find(l => l.id === lotId);
+  const user = STATE.currentUser;
+  const input = document.getElementById(`cmt_input_${lotId}`);
+  if (!lot || !input) return;
+  const text = (input.value || '').trim();
+  if (!text) return;
+
+  const comment = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    text,
+    userId: user.id || '',
+    userName: user.name || user.login || 'Usuário',
+    sector: lot.sector || '',
+    timestamp: Date.now()
+  };
+
+  const comments = [...(Array.isArray(lot.comments) ? lot.comments : []), comment];
+  lot.comments = comments;
+
+  input.value = '';
+  input.disabled = true;
+
+  try {
+    await apiUpdateLot(lot);
+    // Re-render comments list in place without closing modal
+    const listEl = document.getElementById(`cmt_list_${lotId}`);
+    if (listEl) {
+      listEl.innerHTML = comments.map(c => `
+        <div class="cmt-item">
+          <div class="cmt-meta">
+            <span class="cmt-user"><i class="fas fa-user-circle"></i> ${escapeHtml(c.userName||'?')}</span>
+            <span class="cmt-sector">${escapeHtml(SECTOR_LABELS[c.sector]||c.sector||'')}</span>
+            <span class="cmt-time">${c.timestamp ? new Date(c.timestamp).toLocaleString('pt-BR') : ''}</span>
+          </div>
+          <div class="cmt-text">${escapeHtml(c.text)}</div>
+        </div>`).join('');
+    }
+    const badge = document.querySelector(`#lotCommentsSection_${lotId} .cmts-badge`);
+    if (badge) { badge.textContent = comments.length; }
+    else {
+      const h4 = document.querySelector(`#lotCommentsSection_${lotId} h4`);
+      if (h4) h4.insertAdjacentHTML('beforeend', `<span class="cmts-badge">${comments.length}</span>`);
+    }
+  } catch(err) {
+    console.error('[comments] save error:', err.message);
+    showToast('Erro ao salvar comentário.', 'error');
+  } finally {
+    input.disabled = false;
+    input.focus();
+  }
+}
+window.saveComment = saveComment;
 
 // ===== ORDER DETAIL =====
 function openOrderDetail(orderId) {
