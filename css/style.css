@@ -2311,6 +2311,350 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* =====================================================
+   KC2 – Redesign clean dos cards Kanban
+   ===================================================== */
+.kanban-card.kc2 {
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+  background: var(--bg2);
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  display: flex;
+  flex-direction: column;
+}
+.kanban-card.kc2:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  border-color: rgba(20,65,150,.55);
+}
+.kanban-card.kc2:active { transform: none; }
+
+/* prioridade: stripe no topo */
+.kanban-card.kc2.priority-card-sameday { border-top: 3px solid #ef4444; animation: samedayPulseCard 2.5s ease-in-out infinite; }
+.kanban-card.kc2.priority-card-urgent  { border-top: 3px solid #f59e0b; }
+.kanban-card.kc2.priority-card-normal  { border-top: 3px solid #22c55e; }
+.kanban-card.kc2.kc2-late              { border-top-color: #ef4444 !important; }
+
+/* inner padding wrapper */
+.kanban-card.kc2 > *:not(.kc2-actions) { padding: 0 .9rem; }
+.kanban-card.kc2 > .kc2-header  { padding-top: .75rem; }
+.kanban-card.kc2 > .kc2-actions { padding: .65rem .9rem .75rem; }
+
+/* ── Header ── */
+.kc2-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .55rem;
+  flex-wrap: wrap;
+}
+.kc2-ids {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+}
+.kc2-lot {
+  font-weight: 800;
+  font-size: .9rem;
+  color: #60a5fa;
+  letter-spacing: -.01em;
+}
+.kc2-op {
+  font-size: .67rem;
+  font-weight: 700;
+  background: rgba(96,165,250,.12);
+  color: #93c5fd;
+  border: 1px solid rgba(96,165,250,.25);
+  border-radius: 5px;
+  padding: .1rem .4rem;
+}
+.kc2-erp {
+  font-size: .65rem;
+  font-weight: 700;
+  background: rgba(20,65,150,.15);
+  color: #93c5fd;
+  border: 1px solid rgba(20,65,150,.3);
+  border-radius: 5px;
+  padding: .1rem .4rem;
+}
+.kc2-right-badges {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  flex-shrink: 0;
+}
+
+/* Status badge */
+.kc2-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .65rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: .18rem .55rem;
+}
+.kc2-status-working {
+  background: rgba(34,197,94,.15);
+  color: #4ade80;
+  border: 1px solid rgba(34,197,94,.3);
+}
+.kc2-status-paused {
+  background: rgba(251,191,36,.12);
+  color: #fbbf24;
+  border: 1px solid rgba(251,191,36,.3);
+}
+.kc2-pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  display: inline-block;
+  animation: kc2PulseGreen 1.4s ease-in-out infinite;
+}
+@keyframes kc2PulseGreen {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.5; transform:scale(1.5); }
+}
+
+/* Priority pill */
+.kc2-prio {
+  font-size: .63rem;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: .15rem .5rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.kc2-prio-normal  { background: rgba(34,197,94,.12); color: #4ade80; border:1px solid rgba(34,197,94,.25); }
+.kc2-prio-urgent  { background: rgba(245,158,11,.13); color: #fbbf24; border:1px solid rgba(245,158,11,.3); }
+.kc2-prio-sameday { background: rgba(239,68,68,.13); color: #f87171; border:1px solid rgba(239,68,68,.3); }
+
+/* ── Client ── */
+.kc2-client {
+  font-weight: 700;
+  font-size: .88rem;
+  color: var(--text);
+  margin-bottom: .2rem;
+  line-height: 1.25;
+}
+
+/* ── Product ── */
+.kc2-product {
+  font-size: .78rem;
+  color: var(--text2);
+  margin-bottom: .4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Meta row ── */
+.kc2-meta {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+  margin-bottom: .45rem;
+}
+.kc2-type-badge {
+  font-size: .62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-radius: 5px;
+  padding: .12rem .45rem;
+}
+.kc2-order {
+  font-size: .7rem;
+  color: var(--text3);
+}
+
+/* ── Stats row ── */
+.kc2-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .3rem;
+  flex-wrap: wrap;
+}
+.kc2-qty {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+.kc2-qty i { color: #60a5fa; font-size: .75rem; }
+.kc2-date {
+  font-size: .75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: .28rem;
+}
+.kc2-date-ok   { color: var(--text3); }
+.kc2-date-today { color: #fbbf24; }
+.kc2-date-late  { color: #f87171; }
+
+/* ── City ── */
+.kc2-city {
+  font-size: .72rem;
+  color: var(--text3);
+  margin-bottom: .35rem;
+  display: flex;
+  align-items: center;
+  gap: .28rem;
+}
+
+/* ── Time section ── */
+.kc2-time {
+  margin: .45rem 0 .35rem;
+  padding: .6rem .9rem !important;
+  background: rgba(255,255,255,.03);
+  border-top: 1px solid rgba(255,255,255,.05);
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.kc2-time-bar {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.07);
+  display: flex;
+  overflow: hidden;
+  margin-bottom: .45rem;
+}
+.kc2-bar-worked { background: #22c55e; transition: width .4s; }
+.kc2-bar-paused { background: #f59e0b; transition: width .4s; }
+.kc2-bar-idle   { flex: 1; background: rgba(148,163,184,.15); }
+
+.kc2-time-chips {
+  display: flex;
+  gap: .35rem;
+  flex-wrap: wrap;
+  margin-bottom: .4rem;
+}
+.kc2-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .68rem;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: .18rem .5rem;
+}
+.kc2-chip i { font-size: .6rem; }
+.kc2-chip-total  { background: rgba(148,163,184,.1); color: var(--text2); border:1px solid rgba(148,163,184,.15); }
+.kc2-chip-worked { background: rgba(34,197,94,.1);   color: #4ade80; border:1px solid rgba(34,197,94,.2); }
+.kc2-chip-paused { background: rgba(251,191,36,.1);  color: #fbbf24; border:1px solid rgba(251,191,36,.2); }
+
+.kc2-elapsed {
+  font-size: .72rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  border-radius: 7px;
+  padding: .3rem .55rem;
+}
+.kc2-elapsed i { font-size: .65rem; }
+.kc2-elapsed-ok       { background: rgba(34,197,94,.08);  color: #86efac; border:1px solid rgba(34,197,94,.15); }
+.kc2-elapsed-warn     { background: rgba(251,191,36,.1);  color: #fde68a; border:1px solid rgba(251,191,36,.22); }
+.kc2-elapsed-critical { background: rgba(239,68,68,.1);   color: #fca5a5; border:1px solid rgba(239,68,68,.22); }
+.kc2-eff {
+  margin-left: auto;
+  font-size: .65rem;
+  opacity: .75;
+}
+.kc2-time-simple {
+  font-size: .73rem;
+  color: var(--text3);
+  margin: .3rem .9rem;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+/* ── Alert chip ── */
+.kc2-alert-chip {
+  font-size: .72rem;
+  font-weight: 700;
+  color: #fbbf24;
+  background: rgba(251,191,36,.08);
+  border: 1px solid rgba(251,191,36,.2);
+  border-radius: 7px;
+  padding: .3rem .6rem;
+  margin: .1rem .9rem .35rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* ── Shift closed ── */
+.kc2-shift-closed {
+  font-size: .72rem;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .1rem;
+}
+
+/* ── Actions ── */
+.kc2-actions {
+  display: flex;
+  flex-direction: column;
+  gap: .38rem;
+  border-top: 1px solid rgba(255,255,255,.05);
+}
+.kc2-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  border: none;
+  border-radius: 9px;
+  padding: .6rem .8rem;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity .15s, transform .1s;
+}
+.kc2-btn:active { transform: scale(.98); }
+.kc2-btn-start   { background: #166534; color: #4ade80; border:1px solid rgba(34,197,94,.3); }
+.kc2-btn-start:hover   { background: #15803d; }
+.kc2-btn-pause   { background: rgba(251,191,36,.12); color: #fbbf24; border:1px solid rgba(251,191,36,.3); }
+.kc2-btn-pause:hover   { background: rgba(251,191,36,.2); }
+.kc2-btn-advance { background: #144196; color: #fff; }
+.kc2-btn-advance:hover { background: #1e5bc6; }
+.kc2-btn-reject  { background: transparent; color: #f87171; border:1px solid rgba(239,68,68,.3); }
+.kc2-btn-reject:hover  { background: rgba(239,68,68,.1); }
+
+/* Light theme */
+[data-theme="light"] .kanban-card.kc2 { background: #fff; }
+[data-theme="light"] .kc2-time { background: rgba(0,0,0,.02); border-color: rgba(0,0,0,.06); }
+[data-theme="light"] .kc2-actions { border-top-color: rgba(0,0,0,.07); }
+[data-theme="light"] .kc2-time-bar { background: rgba(0,0,0,.06); }
+[data-theme="light"] .kc2-bar-idle { background: rgba(0,0,0,.08); }
+[data-theme="light"] .kc2-lot { color: #1d4ed8; }
+[data-theme="light"] .kc2-btn-start { background: #dcfce7; color: #166534; border-color: #86efac; }
+[data-theme="light"] .kc2-btn-advance { background: #144196; color: #fff; }
+[data-theme="light"] .kc2-btn-reject { color: #dc2626; border-color: rgba(220,38,38,.3); }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .kanban-card.kc2 { border-radius: 12px; }
+  .kc2-client { font-size: .92rem; }
+  .kc2-btn { padding: .7rem .8rem; font-size: .84rem; min-height: 44px; }
+}
+
+/* =====================================================
    NEW REVIEW/LIBERATION SECTORS – visual distinctions
    ===================================================== */
 .sector-coloracao-revisao   { color: #e879f9 !important; }

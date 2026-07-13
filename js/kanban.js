@@ -396,54 +396,121 @@ function buildKanbanCard(lot, user, currentSector) {
   const numDisplay     = escapeHtml(String(lot.number || ''));
   const orderDisplay   = escapeHtml(String(lot.orderNumber || ''));
 
+  // ── Status badge ──
+  const statusBadgeHtml = status === 'working'
+    ? `<span class="kc2-status kc2-status-working"><span class="kc2-pulse"></span>Trabalhando</span>`
+    : status === 'paused'
+    ? `<span class="kc2-status kc2-status-paused"><i class="fas fa-pause"></i> Pausado</span>`
+    : '';
+
+  // ── Priority badge ──
+  const prioClass = { sameday:'kc2-prio-sameday', urgent:'kc2-prio-urgent', normal:'kc2-prio-normal' }[lot.priority] || 'kc2-prio-normal';
+  const prioLabel = PRIORITY_LABELS[lot.priority] || lot.priority;
+
+  // ── Delivery date color ──
+  const dateClass = late ? 'kc2-date-late' : today ? 'kc2-date-today' : 'kc2-date-ok';
+  const dateIcon  = late ? 'fa-exclamation-circle' : today ? 'fa-calendar-day' : 'fa-calendar-alt';
+  const dateSuffix = late ? ' · Atrasado' : today ? ' · Hoje' : '';
+
+  // ── Time section ──
+  const effPct = timeSummary.total > 0 ? Math.round(timeSummary.worked / timeSummary.total * 100) : 0;
+  const elapsedSector = (() => {
+    try { return typeof getCurrentSectorElapsedTime === 'function' ? getCurrentSectorElapsedTime(lot) : 0; }
+    catch(_) { return 0; }
+  })();
+  const elapsedCls = elapsedSector > 28800000 ? 'kc2-elapsed-critical'
+                   : elapsedSector > 14400000 ? 'kc2-elapsed-warn' : 'kc2-elapsed-ok';
+
+  const timeSectionHtml = isTrackable ? `
+    <div class="kc2-time">
+      <div class="kc2-time-bar">
+        <div class="kc2-bar-worked" style="width:${wPct}%"></div>
+        <div class="kc2-bar-paused" style="width:${pPct}%"></div>
+        <div class="kc2-bar-idle" style="width:${idlePct}%"></div>
+      </div>
+      <div class="kc2-time-chips">
+        <span class="kc2-chip kc2-chip-total"><i class="fas fa-clock"></i> ${formatMs(timeSummary.total)}</span>
+        ${timeSummary.worked > 0 ? `<span class="kc2-chip kc2-chip-worked"><i class="fas fa-play"></i> ${formatMsShort(timeSummary.worked)}</span>` : ''}
+        ${timeSummary.paused > 0 ? `<span class="kc2-chip kc2-chip-paused"><i class="fas fa-pause"></i> ${formatMsShort(timeSummary.paused)}</span>` : ''}
+      </div>
+      ${elapsedSector > 60000 ? `
+      <div class="kc2-elapsed ${elapsedCls}">
+        <i class="fas fa-stopwatch"></i>
+        No setor há <strong>${(typeof rtFormatMs === 'function' ? rtFormatMs : formatMs)(elapsedSector)}</strong>
+        ${effPct > 0 ? `<span class="kc2-eff">${effPct}% efic.</span>` : ''}
+      </div>` : ''}
+    </div>` : (timeSummary.total > 0 ? `
+    <div class="kc2-time-simple">
+      <i class="fas fa-clock"></i> ${formatMs(timeSummary.total)} no setor
+    </div>` : '');
+
+  // ── Work buttons (new style) ──
+  let workBtnsHtml = '';
+  if (isTrackable && !expedienteAberto) {
+    workBtnsHtml = `<span class="kc2-shift-closed"><i class="fas fa-lock"></i> Expediente fechado</span>`;
+  } else if (canTrack) {
+    if (status === 'idle' || status === 'paused') {
+      workBtnsHtml = `<button class="kc2-btn kc2-btn-start" onclick="event.stopPropagation(); startLotWork('${lot.id}')">
+        <i class="fas fa-play"></i> ${status === 'paused' ? 'Retomar' : 'Iniciar'}
+      </button>`;
+    } else if (status === 'working') {
+      workBtnsHtml = `<button class="kc2-btn kc2-btn-pause" onclick="event.stopPropagation(); pauseLotWork('${lot.id}')">
+        <i class="fas fa-pause"></i> Pausar
+      </button>`;
+    }
+  }
+
   return `
-    <div class="kanban-card priority-card-${lot.priority} ${late?'late-card':''} ${alertThr?'alert-card':''} ${isMysql?'kanban-card-mysql':''}"
+    <div class="kanban-card kc2 priority-card-${lot.priority} ${late?'kc2-late':''} ${alertThr?'kc2-alert-thr':''}"
          onclick="openLotDetail('${lot.id}')">
-      <div class="kanban-card-top">
-        <span class="kanban-lot-num">#${numDisplay}${opBadge}</span>
-        <div style="display:flex;align-items:center;gap:.4rem">
-          ${mysqlBadge}
-          ${statusIndicator}
-          <span class="priority-dot" style="background:${pColor}" title="${PRIORITY_LABELS[lot.priority]}"></span>
+
+      <!-- Topo: IDs + badges -->
+      <div class="kc2-header">
+        <div class="kc2-ids">
+          <span class="kc2-lot">#${numDisplay}</span>
+          ${opBadge ? `<span class="kc2-op">OP ${escapeHtml(String(lot.op))}</span>` : ''}
+          ${isMysql ? `<span class="kc2-erp"><i class="fas fa-database"></i> ERP</span>` : ''}
+        </div>
+        <div class="kc2-right-badges">
+          ${statusBadgeHtml}
+          <span class="kc2-prio ${prioClass}">${prioLabel}</span>
         </div>
       </div>
-      <div class="kanban-card-client">${clientDisplay}</div>
-      ${paintOrProduct ? `<div class="kanban-card-paint">${paintOrProduct}</div>` : ''}
-      <div style="margin:.2rem 0">
-        <span class="product-type-badge type-${pt}">${PRODUCT_TYPES[pt]||pt}</span>
-        ${orderDisplay ? `<span class="order-ref" style="margin-left:.3rem">Ped.#${orderDisplay}</span>` : ''}
+
+      <!-- Cliente -->
+      <div class="kc2-client">${clientDisplay}</div>
+
+      <!-- Produto -->
+      ${paintOrProduct ? `<div class="kc2-product">${paintOrProduct}</div>` : ''}
+
+      <!-- Tipo + Pedido -->
+      <div class="kc2-meta">
+        <span class="kc2-type-badge type-${pt}">${PRODUCT_TYPES[pt]||pt}</span>
+        ${orderDisplay ? `<span class="kc2-order"><i class="fas fa-clipboard-list"></i> Ped. #${orderDisplay}</span>` : ''}
       </div>
-      <div class="kanban-card-qty">${lot.qty} ${lot.unit||'Kg'}</div>
-      ${lot.deliveryDate ? `
-      <div class="kanban-card-date ${late?'text-danger':today?'text-warning':''}">
-        <i class="fas fa-calendar-alt"></i> ${formatDate(lot.deliveryDate)}
-        ${late?' ⚠️':today?' 📅':''}
-      </div>` : ''}
-      ${cityDisplay ? `<div class="kanban-card-city"><i class="fas fa-map-pin"></i> ${cityDisplay}</div>` : ''}
-      ${timeBarHtml}
-      ${(() => {
-        try {
-          const elapsed = typeof getCurrentSectorElapsedTime === 'function'
-            ? getCurrentSectorElapsedTime(lot) : 0;
-          if (!elapsed || elapsed < 60000) return '';
-          const cls = elapsed > 28800000 ? 'rt-sector-time-critical'
-                    : elapsed > 14400000 ? 'rt-sector-time-attention'
-                    : 'rt-sector-time-normal';
-          const label = typeof rtFormatMs === 'function' ? rtFormatMs(elapsed) : formatMs(elapsed);
-          return `<div class="rt-sector-elapsed ${cls}"><i class="fas fa-stopwatch"></i> No setor há: ${label}</div>`;
-        } catch(_) { return ''; }
-      })()}
-      ${alertThr ? '<div class="kanban-alert">⚠️ Possível atraso</div>' : ''}
-      <div class="kanban-card-actions" onclick="event.stopPropagation()">
-        ${workBtns}
+
+      <!-- Quantidade + Entrega -->
+      <div class="kc2-stats-row">
+        <span class="kc2-qty"><i class="fas fa-weight-hanging"></i> ${escapeHtml(String(lot.qty))} ${escapeHtml(lot.unit||'Kg')}</span>
+        ${lot.deliveryDate ? `<span class="kc2-date ${dateClass}"><i class="fas ${dateIcon}"></i> ${formatDate(lot.deliveryDate)}${dateSuffix}</span>` : ''}
+      </div>
+
+      ${cityDisplay ? `<div class="kc2-city"><i class="fas fa-map-pin"></i> ${cityDisplay}</div>` : ''}
+
+      <!-- Tempos -->
+      ${timeSectionHtml}
+
+      ${alertThr ? `<div class="kc2-alert-chip"><i class="fas fa-triangle-exclamation"></i> Possível atraso no processo</div>` : ''}
+
+      <!-- Ações -->
+      <div class="kc2-actions" onclick="event.stopPropagation()">
+        ${workBtnsHtml}
         ${canAdvance && nextOptions.length > 0 ? `
-          <button class="btn btn-sm btn-success kanban-advance-btn"
-            onclick="event.stopPropagation(); openSendSector('${lot.id}')">
+          <button class="kc2-btn kc2-btn-advance" onclick="event.stopPropagation(); openSendSector('${lot.id}')">
             <i class="fas fa-arrow-right"></i> Avançar
           </button>` : ''}
         ${canReject ? `
-          <button class="btn-reject"
-            onclick="event.stopPropagation(); openRejectModal('${lot.id}')">
+          <button class="kc2-btn kc2-btn-reject" onclick="event.stopPropagation(); openRejectModal('${lot.id}')">
             <i class="fas fa-ban"></i> Reprovar
           </button>` : ''}
       </div>
