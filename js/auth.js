@@ -509,11 +509,11 @@ async function showApp() {
 // ficam fora do menu até serem implementadas ou removidas de verdade.
 const PAGE_MAP = {
   dashboard:  { el:'pageDashboard',  label:'Dashboard',        icon:'fas fa-tachometer-alt', roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'], group:'principal' },
-  kanban:     { el:'pageKanban',     label:'Kanban',            icon:'fas fa-columns',        roles:['admin','diretoria','pcp','pcp_lib','manager','sector'], group:'principal' },
+  kanban:     { el:'pageKanban',     label:'Kanban',            icon:'fas fa-columns',        roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'], group:'principal' },
   meu_setor:        { el:'pageMeuSetor',          label:'Meu Setor',             icon:'fas fa-hard-hat',       roles:['sector'], group:'principal' },
 
   pedidos_novos: { el:'pagePedidosNovos', label:'Pedidos Novos',     icon:'fas fa-inbox',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'pedidos' },
-  lots:       { el:'pageLots',       label:'Lotes',             icon:'fas fa-boxes',          roles:['admin','diretoria','pcp','pcp_lib','manager','sector'], group:'pedidos' },
+  lots:       { el:'pageLots',       label:'Lotes',             icon:'fas fa-boxes',          roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'], group:'pedidos' },
   orders:     { el:'pageOrders',     label:'Pedidos',           icon:'fas fa-clipboard-list', roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'pedidos' },
 
   programacao_entregas: { el:'pageProgramacaoEntregas', label:'Programação de Entregas', icon:'fas fa-calendar-alt', roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'], group:'entregas' },
