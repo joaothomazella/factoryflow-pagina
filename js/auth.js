@@ -156,19 +156,8 @@ function mapFactoryAccess(user) {
 
   const roleOriginal = normalizeText(user.role);
 
-  // Se vier do banco como acesso_factoryflow = Laboratorio / Coloração / Envase,
-  // transforma para o formato que o Kanban já entende: role='sector' e sector='...'
-  const sectorFromAccess = mapFactorySector(acessoFactory);
-  const sectorFromRole = mapFactorySector(roleOriginal);
-  const sector = sectorFromAccess || sectorFromRole || mapFactorySector(user.sector || user.setor);
-
-  if (sector) {
-    user.role = 'sector';
-    user.sector = sector;
-    return user;
-  }
-
-  // Acessos administrativos do FactoryFlow
+  // Roles administrativos/especiais verificados ANTES do mapeamento de setor,
+  // para que acesso_factoryflow='viewer' não seja sobrescrito pelo campo role='laboratorio'.
   if (['admin', 'administrador'].includes(acessoFactory) || ['admin', 'administrador'].includes(roleOriginal)) {
     user.role = 'admin';
     user.sector = '';
@@ -183,7 +172,6 @@ function mapFactoryAccess(user) {
 
   if (['pcp'].includes(acessoFactory) || ['pcp'].includes(roleOriginal)) {
     user.role = 'pcp';
-    // Mantém role='pcp' para continuar vendo tudo, mas identifica o expediente como PCP (Liberação).
     user.sector = 'pcp_liberacao';
     return user;
   }
@@ -191,6 +179,12 @@ function mapFactoryAccess(user) {
   if (['pcp_lib', 'pcplib', 'liberacao', 'liberacao pcp'].includes(acessoFactory) || ['pcp_lib', 'pcplib'].includes(roleOriginal)) {
     user.role = 'pcp_lib';
     user.sector = 'pcp_liberacao';
+    return user;
+  }
+
+  if (['viewer', 'visualizador'].includes(acessoFactory) || ['viewer', 'visualizador'].includes(roleOriginal)) {
+    user.role = 'viewer';
+    user.sector = '';
     return user;
   }
 
@@ -203,6 +197,18 @@ function mapFactoryAccess(user) {
   if (['motorista', 'driver'].includes(acessoFactory) || ['motorista', 'driver'].includes(roleOriginal)) {
     user.role = 'driver';
     user.sector = '';
+    return user;
+  }
+
+  // Se vier do banco como acesso_factoryflow = Laboratorio / Coloração / Envase,
+  // transforma para o formato que o Kanban já entende: role='sector' e sector='...'
+  const sectorFromAccess = mapFactorySector(acessoFactory);
+  const sectorFromRole = mapFactorySector(roleOriginal);
+  const sector = sectorFromAccess || sectorFromRole || mapFactorySector(user.sector || user.setor);
+
+  if (sector) {
+    user.role = 'sector';
+    user.sector = sector;
     return user;
   }
 
