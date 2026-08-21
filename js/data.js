@@ -644,7 +644,8 @@ function ffBuildProductionPayloadFromLot(lot) {
     linha_produto: String(lot?.linha_produto || lot?.raw_mysql?.linha_produto || productType),
     prioridade: String(lot?.priority || lot?.prioridade || 'normal').toLowerCase(),
     status: ffProductionStatusForSector(sector, !!lot?.rejected),
-    setor_atual: sector
+    setor_atual: sector,
+    previsao_entrega: String(lot?.deliveryDate || lot?.deliveryDateManual || lot?.previsao_entrega || lot?.pits_previsao || lot?.data_entrega || lot?.raw_mysql?.pits_previsao || '').trim() || null
   };
 }
 
@@ -883,7 +884,8 @@ async function apiUpdateLot(lot) {
       ff_sectorMetrics: JSON.stringify(ffSafeParseArray(lot.sectorMetrics)),
       ff_history: JSON.stringify(ffSafeParseArray(lot.history)),
       ff_expedientePausedStatus: lot.expedientePausedStatus || '',
-      ff_comments: JSON.stringify(Array.isArray(lot.comments) ? lot.comments : [])
+      ff_comments: JSON.stringify(Array.isArray(lot.comments) ? lot.comments : []),
+      previsao_entrega: String(lot.deliveryDate || lot.deliveryDateManual || lot.previsao_entrega || lot.pits_previsao || '').trim() || null
     };
 
     const baseUrl = typeof PEDIDOS_API !== 'undefined'
