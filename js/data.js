@@ -76,7 +76,8 @@ const ROLE_LABELS = {
   pcp_lib:     'PCP (Liberação)',
   manager:     'Gerente',
   diretoria:   'Diretoria',
-  admin:       'Administrador'
+  admin:       'Administrador',
+  vendor:      'Vendedor / Solicitante',
 };
 
 const SECTOR_COLORS = {

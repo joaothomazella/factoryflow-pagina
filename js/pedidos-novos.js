@@ -500,6 +500,16 @@ itens = Array.from(itensUnicosMap.values());
             <small>Todos os itens serão enviados direto para Laboratório – Amostras. Depois o laboratório escolhe: Coloração – Amostras ou Pronto para Entrega.</small>
           </span>
         </label>
+        <div id="pnAmostraFields" style="display:none;margin-top:.75rem;display:none;gap:.75rem;flex-wrap:wrap">
+          <div class="form-group" style="flex:1;min-width:200px">
+            <label style="font-size:.8rem;font-weight:600;color:var(--text-muted)">Solicitante / Vendedor</label>
+            <input type="text" id="pnRequesterName" class="form-input" placeholder="Nome do vendedor ou solicitante" />
+          </div>
+          <div class="form-group" style="flex:1;min-width:200px">
+            <label style="font-size:.8rem;font-weight:600;color:var(--text-muted)">Aplicação / Objetivo</label>
+            <input type="text" id="pnApplication" class="form-input" placeholder="Ex: Pintura automotiva, madeira…" />
+          </div>
+        </div>
       </div>
     ` : ''}
 
@@ -562,6 +572,11 @@ function _pnIsPedidoAmostra() {
 
 function _pnTogglePedidoAmostra() {
   const isAmostra = _pnIsPedidoAmostra();
+
+  const amostraFields = document.getElementById('pnAmostraFields');
+  if (amostraFields) {
+    amostraFields.style.display = isAmostra ? 'flex' : 'none';
+  }
 
   document.querySelectorAll('.pn-item').forEach(item => {
     item.classList.toggle('pn-item-amostra', isAmostra);
@@ -685,6 +700,9 @@ async function liberarPedido() {
         ? `AMOSTRA liberada pelo PCP – enviada direto para Laboratório – Amostras – Pedido #${numero}${op ? ' | OP ' + op : ''}`
         : `Lote criado via Pedidos Novos pelo PCP – Pedido #${numero}${op ? ' | OP ' + op : ''}${tipo === 'endurecedor' ? ' | Destino: ' + (endurecedorRoute === 'envase' ? 'Direto Envase' : 'Pesagem') : ''}`;
 
+      const pnRequesterName = isAmostra ? (document.getElementById('pnRequesterName')?.value || '').trim() : '';
+      const pnApplication   = isAmostra ? (document.getElementById('pnApplication')?.value   || '').trim() : '';
+
       const novoLot = {
         id:              genId('lot'),
         number:          lotNum,
@@ -717,6 +735,9 @@ async function liberarPedido() {
         createdBy:       user.id,
         rejected:        false,
         rejectedAt:      null,
+        requester_name:  pnRequesterName || null,
+        requester_id:    pnRequesterName ? String(user.id) : null,
+        application:     pnApplication   || null,
         rejectedReason:  '',
         rejectedBy:      '',
         rejectedSector:  '',

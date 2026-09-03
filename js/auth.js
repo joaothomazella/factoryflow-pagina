@@ -89,7 +89,10 @@ function hasFactoryFlowAccessValue(value) {
     'tv',
     'painel',
     'viewer',
-    'visualizador'
+    'visualizador',
+    'vendor',
+    'vendedor',
+    'solicitante'
   ].includes(v)) {
     return true;
   }
@@ -113,7 +116,10 @@ function mapFactoryRole(role) {
     motorista: 'driver',
     tv: 'tv',
     viewer: 'viewer',
-    visualizador: 'viewer'
+    visualizador: 'viewer',
+    vendor: 'vendor',
+    vendedor: 'vendor',
+    solicitante: 'vendor',
   };
   return map[r] || r || 'viewer';
 }
@@ -196,6 +202,12 @@ function mapFactoryAccess(user) {
 
   if (['motorista', 'driver'].includes(acessoFactory) || ['motorista', 'driver'].includes(roleOriginal)) {
     user.role = 'driver';
+    user.sector = '';
+    return user;
+  }
+
+  if (['vendor', 'vendedor', 'solicitante'].includes(acessoFactory) || ['vendor', 'vendedor', 'solicitante'].includes(roleOriginal)) {
+    user.role = 'vendor';
     user.sector = '';
     return user;
   }
@@ -529,6 +541,8 @@ const PAGE_MAP = {
   reports:    { el:'pageReports',    label:'Relatórios',        icon:'fas fa-chart-bar',      roles:['admin','diretoria','pcp','pcp_lib','manager','viewer'], group:'relatorios' },
   factory:    { el:'pageFactory',    label:'Painel Geral',      icon:'fas fa-industry',       roles:['admin','diretoria','pcp','manager'], group:'relatorios', hidden:true },
 
+  amostras:    { el:'pageAmostras',   label:'Amostras',          icon:'fas fa-vial',           roles:['admin','diretoria','pcp','pcp_lib','manager','viewer','vendor'], group:'pedidos' },
+
   simulador_entrega:   { el:'pageSimuladorEntrega',  label:'Simulador',             icon:'fas fa-route',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'ferramentas', hidden:true },
   import:        { el:'pageImport',        label:'Importar Pedidos',  icon:'fas fa-file-import',    roles:['admin','pcp'], group:'ferramentas', hidden:true },
 
@@ -699,6 +713,9 @@ function navigateTo(page) {
     case 'relatorio_tempos':  renderRelatorioTempos();     break;
     case 'simulador_entrega':
       if (typeof renderSimuladorEntrega === 'function') renderSimuladorEntrega();
+      break;
+    case 'amostras':
+      if (typeof renderAmostras === 'function') renderAmostras();
       break;
     case 'users':
       if (typeof renderUsers === 'function') {
