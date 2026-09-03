@@ -1,6 +1,18 @@
 'use strict';
 
-/* global STATE, API_BASE, apiCall, showToast, escapeHtml */
+/* global STATE, showToast, escapeHtml, resolveFactoryFlowApiBase, factoryFlowAuthHeaders, fetchWithTimeout */
+
+// Wrapper de fetch autenticado para os endpoints /api/amostras
+async function _amFetch(path, options = {}) {
+  const base = resolveFactoryFlowApiBase();
+  const url  = `${base}${path}`;
+  const isJson = !options.method || options.method === 'GET' ? false : true;
+  const headers = { ...factoryFlowAuthHeaders(isJson), ...(options.headers || {}) };
+  const res = await fetchWithTimeout(url, { ...options, headers }, 10000);
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || json.message || `HTTP ${res.status}`);
+  return json;
+}
 
 // ─── STATUS DEFINITIONS ────────────────────────────────────────────────────
 const SAMPLE_STATUS = {
@@ -131,7 +143,7 @@ async function renderAmostras() {
   _amState.loading = true;
   try {
     const qs      = isVendor ? `?requester_id=${encodeURIComponent(user.id)}` : '';
-    const data    = await apiCall(`/api/amostras${qs}`);
+    const data    = await _amFetch(`/api/amostras${qs}`);
     _amState.samples = data.data || [];
     _amRender();
   } catch (err) {
@@ -297,7 +309,7 @@ function _amCloseModal() {
 async function amOpenDetail(bridgeId) {
   _amShowModal('<div class="am-modal-loading"><i class="fas fa-spinner fa-spin"></i> Carregando…</div>');
   try {
-    const data = await apiCall(`/api/amostras/${bridgeId}`);
+    const data = await _amFetch(`/api/amostras/${bridgeId}`);
     const s    = data.data;
     const user = STATE.currentUser;
     const sk   = _amStatusKey(s);
@@ -406,9 +418,9 @@ async function amOpenTechResult(sampleId, bridgeId) {
   if (!sid) {
     try {
       const lot = _amState.samples.find(s => s.bridge_id === bridgeId) || {};
-      const res = await apiCall('/api/amostras/upsert', {
+      const res = await _amFetch('/api/amostras/upsert', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+  
         body: JSON.stringify({ bridge_id: bridgeId, op: lot.op, numero_pedido: lot.numero_pedido }),
       });
       sid = res.data.id;
@@ -477,18 +489,18 @@ async function _amSaveTechResult(sampleId, bridgeId) {
 
   const user = STATE.currentUser;
   try {
-    await apiCall(`/api/amostras/${sampleId}`, {
+    await _amFetch(`/api/amostras/${sampleId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
         technical_result:            result,
         technical_rejection_reason:  reason || null,
         technical_feedback_notes:    notes  || null,
       }),
     });
-    await apiCall(`/api/amostras/${sampleId}/history`, {
+    await _amFetch(`/api/amostras/${sampleId}/history`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
         action:    `Resultado técnico registrado: ${result === 'aprovada' ? 'Aprovada' : 'Reprovada'}${reason ? ' – ' + reason : ''}`,
         user_id:   String(user.id),
@@ -509,9 +521,9 @@ async function amOpenCommResult(sampleId, bridgeId) {
   if (!sid) {
     try {
       const lot = _amState.samples.find(s => s.bridge_id === bridgeId) || {};
-      const res = await apiCall('/api/amostras/upsert', {
+      const res = await _amFetch('/api/amostras/upsert', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+  
         body: JSON.stringify({ bridge_id: bridgeId, op: lot.op, numero_pedido: lot.numero_pedido }),
       });
       sid = res.data.id;
@@ -587,9 +599,9 @@ async function _amSaveCommResult(sampleId, bridgeId) {
 
   const user = STATE.currentUser;
   try {
-    await apiCall(`/api/amostras/${sampleId}`, {
+    await _amFetch(`/api/amostras/${sampleId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
         commercial_status:        status,
         generated_order_number:   orderNum  || null,
@@ -597,9 +609,9 @@ async function _amSaveCommResult(sampleId, bridgeId) {
       }),
     });
     const actionLabel = { convertida:'Convertida em pedido', nao_convertida:'Não convertida', aprovada_aguardando_pedido:'Aprovada – aguardando pedido' };
-    await apiCall(`/api/amostras/${sampleId}/history`, {
+    await _amFetch(`/api/amostras/${sampleId}/history`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
         action:    `Resultado comercial: ${actionLabel[status] || status}${orderNum ? ' – Pedido ' + orderNum : ''}${failReason ? ' – ' + failReason : ''}`,
         user_id:   String(user.id),
@@ -622,9 +634,9 @@ async function amMarkDelivered(sampleId, bridgeId, evt) {
   if (!sid) {
     try {
       const lot = _amState.samples.find(s => s.bridge_id === bridgeId) || {};
-      const res = await apiCall('/api/amostras/upsert', {
+      const res = await _amFetch('/api/amostras/upsert', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+  
         body: JSON.stringify({ bridge_id: bridgeId, op: lot.op }),
       });
       sid = res.data.id;
@@ -636,14 +648,14 @@ async function amMarkDelivered(sampleId, bridgeId, evt) {
 
   const user = STATE.currentUser;
   try {
-    await apiCall(`/api/amostras/${sid}`, {
+    await _amFetch(`/api/amostras/${sid}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({ delivered_at: 'NOW()' }),
     });
-    await apiCall(`/api/amostras/${sid}/history`, {
+    await _amFetch(`/api/amostras/${sid}/history`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
         action:    'Amostra marcada como entregue ao cliente',
         user_id:   String(user.id),
@@ -664,7 +676,7 @@ async function _amRefresh() {
   const isVendor = user.role === 'vendor';
   const qs       = isVendor ? `?requester_id=${encodeURIComponent(user.id)}` : '';
   try {
-    const data = await apiCall(`/api/amostras${qs}`);
+    const data = await _amFetch(`/api/amostras${qs}`);
     _amState.samples = data.data || [];
     _amRender();
   } catch (_) { /* silently fail */ }
