@@ -714,16 +714,15 @@ async function ffCreateProductionLot(lot) {
 let _ffReloadDataPromise = null;
 
 async function initData() {
-  showLoadingOverlay(true);
   try {
     // Fonte oficial dos lotes: producao_lotes via bridge.
-    await loadBridgeLots({ limit: 300, force: true, timeout: 12000 });
+    await loadBridgeLots({ limit: 300, force: true, timeout: 15000 });
     ffApplyOfficialLots(STATE.lots || []);
 
     const [routesRes, usersRes, ordersRes] = await Promise.allSettled([
-      apiGet('ff_routes', { limit: 300, _timeout: 5000 }),
-      apiGet('ff_users', { limit: 500, _timeout: 5000 }),
-      apiGet('ff_orders', { limit: 500, _timeout: 5000 })
+      apiGet('ff_routes', { limit: 300, _timeout: 10000 }),
+      apiGet('ff_users', { limit: 500, _timeout: 10000 }),
+      apiGet('ff_orders', { limit: 500, _timeout: 10000 })
     ]);
 
     if (routesRes.status === 'fulfilled') STATE.routes = routesRes.value.map(deserializeRoute);
@@ -742,8 +741,8 @@ async function initData() {
     const activePage = document.querySelector('.nav-item.active')?.dataset.page;
     if (activePage && typeof _silentRefresh === 'function') _silentRefresh(activePage);
   } catch(e) {
-    alert('Erro ao conectar ao banco de dados. Verifique sua conexão.\n'+e.message);
-  } finally { showLoadingOverlay(false); }
+    console.warn('initData falhou:', e.message);
+  }
 }
 async function reloadData() {
   if (_ffReloadDataPromise) return _ffReloadDataPromise;

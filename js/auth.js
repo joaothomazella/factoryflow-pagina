@@ -312,11 +312,11 @@ async function handleLogin(e) {
   hideLoginError();
 
   try {
-    const res = await fetch(`${AUTH_API_BASE}/api/login`, {
+    const res = await fetchWithTimeout(`${AUTH_API_BASE}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ usuario: login, senha: pass })
-    });
+    }, 20000);
 
     const data = await res.json().catch(() => ({}));
 
@@ -452,69 +452,31 @@ async function showApp() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('appPage').style.display = 'flex';
 
-  // PATCH: mantém loading curto no login/F5 para dar tempo de carregar os dados.
-  // Se demorar demais, libera a tela e continua tentando em background.
-  showLoadingOverlay(true);
-  const _minLoadingStart = Date.now();
-
-  // Render inicial rápida
+  // Render inicial rápida — app abre IMEDIATAMENTE, dados carregam em background.
   buildSidebar();
-  navigateTo('dashboard');
+  navigateTo(location.hash === '#optimizer' && PAGE_MAP.optimizer.roles.includes(STATE.currentUser.role) ? 'optimizer' : 'dashboard');
 
-  // Auto-update e alertas começam já
   startAlertTimer();
-
-  // Restaura URL do bridge
   restoreBridgeUrl();
+  _showAppBusy = false;
 
-  // Carrega os dados antes de liberar a tela final. O initData() prioriza
-  // /api/producao e trata rotas auxiliares de forma independente.
-  try {
-    await initData();
-
-    // Garante pelo menos um pequeno tempo visual de carregamento,
-    // evitando entrar com os cards zerados por milissegundos.
-    const elapsed = Date.now() - _minLoadingStart;
-    if (elapsed < 1200) {
-      await new Promise(r => setTimeout(r, 1200 - elapsed));
-    }
-
-    showLoadingOverlay(false);
-
-    // Re-render depois do carregamento real
-    const activePage = document.querySelector('.nav-item.active')?.dataset.page || 'dashboard';
-    if (typeof _silentRefresh === 'function') {
-      _silentRefresh(activePage);
-    }
-    startAutoUpdate();
-    // Inicia sistema de alertas de expediente
-    if (typeof ffInitExpedienteAlerts === 'function') ffInitExpedienteAlerts();
-    // Registra push notifications (silencioso se não suportado)
-    if (typeof ffInitPush === 'function' && STATE.currentUser) {
-      const u = STATE.currentUser;
-      ffInitPush(u.id, u.name, u.sector || '').catch(() => {});
-    }
-
-  } catch (err) {
-    console.warn('⚠️ initData demorou demais:', err.message);
-
-    // NÃO trava mais o login por causa do backend.
-    // O usuário entra mesmo se o MySQL estiver lento.
-    showLoadingOverlay(false);
-    startAutoUpdate();
-    // Inicia alertas mesmo se backend demorar
-    if (typeof ffInitExpedienteAlerts === 'function') ffInitExpedienteAlerts();
-
-    setTimeout(async () => {
-      try {
-        await reloadData();
-        const activePage = document.querySelector('.nav-item.active')?.dataset.page || 'dashboard';
-        if (typeof _silentRefresh === 'function') _silentRefresh(activePage);
-      } catch (_) {}
-    }, 2000);
-  } finally {
-    _showAppBusy = false;
-  }
+  // Carrega dados em background sem bloquear a UI.
+  // Se o Railway ainda estiver acordando, o usuário já pode usar o app.
+  initData()
+    .then(() => {
+      const activePage = document.querySelector('.nav-item.active')?.dataset.page || 'dashboard';
+      if (typeof _silentRefresh === 'function') _silentRefresh(activePage);
+      startAutoUpdate();
+      if (typeof ffInitExpedienteAlerts === 'function') ffInitExpedienteAlerts();
+      if (typeof ffInitPush === 'function' && STATE.currentUser) {
+        const u = STATE.currentUser;
+        ffInitPush(u.id, u.name, u.sector || '').catch(() => {});
+      }
+    })
+    .catch(() => {
+      startAutoUpdate();
+      if (typeof ffInitExpedienteAlerts === 'function') ffInitExpedienteAlerts();
+    });
 }
 
 // ===================================================
@@ -526,6 +488,7 @@ async function showApp() {
 // não têm render function implementada (renderUsers/renderDriversPage não existem) e por isso
 // ficam fora do menu até serem implementadas ou removidas de verdade.
 const PAGE_MAP = {
+  optimizer: { el:'pageOptimizer', label:'Otimização PCP', icon:'fas fa-stream', roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'principal' },
   dashboard:  { el:'pageDashboard',  label:'Dashboard',        icon:'fas fa-tachometer-alt', roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'], group:'principal' },
   kanban:     { el:'pageKanban',     label:'Kanban',            icon:'fas fa-columns',        roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'], group:'principal' },
   meu_setor:        { el:'pageMeuSetor',          label:'Meu Setor',             icon:'fas fa-hard-hat',       roles:['sector'], group:'principal' },
@@ -692,6 +655,7 @@ function navigateTo(page) {
   }
 
   switch(page) {
+    case 'optimizer': renderOptimizer(); break;
     case 'dashboard':  renderDashboard();     break;
     case 'kanban':     renderKanban();         break;
     case 'lots':       renderLots();           break;
