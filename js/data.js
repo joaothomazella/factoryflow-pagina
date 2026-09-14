@@ -2664,7 +2664,7 @@ async function expedienteApiGet(path, params = {}) {
   const base = (typeof BRIDGE_CONFIG !== 'undefined' && BRIDGE_CONFIG.baseUrl) ? BRIDGE_CONFIG.baseUrl : '';
   const url = `${base}${path}${qs ? '?' + qs : ''}`;
   const headers = typeof bridgeAuthHeaders === 'function' ? bridgeAuthHeaders(false) : {};
-  const res = await fetch(url, { headers });
+  const res = await fetchWithTimeout(url, { headers }, 8000);
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.ok === false) throw new Error(json.error || `GET ${path} falhou: ${res.status}`);
   return json;
@@ -2673,11 +2673,11 @@ async function expedienteApiGet(path, params = {}) {
 async function expedienteApiPost(path, data = {}) {
   const base = (typeof BRIDGE_CONFIG !== 'undefined' && BRIDGE_CONFIG.baseUrl) ? BRIDGE_CONFIG.baseUrl : '';
   const headers = typeof bridgeAuthHeaders === 'function' ? bridgeAuthHeaders(true) : { 'Content-Type':'application/json' };
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetchWithTimeout(`${base}${path}`, {
     method: 'POST',
     headers,
     body: JSON.stringify(data)
-  });
+  }, 8000);
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.ok === false) throw new Error(json.error || `POST ${path} falhou: ${res.status}`);
   return json;
