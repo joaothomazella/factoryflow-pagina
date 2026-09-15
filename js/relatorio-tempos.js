@@ -1557,6 +1557,7 @@ function _rtNormalizeRow(r) {
     orderNumber:  r.numero_pedido || r.orderNumber || '–',
     productCode:  r.produto_codigo || r.productCode || '–',
     productName:  r.produto_nome || r.productName || '–',
+    productTypeRaw: r.tipo_lote || r.tipoLote || r.productType || '',
     client:       r.cliente_nome || r.client || '–',
     qty:          r.quantidade != null
                     ? `${r.quantidade} ${r.unidade || r.unit || 'Kg'}`

@@ -14,6 +14,35 @@
 .fx-subtitle { margin: 0; color: var(--text2, #94a3b8); font-size: .85rem; max-width: 560px; }
 .fx-toolbar-actions { display: flex; gap: .5rem; }
 
+.fx-tabs {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border, #334155);
+  padding-bottom: .75rem;
+}
+.fx-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border, #334155);
+  background: var(--bg2, #1e293b);
+  color: var(--text2, #94a3b8);
+  font-weight: 600;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease, border-color .12s ease;
+}
+.fx-tab:hover { border-color: var(--orange, #f97316); }
+.fx-tab-active {
+  background: var(--orange, #f97316);
+  border-color: var(--orange, #f97316);
+  color: #fff;
+}
+
 .fx-loading, .fx-error {
   padding: 2.5rem 1rem;
   text-align: center;
@@ -98,6 +127,27 @@
   outline: none;
 }
 .fx-node-clickable:active { transform: translateY(0); }
+
+.fx-node-branch { border-style: dashed; }
+.fx-branch-label {
+  font-size: .72rem;
+  color: var(--orange, #f97316);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  margin-bottom: .35rem;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+.fx-step-note {
+  font-size: .72rem;
+  color: var(--text2, #94a3b8);
+  font-style: italic;
+  text-align: center;
+  max-width: 260px;
+  margin-top: .35rem;
+}
 
 .fx-node-label { font-weight: 700; font-size: .92rem; }
 .fx-node-time { font-size: 1.2rem; font-weight: 800; color: var(--orange, #f97316); }
@@ -186,6 +236,16 @@
   }
   .fx-toolbar-actions { display: none !important; }
   .fx-subtitle { color: #444 !important; }
+  .fx-tabs { border-color: #ccc !important; }
+  .fx-tab { display: none !important; }
+  .fx-tab-active {
+    display: inline-flex !important;
+    background: #fff !important;
+    color: #c2410c !important;
+    border-color: #c2410c !important;
+  }
+  .fx-branch-label { color: #c2410c !important; }
+  .fx-step-note { color: #555 !important; }
   .fx-summary-item {
     background: #f3f4f6 !important;
     border-color: #ccc !important;

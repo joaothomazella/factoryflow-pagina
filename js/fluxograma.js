@@ -2,15 +2,64 @@
 
 // =========================================================
 // FLUXOGRAMA DA EMPRESA
-// Mostra a sequência real de setores de produção como um
-// fluxograma (início -> setores -> fim), com o tempo médio
-// de liberação (trabalhado) de cada um. Cada setor é
-// clicável e mostra o detalhamento dos lotes que passaram
-// por ele. Pensado para impressão (A4).
+// A empresa tem fluxos de produção diferentes dependendo do
+// tipo do lote (Tinta, Base, Amostra — ver PRODUCT_FLOWS em
+// data.js). Esta tela mostra um fluxograma por tipo, com o
+// tempo médio de liberação (trabalhado) de cada setor, com
+// base no histórico real dos lotes daquele tipo. Cada setor
+// clicável mostra o detalhamento dos lotes. Pensado para
+// impressão (A4).
 // =========================================================
 
-let _fluxogramaData = null;
+// Definição visual de cada fluxo. `type`:
+//   'marker'   -> etapa de liberação/aprovação, sem tempo (só o nome)
+//   'sector'   -> etapa normal, com tempo médio/mín/máx e drill-down
+//   'branch'   -> etapa opcional (ex: Coloração antes do Laboratório)
+//   'terminal' -> início/fim do fluxo
+const FX_FLOWS = {
+  tinta: {
+    label: 'Tintas Normais',
+    icon: 'fas fa-fill-drip',
+    steps: [
+      { type: 'marker', key: 'pcp_liberacao', label: 'PCP Liberação' },
+      { type: 'marker', key: 'coloracao_revisao', label: 'Coloração Revisão' },
+      { type: 'marker', key: 'laboratorio_revisao', label: 'Laboratório Revisão' },
+      { type: 'sector', key: 'pesagem', label: 'Pesagem' },
+      { type: 'sector', key: 'producao', label: 'Produção' },
+      { type: 'branch', key: 'coloracao', label: 'Coloração', note: 'Etapa opcional — o lote pode ir direto para o Laboratório' },
+      { type: 'sector', key: 'laboratorio', label: 'Laboratório' },
+      { type: 'sector', key: 'envase_enlatamento', label: 'Envase Enlatamento' },
+      { type: 'terminal', label: 'Pronto' }
+    ]
+  },
+  base: {
+    label: 'Base',
+    icon: 'fas fa-flask',
+    steps: [
+      { type: 'marker', key: 'pcp_liberacao', label: 'PCP Liberação' },
+      { type: 'marker', key: 'coloracao_revisao', label: 'Coloração Revisão' },
+      { type: 'marker', key: 'laboratorio_revisao', label: 'Laboratório Revisão' },
+      { type: 'sector', key: 'pesagem', label: 'Pesagem' },
+      { type: 'sector', key: 'producao', label: 'Produção' },
+      { type: 'sector', key: 'laboratorio', label: 'Laboratório' },
+      { type: 'terminal', label: 'Entregue', note: 'Base sai direto do Laboratório — não passa por Envase' }
+    ]
+  },
+  amostra: {
+    label: 'Amostras',
+    icon: 'fas fa-vial',
+    steps: [
+      { type: 'marker', key: 'pcp_liberacao', label: 'PCP Liberação' },
+      { type: 'sector', key: 'laboratorio_amostras', label: 'Laboratório Amostras' },
+      { type: 'sector', key: 'coloracao_amostras', label: 'Coloração Amostras', note: 'Pode retornar ao Laboratório Amostras antes de finalizar' },
+      { type: 'terminal', label: 'Pronto' }
+    ]
+  }
+};
+
+let _fluxogramaData = null; // { tinta: {key->stat}, base: {...}, amostra: {...} }
 let _fluxogramaLoading = false;
+let _fxActiveFlow = 'tinta';
 
 async function renderFluxograma() {
   const page = document.getElementById('pageFluxograma');
@@ -20,12 +69,19 @@ async function renderFluxograma() {
     <div class="fx-toolbar">
       <div>
         <h2><i class="fas fa-sitemap"></i> Fluxograma de Produção</h2>
-        <p class="fx-subtitle">Sequência de setores e tempo médio de liberação, com base no histórico real dos lotes. Clique em um setor para ver o detalhamento.</p>
+        <p class="fx-subtitle">Sequência de setores e tempo médio de liberação de cada fluxo, com base no histórico real dos lotes. Clique em um setor para ver o detalhamento.</p>
       </div>
       <div class="fx-toolbar-actions">
         <button class="btn" onclick="loadFluxogramaAverages(true)"><i class="fas fa-sync"></i> Atualizar</button>
         <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
       </div>
+    </div>
+    <div class="fx-tabs" id="fxTabs">
+      ${Object.keys(FX_FLOWS).map(key => `
+        <button class="fx-tab ${key === _fxActiveFlow ? 'fx-tab-active' : ''}" onclick="switchFluxogramaFlow('${key}')">
+          <i class="${FX_FLOWS[key].icon}"></i> ${escapeHtml(FX_FLOWS[key].label)}
+        </button>
+      `).join('')}
     </div>
     <div id="fxContent" class="fx-content">
       <div class="fx-loading"><i class="fas fa-spinner fa-spin"></i> Calculando tempos médios...</div>
@@ -35,10 +91,24 @@ async function renderFluxograma() {
   await loadFluxogramaAverages(false);
 }
 
+function switchFluxogramaFlow(flowKey) {
+  if (!FX_FLOWS[flowKey]) return;
+  _fxActiveFlow = flowKey;
+  document.querySelectorAll('#fxTabs .fx-tab').forEach(btn => btn.classList.remove('fx-tab-active'));
+  const idx = Object.keys(FX_FLOWS).indexOf(flowKey);
+  const btn = document.querySelectorAll('#fxTabs .fx-tab')[idx];
+  if (btn) btn.classList.add('fx-tab-active');
+
+  if (_fluxogramaData) {
+    renderFluxogramaContent(flowKey);
+  }
+}
+window.switchFluxogramaFlow = switchFluxogramaFlow;
+
 async function loadFluxogramaAverages(force) {
   if (_fluxogramaLoading) return;
   if (_fluxogramaData && !force) {
-    renderFluxogramaContent(_fluxogramaData);
+    renderFluxogramaContent(_fxActiveFlow);
     return;
   }
 
@@ -50,9 +120,8 @@ async function loadFluxogramaAverages(force) {
 
   try {
     const rows = await _fxFetchRows();
-    const sectors = _fxComputeSectorStats(rows);
-    _fluxogramaData = sectors;
-    renderFluxogramaContent(sectors);
+    _fluxogramaData = _fxComputeAllFlowStats(rows);
+    renderFluxogramaContent(_fxActiveFlow);
   } catch (err) {
     console.error('[Fluxograma] erro ao calcular médias:', err);
     if (content) {
@@ -103,124 +172,127 @@ async function _fxFetchRows() {
   return Array.isArray(json.data) ? json.data : (Array.isArray(json.rows) ? json.rows : []);
 }
 
-// Agrupa por setor (independente do produto), calcula tempo médio/mín/máx
-// TRABALHADO e guarda a lista de lotes que passaram por cada setor
-// (para o drill-down ao clicar).
-function _fxComputeSectorStats(rows) {
-  const acc = {};
+// Classifica uma linha já normalizada (_rtNormalizeRow) no tipo de fluxo
+// (tinta/base/diluente/endurecedor/amostra), igual à regra usada no
+// resto do app (ffNormalizeProductType).
+function _fxClassifyRow(r) {
+  return typeof ffNormalizeProductType === 'function'
+    ? ffNormalizeProductType(r.productTypeRaw, r.productName, r.productCode)
+    : 'tinta';
+}
+
+// Para cada fluxo (tinta/base/amostra), agrupa por setor e calcula
+// tempo médio/mín/máx TRABALHADO + lista de lotes (para o drill-down).
+function _fxComputeAllFlowStats(rows) {
+  const buckets = {}; // flowKey -> sectorKey -> {sumMs,count,minMs,maxMs,rows}
+  Object.keys(FX_FLOWS).forEach(flowKey => { buckets[flowKey] = {}; });
 
   (Array.isArray(rows) ? rows : []).forEach(raw => {
     const r = typeof _rtNormalizeRow === 'function' ? _rtNormalizeRow(raw) : null;
     if (!r || !r.workedMs || r.workedMs <= 0) return;
+
+    const flowKey = _fxClassifyRow(r);
+    if (!buckets[flowKey]) return; // fluxo sem tela própria (ex: diluente/endurecedor)
 
     const sectorKey = typeof _rtNormalizeSectorKeyForAverage === 'function'
       ? _rtNormalizeSectorKeyForAverage(r.sector || r.sectorLabel)
       : String(r.sector || '').toLowerCase();
     if (!sectorKey) return;
 
-    if (!acc[sectorKey]) acc[sectorKey] = { sumMs: 0, count: 0, minMs: Infinity, maxMs: 0, rows: [] };
-    const bucket = acc[sectorKey];
-    bucket.sumMs += r.workedMs;
-    bucket.count += 1;
-    bucket.minMs = Math.min(bucket.minMs, r.workedMs);
-    bucket.maxMs = Math.max(bucket.maxMs, r.workedMs);
-    bucket.rows.push(r);
+    const bucket = buckets[flowKey];
+    if (!bucket[sectorKey]) bucket[sectorKey] = { sumMs: 0, count: 0, minMs: Infinity, maxMs: 0, rows: [] };
+    const stat = bucket[sectorKey];
+    stat.sumMs += r.workedMs;
+    stat.count += 1;
+    stat.minMs = Math.min(stat.minMs, r.workedMs);
+    stat.maxMs = Math.max(stat.maxMs, r.workedMs);
+    stat.rows.push(r);
   });
 
-  // Ordem real do fluxo da empresa (PCP -> Coloração Revisão -> Laboratório
-  // Revisão -> Pesagem -> Produção -> ...). Setores fora dessa lista
-  // (ex: Moagem) não aparecem no fluxograma.
-  const FX_ORDEM_SETORES = [
-    'pcp_liberacao',
-    'coloracao_revisao',
-    'laboratorio_revisao',
-    'pesagem',
-    'producao',
-    'laboratorio_amostras',
-    'coloracao_amostras',
-    'laboratorio',
-    'coloracao',
-    'envase_produzir',
-    'envase_enlatamento',
-    'pronto',
-    'entrega'
-  ];
-
-  const pivotByKey = new Map(typeof _RT_SETORES_PIVOT !== 'undefined' ? _RT_SETORES_PIVOT : []);
-  const order = FX_ORDEM_SETORES
-    .filter(key => pivotByKey.has(key))
-    .map(key => [key, pivotByKey.get(key)]);
-
-  return order
-    .map(([key, label]) => {
-      const stat = acc[key];
-      if (!stat || stat.count === 0) {
-        return { key, label, count: 0, avgMs: 0, minMs: 0, maxMs: 0, rows: [] };
-      }
+  const result = {};
+  Object.keys(buckets).forEach(flowKey => {
+    const map = {};
+    Object.keys(buckets[flowKey]).forEach(sectorKey => {
+      const stat = buckets[flowKey][sectorKey];
       stat.rows.sort((a, b) => (b.exitAt || b.enteredAt || 0) - (a.exitAt || a.enteredAt || 0));
-      return {
-        key,
-        label,
+      map[sectorKey] = {
         count: stat.count,
         avgMs: Math.round(stat.sumMs / stat.count),
         minMs: stat.minMs,
         maxMs: stat.maxMs,
         rows: stat.rows
       };
-    })
-    // Remove setores terminais sem nenhum tempo de trabalho (ex: "Pronto"/"Entrega" são só status).
-    .filter(s => !(['pronto', 'entrega'].includes(s.key) && s.count === 0));
+    });
+    result[flowKey] = map;
+  });
+  return result;
 }
 
-function renderFluxogramaContent(sectors) {
+function renderFluxogramaContent(flowKey) {
   const content = document.getElementById('fxContent');
-  if (!content) return;
+  if (!content || !_fluxogramaData) return;
 
-  // Etapas de liberação de ordem de produção: aparecem só como marco do
-  // fluxo, sem tempo médio (não representam tempo de produção em si).
-  const FX_ETAPAS_LIBERACAO = ['pcp_liberacao', 'coloracao_revisao', 'laboratorio_revisao'];
+  const flow = FX_FLOWS[flowKey];
+  const statsMap = _fluxogramaData[flowKey] || {};
+  if (!flow) return;
 
-  const comData = sectors.filter(s => s.count > 0 && !FX_ETAPAS_LIBERACAO.includes(s.key));
-  const semDados = sectors.filter(s => s.count === 0 && !FX_ETAPAS_LIBERACAO.includes(s.key));
+  const sectorSteps = flow.steps.filter(s => s.type === 'sector' || s.type === 'branch');
+  const comDados = sectorSteps.filter(s => statsMap[s.key] && statsMap[s.key].count > 0);
+  const semDados = sectorSteps.filter(s => !statsMap[s.key] || statsMap[s.key].count === 0);
 
-  if (comData.length === 0) {
-    content.innerHTML = `<div class="fx-error"><i class="fas fa-info-circle"></i> Ainda não há histórico suficiente de tempos por setor para montar o fluxograma.</div>`;
+  if (comDados.length === 0) {
+    content.innerHTML = `<div class="fx-error"><i class="fas fa-info-circle"></i> Ainda não há histórico suficiente de "${escapeHtml(flow.label)}" para montar esse fluxograma.</div>`;
     return;
   }
 
-  const totalMs = comData.reduce((sum, s) => sum + s.avgMs, 0);
+  const totalMs = comDados.reduce((sum, s) => sum + statsMap[s.key].avgMs, 0);
 
-  const nodesHtml = sectors.map((s) => {
-    const isLiberacao = FX_ETAPAS_LIBERACAO.includes(s.key);
-    const semDadosFlag = s.count === 0;
+  const stepsHtml = flow.steps.map((step, idx) => {
+    const isLast = idx === flow.steps.length - 1;
+    const connector = !isLast ? `<div class="fx-connector"><div class="fx-connector-line"></div><i class="fas fa-chevron-down"></i></div>` : '';
 
-    if (isLiberacao) {
+    if (step.type === 'terminal') {
       return `
         <div class="fx-step">
-          <div class="fx-node fx-node-sector fx-node-liberacao">
-            <div class="fx-node-label">${escapeHtml(s.label)}</div>
-            <div class="fx-node-count">Etapa de liberação de ordem de produção</div>
-          </div>
-          <div class="fx-connector"><div class="fx-connector-line"></div><i class="fas fa-chevron-down"></i></div>
+          <div class="fx-node fx-node-terminal">${escapeHtml(step.label)}</div>
+          ${step.note ? `<div class="fx-step-note">${escapeHtml(step.note)}</div>` : ''}
+          ${connector}
         </div>`;
     }
 
+    if (step.type === 'marker') {
+      return `
+        <div class="fx-step">
+          <div class="fx-node fx-node-sector fx-node-liberacao">
+            <div class="fx-node-label">${escapeHtml(step.label)}</div>
+            <div class="fx-node-count">Etapa de liberação de ordem de produção</div>
+          </div>
+          ${connector}
+        </div>`;
+    }
+
+    // 'sector' e 'branch' usam o mesmo card, só muda o texto de apoio.
+    const stat = statsMap[step.key];
+    const semDadosFlag = !stat || stat.count === 0;
+    const isBranch = step.type === 'branch';
     return `
       <div class="fx-step">
-        <div class="fx-node fx-node-sector ${semDadosFlag ? 'fx-node-empty' : 'fx-node-clickable'}"
-             ${semDadosFlag ? '' : `onclick="openFluxogramaSetor('${s.key}')" role="button" tabindex="0"`}>
-          <div class="fx-node-label">${escapeHtml(s.label)}</div>
-          <div class="fx-node-time">${semDadosFlag ? 'Sem histórico' : formatMs(s.avgMs)}</div>
-          ${!semDadosFlag ? `<div class="fx-node-count">${s.count} lote${s.count === 1 ? '' : 's'} · toque para detalhar</div>` : ''}
+        ${isBranch ? `<div class="fx-branch-label"><i class="fas fa-code-branch"></i> Etapa opcional</div>` : ''}
+        <div class="fx-node fx-node-sector ${semDadosFlag ? 'fx-node-empty' : 'fx-node-clickable'} ${isBranch ? 'fx-node-branch' : ''}"
+             ${semDadosFlag ? '' : `onclick="openFluxogramaSetor('${flowKey}','${step.key}')" role="button" tabindex="0"`}>
+          <div class="fx-node-label">${escapeHtml(step.label)}</div>
+          <div class="fx-node-time">${semDadosFlag ? 'Sem histórico' : formatMs(stat.avgMs)}</div>
+          ${!semDadosFlag ? `<div class="fx-node-count">${stat.count} lote${stat.count === 1 ? '' : 's'} · toque para detalhar</div>` : ''}
         </div>
-        <div class="fx-connector"><div class="fx-connector-line"></div><i class="fas fa-chevron-down"></i></div>
+        ${step.note ? `<div class="fx-step-note">${escapeHtml(step.note)}</div>` : ''}
+        ${connector}
       </div>`;
   }).join('');
 
   content.innerHTML = `
     <div class="fx-summary">
       <div class="fx-summary-item">
-        <span class="fx-summary-label">Tempo total médio de produção (ponta a ponta)</span>
+        <span class="fx-summary-label">Tempo total médio — ${escapeHtml(flow.label)}</span>
         <span class="fx-summary-value">${formatMs(totalMs)}</span>
       </div>
     </div>
@@ -229,31 +301,32 @@ function renderFluxogramaContent(sectors) {
         <div class="fx-node fx-node-terminal">Início</div>
         <div class="fx-connector"><div class="fx-connector-line"></div><i class="fas fa-chevron-down"></i></div>
       </div>
-      ${nodesHtml}
-      <div class="fx-step">
-        <div class="fx-node fx-node-terminal">Fim</div>
-      </div>
+      ${stepsHtml}
     </div>
-    ${semDados.length > 0 ? `<p class="fx-note"><i class="fas fa-info-circle"></i> Setores sem histórico ainda: ${semDados.map(s => escapeHtml(s.label)).join(', ')}.</p>` : ''}
+    ${semDados.length > 0 ? `<p class="fx-note"><i class="fas fa-info-circle"></i> Sem histórico ainda: ${semDados.map(s => escapeHtml(s.label)).join(', ')}.</p>` : ''}
     <div class="fx-print-footer">
-      Gerado em ${new Date().toLocaleString('pt-BR')} · FactoryFlow
+      Gerado em ${new Date().toLocaleString('pt-BR')} · FactoryFlow · ${escapeHtml(flow.label)}
     </div>
   `;
 }
 
-// Abre o drill-down de um setor: estatísticas + lista dos lotes mais recentes.
-function openFluxogramaSetor(key) {
-  if (!_fluxogramaData) return;
-  const sector = _fluxogramaData.find(s => s.key === key);
-  if (!sector || sector.count === 0) return;
+// Abre o drill-down de um setor de um fluxo específico.
+function openFluxogramaSetor(flowKey, sectorKey) {
+  if (!_fluxogramaData || !_fluxogramaData[flowKey]) return;
+  const stat = _fluxogramaData[flowKey][sectorKey];
+  if (!stat || stat.count === 0) return;
+
+  const flow = FX_FLOWS[flowKey];
+  const step = flow ? flow.steps.find(s => s.key === sectorKey) : null;
+  const label = step ? step.label : sectorKey;
 
   const modalTitle = document.getElementById('modalFluxogramaSetorTitle');
   const modalBody = document.getElementById('modalFluxogramaSetorBody');
   if (!modalTitle || !modalBody) return;
 
-  modalTitle.textContent = sector.label;
+  modalTitle.textContent = `${label} — ${flow ? flow.label : ''}`;
 
-  const rowsHtml = sector.rows.map(r => `
+  const rowsHtml = stat.rows.map(r => `
     <tr>
       <td>${escapeHtml(r.orderNumber || '–')}</td>
       <td>${escapeHtml(r.lotNumber || '–')}</td>
@@ -268,19 +341,19 @@ function openFluxogramaSetor(key) {
     <div class="fx-drill-stats">
       <div class="fx-drill-stat">
         <span class="fx-drill-stat-label">Média</span>
-        <span class="fx-drill-stat-value">${formatMs(sector.avgMs)}</span>
+        <span class="fx-drill-stat-value">${formatMs(stat.avgMs)}</span>
       </div>
       <div class="fx-drill-stat">
         <span class="fx-drill-stat-label">Mínimo</span>
-        <span class="fx-drill-stat-value">${formatMs(sector.minMs)}</span>
+        <span class="fx-drill-stat-value">${formatMs(stat.minMs)}</span>
       </div>
       <div class="fx-drill-stat">
         <span class="fx-drill-stat-label">Máximo</span>
-        <span class="fx-drill-stat-value">${formatMs(sector.maxMs)}</span>
+        <span class="fx-drill-stat-value">${formatMs(stat.maxMs)}</span>
       </div>
       <div class="fx-drill-stat">
         <span class="fx-drill-stat-label">Lotes analisados</span>
-        <span class="fx-drill-stat-value">${sector.count}</span>
+        <span class="fx-drill-stat-value">${stat.count}</span>
       </div>
     </div>
     <div class="fx-drill-table-wrap">
@@ -297,7 +370,7 @@ function openFluxogramaSetor(key) {
         </thead>
         <tbody>${rowsHtml}</tbody>
       </table>
-      <p class="fx-drill-more">Total: ${sector.rows.length} lote${sector.rows.length === 1 ? '' : 's'} nesse setor.</p>
+      <p class="fx-drill-more">Total: ${stat.rows.length} lote${stat.rows.length === 1 ? '' : 's'} nesse setor.</p>
     </div>
   `;
 
