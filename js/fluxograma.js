@@ -214,7 +214,7 @@ function openFluxogramaSetor(key) {
 
   modalTitle.textContent = sector.label;
 
-  const rowsHtml = sector.rows.slice(0, 30).map(r => `
+  const rowsHtml = sector.rows.map(r => `
     <tr>
       <td>${escapeHtml(r.orderNumber || '–')}</td>
       <td>${escapeHtml(r.lotNumber || '–')}</td>
@@ -258,7 +258,7 @@ function openFluxogramaSetor(key) {
         </thead>
         <tbody>${rowsHtml}</tbody>
       </table>
-      ${sector.rows.length > 30 ? `<p class="fx-drill-more">Mostrando os 30 lotes mais recentes de ${sector.rows.length}.</p>` : ''}
+      <p class="fx-drill-more">Total: ${sector.rows.length} lote${sector.rows.length === 1 ? '' : 's'} nesse setor.</p>
     </div>
   `;
 

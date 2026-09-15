@@ -141,8 +141,14 @@
 .fx-drill-stat-label { font-size: .72rem; color: var(--text2, #94a3b8); text-transform: uppercase; letter-spacing: .02em; }
 .fx-drill-stat-value { font-size: 1.15rem; font-weight: 800; }
 
-.fx-drill-table-wrap { overflow-x: auto; }
+.fx-drill-table-wrap { overflow-x: auto; overflow-y: auto; max-height: 50vh; border: 1px solid var(--border, #334155); border-radius: 10px; }
 .fx-drill-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.fx-drill-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg2, #1e293b);
+  z-index: 1;
+}
 .fx-drill-table th {
   text-align: left;
   padding: .5rem .6rem;
