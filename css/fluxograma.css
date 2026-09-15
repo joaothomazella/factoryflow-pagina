@@ -11,7 +11,7 @@
   margin-bottom: 1.5rem;
 }
 .fx-toolbar h2 { margin: 0 0 .25rem; font-size: 1.3rem; }
-.fx-subtitle { margin: 0; color: var(--text2, #94a3b8); font-size: .85rem; max-width: 520px; }
+.fx-subtitle { margin: 0; color: var(--text2, #94a3b8); font-size: .85rem; max-width: 560px; }
 .fx-toolbar-actions { display: flex; gap: .5rem; }
 
 .fx-loading, .fx-error {
@@ -39,36 +39,126 @@
 .fx-summary-label { font-size: .78rem; color: var(--text2, #94a3b8); text-transform: uppercase; letter-spacing: .03em; }
 .fx-summary-value { font-size: 1.4rem; font-weight: 800; color: var(--orange, #f97316); }
 
+/* ---------- Fluxo em coluna, tipo fluxograma real ---------- */
 .fx-flow {
   display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  gap: 0;
-}
-.fx-node {
-  display: flex;
+  flex-direction: column;
   align-items: center;
+  max-width: 520px;
+  margin: 0 auto;
 }
-.fx-node-box {
+.fx-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.fx-node {
+  min-width: 240px;
+  text-align: center;
+  padding: .9rem 1.25rem;
+  font-weight: 700;
+  font-size: .92rem;
+}
+
+/* Início / Fim: oval */
+.fx-node-terminal {
+  background: var(--bg2, #1e293b);
+  border: 2px solid var(--orange, #f97316);
+  border-radius: 999px;
+  color: var(--orange, #f97316);
+  padding: .8rem 1.5rem;
+}
+
+/* Setores: retângulo */
+.fx-node-sector {
   background: var(--bg2, #1e293b);
   border: 2px solid var(--border, #334155);
-  border-radius: 14px;
-  padding: 1rem 1.1rem;
-  min-width: 160px;
-  text-align: center;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
 }
-.fx-node-empty .fx-node-box { opacity: .5; border-style: dashed; }
-.fx-node-label { font-weight: 700; font-size: .9rem; margin-bottom: .4rem; }
-.fx-node-time { font-size: 1.15rem; font-weight: 800; color: var(--orange, #f97316); }
-.fx-node-count { font-size: .72rem; color: var(--text2, #94a3b8); margin-top: .2rem; }
-.fx-arrow { color: var(--text2, #94a3b8); font-size: 1.1rem; padding: 0 .6rem; }
+.fx-node-empty { opacity: .5; border-style: dashed; cursor: default; }
+.fx-node-clickable {
+  cursor: pointer;
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.fx-node-clickable:hover,
+.fx-node-clickable:focus-visible {
+  border-color: var(--orange, #f97316);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(249, 115, 22, .25);
+  outline: none;
+}
+.fx-node-clickable:active { transform: translateY(0); }
+
+.fx-node-label { font-weight: 700; font-size: .92rem; }
+.fx-node-time { font-size: 1.2rem; font-weight: 800; color: var(--orange, #f97316); }
+.fx-node-count { font-size: .72rem; color: var(--text2, #94a3b8); font-weight: 500; }
+
+/* Conector vertical entre os nós */
+.fx-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text2, #94a3b8);
+  height: 34px;
+  justify-content: flex-end;
+}
+.fx-connector-line {
+  width: 2px;
+  flex: 1;
+  background: var(--border, #334155);
+}
+.fx-connector i { font-size: .85rem; margin-top: -2px; }
 
 .fx-note {
   margin-top: 1.25rem;
   font-size: .8rem;
   color: var(--text2, #94a3b8);
+  text-align: center;
 }
 .fx-print-footer { display: none; }
+
+/* ---------- Drill-down (modal de detalhamento do setor) ---------- */
+.fx-drill-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+.fx-drill-stat {
+  background: var(--bg2, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+.fx-drill-stat-label { font-size: .72rem; color: var(--text2, #94a3b8); text-transform: uppercase; letter-spacing: .02em; }
+.fx-drill-stat-value { font-size: 1.15rem; font-weight: 800; }
+
+.fx-drill-table-wrap { overflow-x: auto; }
+.fx-drill-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.fx-drill-table th {
+  text-align: left;
+  padding: .5rem .6rem;
+  color: var(--text2, #94a3b8);
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  border-bottom: 1px solid var(--border, #334155);
+}
+.fx-drill-table td {
+  padding: .5rem .6rem;
+  border-bottom: 1px solid var(--border, #334155);
+  white-space: nowrap;
+}
+.fx-td-right { text-align: right; }
+.fx-drill-more { margin-top: .6rem; font-size: .78rem; color: var(--text2, #94a3b8); }
 
 /* ============================================= */
 /* IMPRESSÃO — só o fluxograma, formatado pra A4  */
@@ -91,15 +181,16 @@
   }
   .fx-summary-label { color: #555 !important; }
   .fx-summary-value { color: #c2410c !important; }
-  .fx-flow { gap: .5rem; }
-  .fx-node-box {
+  .fx-node-terminal { color: #c2410c !important; border-color: #c2410c !important; background: #fff !important; }
+  .fx-node-sector {
     background: #fff !important;
     border-color: #333 !important;
     break-inside: avoid;
   }
   .fx-node-time { color: #c2410c !important; }
   .fx-node-count, .fx-note { color: #555 !important; }
-  .fx-arrow { color: #333 !important; }
+  .fx-connector-line { background: #333 !important; }
+  .fx-connector { color: #333 !important; }
   .fx-print-footer {
     display: block;
     margin-top: 2rem;
@@ -110,8 +201,6 @@
 }
 
 @media (max-width: 768px) {
-  .fx-flow { flex-direction: column; align-items: stretch; }
-  .fx-node { flex-direction: column; }
-  .fx-arrow { transform: rotate(90deg); padding: .4rem 0; align-self: center; }
-  .fx-node-box { min-width: 0; }
+  .fx-node { min-width: 0; width: 100%; }
+  .fx-flow { max-width: 100%; }
 }
