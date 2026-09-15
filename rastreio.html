@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FactoryFlow – Rastreio do Pedido</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0f172a; --bg2:#1e293b; --border:#334155;
+      --text:#f1f5f9; --text2:#94a3b8; --green:#22c55e; --orange:#f97316; --red:#ef4444;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'DM Sans', sans-serif; background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);
+      color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1.5rem;
+    }
+    .card {
+      background:var(--bg2); border:1px solid var(--border); border-radius:20px;
+      padding:2.5rem 2rem; width:100%; max-width:420px; text-align:center;
+      box-shadow:0 4px 24px rgba(0,0,0,.5);
+    }
+    .logo { font-size:1.1rem; font-weight:700; color:var(--text2); letter-spacing:.05em; text-transform:uppercase; margin-bottom:1.5rem; }
+    .icon { font-size:3.5rem; margin-bottom:1rem; }
+    .titulo { font-size:1.5rem; font-weight:800; margin-bottom:.5rem; }
+    .subtitulo { color:var(--text2); font-size:.95rem; margin-bottom:1.5rem; }
+    .pedido { font-size:.85rem; color:var(--text2); margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+    .pedido b { color:var(--text); }
+    .status-pronto .icon { color:var(--green); }
+    .status-producao .icon { color:var(--orange); }
+    .status-erro .icon { color:var(--red); }
+    .spinner {
+      width:2.5rem; height:2.5rem; border:3px solid var(--border); border-top-color:var(--orange);
+      border-radius:50%; margin:0 auto 1rem; animation:spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="logo">FactoryFlow</div>
+    <div class="spinner"></div>
+    <div class="titulo">Consultando pedido...</div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://app-producao-backend-production.up.railway.app';
+
+    function render(className, icon, titulo, subtitulo, pedido) {
+      const card = document.getElementById('card');
+      card.className = 'card ' + className;
+      card.innerHTML = `
+        <div class="logo">FactoryFlow</div>
+        <div class="icon">${icon}</div>
+        <div class="titulo">${titulo}</div>
+        <div class="subtitulo">${subtitulo}</div>
+        ${pedido ? `<div class="pedido">Pedido <b>${pedido}</b></div>` : ''}
+      `;
+    }
+
+    async function consultar() {
+      const params = new URLSearchParams(window.location.search);
+      const token = (params.get('t') || '').trim();
+
+      if (!token) {
+        render('status-erro', '⚠️', 'Link inválido', 'Este link de rastreio não é válido.');
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const res = await fetch(`${API_BASE}/api/rastreio/${encodeURIComponent(token)}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const json = await res.json().catch(() => ({}));
+
+        if (!res.ok || json.ok === false) {
+          render('status-erro', '❌', 'Pedido não encontrado', 'Verifique se o link está correto ou entre em contato conosco.');
+          return;
+        }
+
+        if (json.pronto) {
+          render('status-pronto', '✅', 'Pedido pronto!', 'Seu pedido está pronto para entrega/retirada.', json.numero_pedido);
+        } else {
+          render('status-producao', '🏭', 'Em produção', 'Seu pedido ainda está sendo produzido. Avisaremos quando estiver pronto.', json.numero_pedido);
+        }
+      } catch (err) {
+        clearTimeout(timeoutId);
+        render('status-erro', '⚠️', 'Não foi possível consultar', 'Tente novamente em instantes.');
+      }
+    }
+
+    consultar();
+  </script>
+</body>
+</html>

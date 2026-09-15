@@ -21,6 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css?v=5613" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+<link rel="stylesheet" href="css/optimizer.css?v=1">
 </head>
 <body>
 
@@ -438,6 +439,7 @@
     </div>
 
     <!-- Pages -->
+    <div id="pageOptimizer" class="page"></div>
     <div id="pageDashboard" class="page active"></div>
     <div id="pageKanban"    class="page"></div>
     <div id="pageLots"      class="page"></div>
@@ -534,6 +536,15 @@
       <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body" id="modalLotDetailBody"></div>
+  </div>
+
+  <!-- Modal: Rastreio QR Code -->
+  <div id="modalRastreioQr" class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-qrcode"></i> Rastreio do Pedido</h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modalRastreioQrBody" style="text-align:center;padding:1.5rem"></div>
   </div>
 
   <!-- Modal: Order Detail -->
@@ -861,6 +872,7 @@
 </div>
 
 <!-- Chart.js não estava sendo usado no login; carregado aqui para não bloquear LCP -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 <script src="js/data.js?v=9026"></script>
 <script src="js/pedidos-novos.js?v=7012"></script>
@@ -872,6 +884,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js" defer></script>
 <script src="js/relatorio-tempos.js?v=112"></script>
 <script src="js/simulador-entrega.js?v=3"></script>
+<script src="js/optimizer.js?v=1"></script>
 <script src="js/auth.js?v=5010"></script>
 <script src="js/lots.js?v=24"></script>
 <script src="js/kanban.js?v=20"></script>

@@ -757,6 +757,10 @@ function openLotDetail(lotId) {
               <i class="fas fa-handshake"></i> Cliente retirou / Finalizar
             </button>
           </div>` : ''}
+        ${['admin','pcp','pcp_lib','manager','diretoria'].includes(user.role) ? `
+          <button class="btn" style="margin-top:.5rem;width:100%" onclick="openRastreioQr('${lot.id}')">
+            <i class="fas fa-qrcode"></i> Gerar QR Code de Rastreio
+          </button>` : ''}
       </div>
 
       <div class="detail-col">
@@ -811,6 +815,57 @@ function openLotDetail(lotId) {
   openModal('modalLotDetail');
   if (typeof ffLoadHistoricalCompareRemote === 'function') ffLoadHistoricalCompareRemote(lot.id);
 }
+
+async function openRastreioQr(lotId) {
+  const lot = STATE.lots.find(l => l.id === lotId);
+  if (!lot) return;
+
+  const bridgeId = lot._bridgeId || String(lot.id).replace('bridge_', '');
+  if (!bridgeId || !/^\d+$/.test(String(bridgeId))) {
+    showToast('Este lote ainda não tem ID de produção sincronizado. Aguarde alguns segundos e tente novamente.', 'error');
+    return;
+  }
+
+  const body = document.getElementById('modalRastreioQrBody');
+  body.innerHTML = `<div style="padding:2rem"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i></div>`;
+  openModal('modalRastreioQr');
+
+  try {
+    const result = await bridgeApiGet(`/api/producao/${bridgeId}/rastreio`, {}, { timeout: 10000, force: true });
+    if (!result || result.ok === false || !result.token) {
+      throw new Error(result?.error || 'Não foi possível gerar o link de rastreio.');
+    }
+
+    const link = `${window.location.origin}/rastreio.html?t=${encodeURIComponent(result.token)}`;
+    const waText = encodeURIComponent(`Acompanhe o status do seu pedido #${lot.number || ''}: ${link}`);
+
+    body.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:1rem">
+        <canvas id="rastreioQrCanvas"></canvas>
+        <div style="width:100%;display:flex;gap:.5rem">
+          <input id="rastreioQrLink" type="text" readonly value="${escapeHtml(link)}"
+            style="flex:1;padding:.6rem;border-radius:8px;border:1px solid var(--border,#334155);background:transparent;color:inherit;font-size:.8rem" />
+          <button class="btn btn-sm" onclick="navigator.clipboard.writeText('${link}');showToast('Link copiado!','success')">
+            <i class="fas fa-copy"></i>
+          </button>
+        </div>
+        <a class="btn btn-success" style="width:100%" target="_blank" rel="noopener"
+          href="https://wa.me/?text=${waText}">
+          <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
+        </a>
+      </div>`;
+
+    if (typeof QRCode !== 'undefined') {
+      QRCode.toCanvas(document.getElementById('rastreioQrCanvas'), link, { width: 220 }, (err) => {
+        if (err) console.error('[rastreio] erro ao desenhar QR:', err);
+      });
+    }
+  } catch (err) {
+    console.error('[rastreio] erro:', err.message);
+    body.innerHTML = `<div style="color:var(--red,#ef4444);padding:1rem">Erro ao gerar link de rastreio: ${escapeHtml(err.message)}</div>`;
+  }
+}
+window.openRastreioQr = openRastreioQr;
 
 async function saveComment(lotId) {
   const lot = STATE.lots.find(l => l.id === lotId);
