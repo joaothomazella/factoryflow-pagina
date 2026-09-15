@@ -127,7 +127,11 @@ function _fxComputeSectorStats(rows) {
     bucket.rows.push(r);
   });
 
-  const order = typeof _RT_SETORES_PIVOT !== 'undefined' ? _RT_SETORES_PIVOT : [];
+  // Setores que não devem aparecer no fluxograma da empresa.
+  const FX_SETORES_OCULTOS = ['moagem'];
+
+  const order = (typeof _RT_SETORES_PIVOT !== 'undefined' ? _RT_SETORES_PIVOT : [])
+    .filter(([key]) => !FX_SETORES_OCULTOS.includes(key));
 
   return order
     .map(([key, label]) => {
