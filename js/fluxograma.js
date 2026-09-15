@@ -127,11 +127,29 @@ function _fxComputeSectorStats(rows) {
     bucket.rows.push(r);
   });
 
-  // Setores que não devem aparecer no fluxograma da empresa.
-  const FX_SETORES_OCULTOS = ['moagem'];
+  // Ordem real do fluxo da empresa (PCP -> Coloração Revisão -> Laboratório
+  // Revisão -> Pesagem -> Produção -> ...). Setores fora dessa lista
+  // (ex: Moagem) não aparecem no fluxograma.
+  const FX_ORDEM_SETORES = [
+    'pcp_liberacao',
+    'coloracao_revisao',
+    'laboratorio_revisao',
+    'pesagem',
+    'producao',
+    'laboratorio_amostras',
+    'coloracao_amostras',
+    'laboratorio',
+    'coloracao',
+    'envase_produzir',
+    'envase_enlatamento',
+    'pronto',
+    'entrega'
+  ];
 
-  const order = (typeof _RT_SETORES_PIVOT !== 'undefined' ? _RT_SETORES_PIVOT : [])
-    .filter(([key]) => !FX_SETORES_OCULTOS.includes(key));
+  const pivotByKey = new Map(typeof _RT_SETORES_PIVOT !== 'undefined' ? _RT_SETORES_PIVOT : []);
+  const order = FX_ORDEM_SETORES
+    .filter(key => pivotByKey.has(key))
+    .map(key => [key, pivotByKey.get(key)]);
 
   return order
     .map(([key, label]) => {
