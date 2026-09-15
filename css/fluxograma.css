@@ -128,6 +128,25 @@
 }
 .fx-node-clickable:active { transform: translateY(0); }
 
+/* Bifurcação (fork): dois ou mais caminhos lado a lado */
+.fx-fork {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.fx-fork-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1 1 220px;
+  max-width: 260px;
+  padding: .75rem;
+  border: 1px dashed var(--border, #334155);
+  border-radius: 12px;
+}
+
 .fx-node-branch { border-style: dashed; }
 .fx-branch-label {
   font-size: .72rem;
@@ -262,6 +281,7 @@
   .fx-node-count, .fx-note { color: #555 !important; }
   .fx-connector-line { background: #333 !important; }
   .fx-connector { color: #333 !important; }
+  .fx-fork-branch { border-color: #999 !important; break-inside: avoid; }
   .fx-print-footer {
     display: block;
     margin-top: 2rem;
@@ -274,4 +294,6 @@
 @media (max-width: 768px) {
   .fx-node { min-width: 0; width: 100%; }
   .fx-flow { max-width: 100%; }
+  .fx-fork { flex-direction: column; align-items: center; }
+  .fx-fork-branch { max-width: 100%; width: 100%; }
 }

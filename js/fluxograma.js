@@ -15,6 +15,8 @@
 //   'marker'   -> etapa de liberação/aprovação, sem tempo (só o nome)
 //   'sector'   -> etapa normal, com tempo médio/mín/máx e drill-down
 //   'branch'   -> etapa opcional (ex: Coloração antes do Laboratório)
+//   'fork'     -> bifurcação: dois caminhos possíveis lado a lado (ex: endurecedor
+//                 com ou sem produção), cada um com sua própria lista de `steps`
 //   'terminal' -> início/fim do fluxo
 const FX_FLOWS = {
   tinta: {
@@ -52,6 +54,47 @@ const FX_FLOWS = {
       { type: 'marker', key: 'pcp_liberacao', label: 'PCP Liberação' },
       { type: 'sector', key: 'laboratorio_amostras', label: 'Laboratório Amostras' },
       { type: 'sector', key: 'coloracao_amostras', label: 'Coloração Amostras', note: 'Pode retornar ao Laboratório Amostras antes de finalizar' },
+      { type: 'terminal', label: 'Pronto' }
+    ]
+  },
+  diluente: {
+    label: 'Diluente',
+    icon: 'fas fa-tint',
+    steps: [
+      { type: 'marker', key: 'pcp_liberacao', label: 'PCP Liberação' },
+      { type: 'marker', key: 'coloracao_revisao', label: 'Coloração Revisão' },
+      { type: 'marker', key: 'laboratorio_revisao', label: 'Laboratório Revisão' },
+      { type: 'sector', key: 'envase_produzir', label: 'Envase Produzir', note: 'Diluente vai direto do PCP para o Envase — não passa por Pesagem, Produção, Coloração ou Laboratório' },
+      { type: 'terminal', label: 'Pronto' }
+    ]
+  },
+  endurecedor: {
+    label: 'Endurecedor',
+    icon: 'fas fa-bolt',
+    steps: [
+      { type: 'marker', key: 'pcp_liberacao', label: 'PCP Liberação' },
+      { type: 'marker', key: 'coloracao_revisao', label: 'Coloração Revisão' },
+      { type: 'marker', key: 'laboratorio_revisao', label: 'Laboratório Revisão' },
+      {
+        type: 'fork',
+        note: 'O PCP escolhe a rota na liberação do lote',
+        branches: [
+          {
+            label: 'Com Produção',
+            steps: [
+              { type: 'sector', key: 'pesagem', label: 'Pesagem' },
+              { type: 'sector', key: 'producao', label: 'Produção' },
+              { type: 'sector', key: 'envase_enlatamento', label: 'Envase Enlatamento' }
+            ]
+          },
+          {
+            label: 'Direto ao Envase',
+            steps: [
+              { type: 'sector', key: 'envase_produzir', label: 'Envase Produzir' }
+            ]
+          }
+        ]
+      },
       { type: 'terminal', label: 'Pronto' }
     ]
   }
@@ -228,6 +271,57 @@ function _fxComputeAllFlowStats(rows) {
   return result;
 }
 
+// Junta todos os steps 'sector'/'branch' de um fluxo, incluindo os que
+// estão dentro de um 'fork' (bifurcação), para calcular totais e status.
+function _fxFlattenSectorSteps(steps) {
+  const out = [];
+  steps.forEach(step => {
+    if (step.type === 'sector' || step.type === 'branch') out.push(step);
+    if (step.type === 'fork') {
+      step.branches.forEach(branch => out.push(..._fxFlattenSectorSteps(branch.steps)));
+    }
+  });
+  return out;
+}
+
+// Renderiza o card de um único step (sem o conector), reutilizado tanto
+// no fluxo linear quanto dentro de cada ramo de um 'fork'.
+function _fxRenderStepNode(flowKey, statsMap, step) {
+  if (step.type === 'terminal') {
+    return `
+      <div class="fx-step">
+        <div class="fx-node fx-node-terminal">${escapeHtml(step.label)}</div>
+        ${step.note ? `<div class="fx-step-note">${escapeHtml(step.note)}</div>` : ''}
+      </div>`;
+  }
+
+  if (step.type === 'marker') {
+    return `
+      <div class="fx-step">
+        <div class="fx-node fx-node-sector fx-node-liberacao">
+          <div class="fx-node-label">${escapeHtml(step.label)}</div>
+          <div class="fx-node-count">Etapa de liberação de ordem de produção</div>
+        </div>
+      </div>`;
+  }
+
+  // 'sector' e 'branch' usam o mesmo card, só muda o texto de apoio.
+  const stat = statsMap[step.key];
+  const semDadosFlag = !stat || stat.count === 0;
+  const isBranch = step.type === 'branch';
+  return `
+    <div class="fx-step">
+      ${isBranch ? `<div class="fx-branch-label"><i class="fas fa-code-branch"></i> Etapa opcional</div>` : ''}
+      <div class="fx-node fx-node-sector ${semDadosFlag ? 'fx-node-empty' : 'fx-node-clickable'} ${isBranch ? 'fx-node-branch' : ''}"
+           ${semDadosFlag ? '' : `onclick="openFluxogramaSetor('${flowKey}','${step.key}')" role="button" tabindex="0"`}>
+        <div class="fx-node-label">${escapeHtml(step.label)}</div>
+        <div class="fx-node-time">${semDadosFlag ? 'Sem histórico' : formatMs(stat.avgMs)}</div>
+        ${!semDadosFlag ? `<div class="fx-node-count">${stat.count} lote${stat.count === 1 ? '' : 's'} · toque para detalhar</div>` : ''}
+      </div>
+      ${step.note ? `<div class="fx-step-note">${escapeHtml(step.note)}</div>` : ''}
+    </div>`;
+}
+
 function renderFluxogramaContent(flowKey) {
   const content = document.getElementById('fxContent');
   if (!content || !_fluxogramaData) return;
@@ -236,7 +330,7 @@ function renderFluxogramaContent(flowKey) {
   const statsMap = _fluxogramaData[flowKey] || {};
   if (!flow) return;
 
-  const sectorSteps = flow.steps.filter(s => s.type === 'sector' || s.type === 'branch');
+  const sectorSteps = _fxFlattenSectorSteps(flow.steps);
   const comDados = sectorSteps.filter(s => statsMap[s.key] && statsMap[s.key].count > 0);
   const semDados = sectorSteps.filter(s => !statsMap[s.key] || statsMap[s.key].count === 0);
 
@@ -251,42 +345,22 @@ function renderFluxogramaContent(flowKey) {
     const isLast = idx === flow.steps.length - 1;
     const connector = !isLast ? `<div class="fx-connector"><div class="fx-connector-line"></div><i class="fas fa-chevron-down"></i></div>` : '';
 
-    if (step.type === 'terminal') {
-      return `
-        <div class="fx-step">
-          <div class="fx-node fx-node-terminal">${escapeHtml(step.label)}</div>
-          ${step.note ? `<div class="fx-step-note">${escapeHtml(step.note)}</div>` : ''}
-          ${connector}
-        </div>`;
-    }
-
-    if (step.type === 'marker') {
-      return `
-        <div class="fx-step">
-          <div class="fx-node fx-node-sector fx-node-liberacao">
-            <div class="fx-node-label">${escapeHtml(step.label)}</div>
-            <div class="fx-node-count">Etapa de liberação de ordem de produção</div>
-          </div>
-          ${connector}
-        </div>`;
-    }
-
-    // 'sector' e 'branch' usam o mesmo card, só muda o texto de apoio.
-    const stat = statsMap[step.key];
-    const semDadosFlag = !stat || stat.count === 0;
-    const isBranch = step.type === 'branch';
-    return `
-      <div class="fx-step">
-        ${isBranch ? `<div class="fx-branch-label"><i class="fas fa-code-branch"></i> Etapa opcional</div>` : ''}
-        <div class="fx-node fx-node-sector ${semDadosFlag ? 'fx-node-empty' : 'fx-node-clickable'} ${isBranch ? 'fx-node-branch' : ''}"
-             ${semDadosFlag ? '' : `onclick="openFluxogramaSetor('${flowKey}','${step.key}')" role="button" tabindex="0"`}>
-          <div class="fx-node-label">${escapeHtml(step.label)}</div>
-          <div class="fx-node-time">${semDadosFlag ? 'Sem histórico' : formatMs(stat.avgMs)}</div>
-          ${!semDadosFlag ? `<div class="fx-node-count">${stat.count} lote${stat.count === 1 ? '' : 's'} · toque para detalhar</div>` : ''}
+    if (step.type === 'fork') {
+      const branchesHtml = step.branches.map(branch => `
+        <div class="fx-fork-branch">
+          <div class="fx-branch-label"><i class="fas fa-code-branch"></i> ${escapeHtml(branch.label)}</div>
+          ${branch.steps.map((s, i) => _fxRenderStepNode(flowKey, statsMap, s) + (i < branch.steps.length - 1 ? `<div class="fx-connector"><div class="fx-connector-line"></div><i class="fas fa-chevron-down"></i></div>` : '')).join('')}
         </div>
-        ${step.note ? `<div class="fx-step-note">${escapeHtml(step.note)}</div>` : ''}
-        ${connector}
-      </div>`;
+      `).join('');
+      return `
+        <div class="fx-step">
+          ${step.note ? `<div class="fx-step-note">${escapeHtml(step.note)}</div>` : ''}
+          <div class="fx-fork">${branchesHtml}</div>
+          ${connector}
+        </div>`;
+    }
+
+    return _fxRenderStepNode(flowKey, statsMap, step) + connector;
   }).join('');
 
   content.innerHTML = `
