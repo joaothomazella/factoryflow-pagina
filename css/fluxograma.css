@@ -81,6 +81,11 @@
   gap: .3rem;
 }
 .fx-node-empty { opacity: .5; border-style: dashed; cursor: default; }
+.fx-node-liberacao {
+  border-color: var(--border, #334155);
+  cursor: default;
+}
+.fx-node-liberacao .fx-node-count { font-style: italic; }
 .fx-node-clickable {
   cursor: pointer;
   transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;

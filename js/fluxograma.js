@@ -176,8 +176,12 @@ function renderFluxogramaContent(sectors) {
   const content = document.getElementById('fxContent');
   if (!content) return;
 
-  const comData = sectors.filter(s => s.count > 0);
-  const semDados = sectors.filter(s => s.count === 0);
+  // Etapas de liberação de ordem de produção: aparecem só como marco do
+  // fluxo, sem tempo médio (não representam tempo de produção em si).
+  const FX_ETAPAS_LIBERACAO = ['pcp_liberacao', 'coloracao_revisao', 'laboratorio_revisao'];
+
+  const comData = sectors.filter(s => s.count > 0 && !FX_ETAPAS_LIBERACAO.includes(s.key));
+  const semDados = sectors.filter(s => s.count === 0 && !FX_ETAPAS_LIBERACAO.includes(s.key));
 
   if (comData.length === 0) {
     content.innerHTML = `<div class="fx-error"><i class="fas fa-info-circle"></i> Ainda não há histórico suficiente de tempos por setor para montar o fluxograma.</div>`;
@@ -187,7 +191,20 @@ function renderFluxogramaContent(sectors) {
   const totalMs = comData.reduce((sum, s) => sum + s.avgMs, 0);
 
   const nodesHtml = sectors.map((s) => {
+    const isLiberacao = FX_ETAPAS_LIBERACAO.includes(s.key);
     const semDadosFlag = s.count === 0;
+
+    if (isLiberacao) {
+      return `
+        <div class="fx-step">
+          <div class="fx-node fx-node-sector fx-node-liberacao">
+            <div class="fx-node-label">${escapeHtml(s.label)}</div>
+            <div class="fx-node-count">Etapa de liberação de ordem de produção</div>
+          </div>
+          <div class="fx-connector"><div class="fx-connector-line"></div><i class="fas fa-chevron-down"></i></div>
+        </div>`;
+    }
+
     return `
       <div class="fx-step">
         <div class="fx-node fx-node-sector ${semDadosFlag ? 'fx-node-empty' : 'fx-node-clickable'}"
