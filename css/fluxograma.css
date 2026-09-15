@@ -1,0 +1,117 @@
+/* ============================================= */
+/* FLUXOGRAMA DE PRODUÇÃO                         */
+/* ============================================= */
+
+.fx-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.fx-toolbar h2 { margin: 0 0 .25rem; font-size: 1.3rem; }
+.fx-subtitle { margin: 0; color: var(--text2, #94a3b8); font-size: .85rem; max-width: 520px; }
+.fx-toolbar-actions { display: flex; gap: .5rem; }
+
+.fx-loading, .fx-error {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--text2, #94a3b8);
+  font-size: .95rem;
+}
+.fx-error { color: var(--red, #ef4444); }
+
+.fx-summary {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.fx-summary-item {
+  background: var(--bg2, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+.fx-summary-label { font-size: .78rem; color: var(--text2, #94a3b8); text-transform: uppercase; letter-spacing: .03em; }
+.fx-summary-value { font-size: 1.4rem; font-weight: 800; color: var(--orange, #f97316); }
+
+.fx-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0;
+}
+.fx-node {
+  display: flex;
+  align-items: center;
+}
+.fx-node-box {
+  background: var(--bg2, #1e293b);
+  border: 2px solid var(--border, #334155);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  min-width: 160px;
+  text-align: center;
+}
+.fx-node-empty .fx-node-box { opacity: .5; border-style: dashed; }
+.fx-node-label { font-weight: 700; font-size: .9rem; margin-bottom: .4rem; }
+.fx-node-time { font-size: 1.15rem; font-weight: 800; color: var(--orange, #f97316); }
+.fx-node-count { font-size: .72rem; color: var(--text2, #94a3b8); margin-top: .2rem; }
+.fx-arrow { color: var(--text2, #94a3b8); font-size: 1.1rem; padding: 0 .6rem; }
+
+.fx-note {
+  margin-top: 1.25rem;
+  font-size: .8rem;
+  color: var(--text2, #94a3b8);
+}
+.fx-print-footer { display: none; }
+
+/* ============================================= */
+/* IMPRESSÃO — só o fluxograma, formatado pra A4  */
+/* ============================================= */
+@media print {
+  body * { visibility: hidden; }
+  #pageFluxograma, #pageFluxograma * { visibility: visible; }
+  #pageFluxograma {
+    position: absolute;
+    inset: 0;
+    background: #fff !important;
+    color: #111 !important;
+    padding: 1.5cm;
+  }
+  .fx-toolbar-actions { display: none !important; }
+  .fx-subtitle { color: #444 !important; }
+  .fx-summary-item {
+    background: #f3f4f6 !important;
+    border-color: #ccc !important;
+  }
+  .fx-summary-label { color: #555 !important; }
+  .fx-summary-value { color: #c2410c !important; }
+  .fx-flow { gap: .5rem; }
+  .fx-node-box {
+    background: #fff !important;
+    border-color: #333 !important;
+    break-inside: avoid;
+  }
+  .fx-node-time { color: #c2410c !important; }
+  .fx-node-count, .fx-note { color: #555 !important; }
+  .fx-arrow { color: #333 !important; }
+  .fx-print-footer {
+    display: block;
+    margin-top: 2rem;
+    font-size: .75rem;
+    color: #666 !important;
+    text-align: right;
+  }
+}
+
+@media (max-width: 768px) {
+  .fx-flow { flex-direction: column; align-items: stretch; }
+  .fx-node { flex-direction: column; }
+  .fx-arrow { transform: rotate(90deg); padding: .4rem 0; align-self: center; }
+  .fx-node-box { min-width: 0; }
+}
