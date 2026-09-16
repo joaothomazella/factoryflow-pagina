@@ -224,8 +224,13 @@ function _fxClassifyRow(r) {
     : 'tinta';
 }
 
-// Para cada fluxo (tinta/base/amostra), agrupa por setor e calcula
-// tempo médio/mín/máx TRABALHADO + lista de lotes (para o drill-down).
+// Lotes fora dessa faixa de tempo trabalhado são descartados do cálculo de
+// médias (provavelmente esquecidos no setor ou lançamento incorreto).
+const FX_MIN_WORKED_MS = 3 * 60 * 1000;        // 3 minutos
+const FX_MAX_WORKED_MS = 8 * 60 * 60 * 1000;   // 8 horas
+
+// Para cada fluxo, agrupa por setor e calcula tempo médio/mín/máx
+// TRABALHADO + lista de lotes (para o drill-down).
 function _fxComputeAllFlowStats(rows) {
   const buckets = {}; // flowKey -> sectorKey -> {sumMs,count,minMs,maxMs,rows}
   Object.keys(FX_FLOWS).forEach(flowKey => { buckets[flowKey] = {}; });
@@ -233,9 +238,10 @@ function _fxComputeAllFlowStats(rows) {
   (Array.isArray(rows) ? rows : []).forEach(raw => {
     const r = typeof _rtNormalizeRow === 'function' ? _rtNormalizeRow(raw) : null;
     if (!r || !r.workedMs || r.workedMs <= 0) return;
+    if (r.workedMs < FX_MIN_WORKED_MS || r.workedMs > FX_MAX_WORKED_MS) return;
 
     const flowKey = _fxClassifyRow(r);
-    if (!buckets[flowKey]) return; // fluxo sem tela própria (ex: diluente/endurecedor)
+    if (!buckets[flowKey]) return;
 
     const sectorKey = typeof _rtNormalizeSectorKeyForAverage === 'function'
       ? _rtNormalizeSectorKeyForAverage(r.sector || r.sectorLabel)
