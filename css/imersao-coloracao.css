@@ -128,38 +128,88 @@
   gap: .25rem;
   flex: 1;
 }
+/* Prancheta = "prancheta de papel" real apoiada na bancada, não um
+   ícone de UI solto: fundo cor de papel, presilha no topo, linhas de
+   texto simuladas, leve inclinação alternada para parecer um objeto
+   físico pousado, não uma grade perfeita de widgets. */
 .im-prancheta {
+  position: relative;
   width: 16%;
-  min-width: 20px;
+  min-width: 22px;
   aspect-ratio: 3 / 4;
-  border-radius: 2px;
-  background: rgba(15,23,42,.55);
-  box-shadow: 0 0 0 1px var(--im-color, #22d3ee);
+  border-radius: 2px 2px 3px 3px;
+  background: linear-gradient(180deg, rgba(226,232,240,.14) 0%, rgba(148,163,184,.06) 100%);
+  box-shadow: 0 0 0 1px var(--im-color, #22d3ee), 0 3px 6px rgba(0,0,0,.4), inset 0 0 8px rgba(34,211,238,.08);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 1px;
+  justify-content: flex-start;
+  padding-top: 22%;
+  gap: 2px;
   color: var(--im-color, #22d3ee);
-  font-size: .48rem;
+  font-size: .46rem;
   cursor: pointer;
+  transform: rotate(0deg);
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
-.im-prancheta:hover {
-  transform: scale(1.18);
-  box-shadow: 0 0 12px var(--im-glow, rgba(34,211,238,.7)), 0 0 0 1px var(--im-color, #22d3ee);
-  background: rgba(15,23,42,.85);
+.im-prancheta::before {
+  /* presilha da prancheta */
+  content: '';
+  position: absolute;
+  top: -3%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34%;
+  height: 12%;
+  border-radius: 2px;
+  background: var(--im-color, #22d3ee);
+  opacity: .8;
+  box-shadow: 0 0 6px var(--im-glow, rgba(34,211,238,.6));
 }
-.im-prancheta i { font-size: .8em; }
+.im-prancheta::after {
+  /* linhas de texto simuladas, tipo formulário */
+  content: '';
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 14%;
+  height: 26%;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    currentColor 0, currentColor 1px,
+    transparent 1px, transparent 26%
+  );
+  opacity: .35;
+}
+.im-prancheta:nth-child(3n+1) { transform: rotate(-2.5deg); }
+.im-prancheta:nth-child(3n+2) { transform: rotate(1.5deg); }
+.im-prancheta:nth-child(3n)   { transform: rotate(-.5deg); }
+.im-prancheta:hover {
+  transform: scale(1.22) rotate(0deg);
+  box-shadow: 0 0 14px var(--im-glow, rgba(34,211,238,.75)), 0 0 0 1px var(--im-color, #22d3ee);
+  background: linear-gradient(180deg, rgba(226,232,240,.22) 0%, rgba(148,163,184,.1) 100%);
+  z-index: 2;
+}
 .im-prancheta-label {
-  font-weight: 700;
+  position: relative;
+  z-index: 1;
+  font-weight: 800;
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
+  max-width: 92%;
+  text-shadow: 0 0 4px rgba(0,0,0,.7);
 }
-.im-prancheta-more { font-weight: 800; font-size: .55rem; }
+.im-prancheta-more {
+  font-weight: 800;
+  font-size: .55rem;
+  padding-top: 0;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,6,23,.6);
+}
+.im-prancheta-more::before, .im-prancheta-more::after { content: none; }
 
 @keyframes im-pulse-kf {
   0%   { transform: scale(1); }

@@ -125,7 +125,6 @@ function _imRenderPranchetas(lots) {
   const visible = lots.slice(0, IM_MAX_PRANCHETA_ICONS);
   const icons = visible.map(l => `
     <div class="im-prancheta" onclick="event.stopPropagation(); openImersaoOp('${l.id}')" title="OP ${escapeHtml(l.number || l.op || '')}">
-      <i class="fas fa-clipboard"></i>
       <span class="im-prancheta-label">${escapeHtml(l.number || l.op || '?')}</span>
     </div>
   `).join('');
