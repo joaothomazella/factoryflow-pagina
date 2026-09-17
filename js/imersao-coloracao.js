@@ -2,59 +2,59 @@
 
 // =========================================================
 // IMERSÃO NA FÁBRICA — SETOR DE COLORAÇÃO (MVP)
-// Representação visual (blueprint neon) do setor físico de
-// Coloração da Induscolor. O mapa ocupa toda a área principal;
-// as "pranchetas" que representam OPs são elementos HTML reais,
-// posicionados sobre o mapa, nos locais físicos correspondentes
-// (ex.: a segunda camada da bancada, abaixo da estufa, é onde
-// ficam as pranchetas de Coloração). Quantidade e conteúdo vêm
-// 100% de STATE.lots (mesmos dados do Kanban/Lotes) — nada é
-// mockado ou fixo. Clicar numa OP abre o modal já existente de
-// detalhe do lote (openLotDetail), sem duplicar lógica.
+// Arquitetura em camadas:
+//   CAMADA 1 — imagem real do cenário (frontend/images/imersao/coloracao-cenario.png),
+//              usada como está, sem redesenho.
+//   CAMADA 2 — elementos HTML (pranchetas) posicionados sobre a imagem,
+//              nos locais físicos correspondentes.
+//   CAMADA 3 — dados reais das OPs, vindos de STATE.lots (mesmos dados
+//              do Kanban/Lotes) via ffGetLotCurrentSector. Nada mockado.
 //
-// Para adicionar outros setores no futuro (Laboratório, Produção
-// etc.), basta criar uma nova entrada em IMERSAO_SECTOR_MAP e um
-// novo módulo/página seguindo o mesmo padrão desta.
+// A imagem original é um mockup completo (barra superior + painel lateral
+// + 3 tabelas já com números fixos desenhados nela). Como a regra do
+// projeto é "a imagem não é dado" e os números daquele mockup são fixos/
+// fictícios, usamos apenas a REGIÃO DA SALA da imagem (IM_CROP abaixo),
+// recortada via CSS (o arquivo original não é editado/tocado) — a barra
+// superior, o painel lateral e as tabelas de baixo (que tinham dado falso
+// embutido no próprio desenho) ficam fora da janela visível, e nosso
+// overlay HTML dinâmico assume o lugar delas com dados reais.
 // =========================================================
 
-// --------- MAPA DE POSIÇÕES (tudo em % da cena, 100x100) ---------
-// Ajustar aqui a posição/tamanho de qualquer elemento sem tocar no
-// resto do código. `furniture` é só decoração; `walls` são as 3
-// áreas físicas reais onde ficam as pranchetas (cada uma ligada a
-// um setor real usado em STATE via ffGetLotCurrentSector).
+const IM_IMAGE_SRC = 'images/imersao/coloracao-cenario.png';
+const IM_IMAGE_NATIVE = { w: 1536, h: 1024 };
+
+// Janela de recorte (em pixels da imagem original) — mostra só a sala
+// física (estufa, bancada, capela, armário, computador, paredes de
+// pranchetas), excluindo a barra superior, o painel lateral direito e
+// as tabelas inferiores do mockup original.
+// Ajustar aqui se o enquadramento precisar de retoque fino.
+const IM_CROP = { left: 0, top: 76, width: 1350, height: 530 };
+
+// --------- MAPA DE POSIÇÕES ---------
+// Coordenadas em % relativas à JANELA DE RECORTE acima (0-100), não à
+// tela. Cada `wall` é um local físico real onde ficam as pranchetas de
+// um dos 3 grupos, ligado ao setor real usado em STATE
+// (ffGetLotCurrentSector) para filtrar os lotes que aparecem ali.
 const IMERSAO_SECTOR_MAP = {
   coloracao: {
-    label: 'Coloração',
-    furniture: {
-      entrada:        { x: 0,  y: 62, w: 6,  h: 30, label: 'Entrada',                 icon: 'fa-door-open' },
-      janelaEnvase:   { x: 4,  y: 2,  w: 22, h: 20, label: 'Janela para o Envase',     icon: 'fa-window-maximize' },
-      estufa:         { x: 6,  y: 24, w: 17, h: 26, label: 'Estufa',                   icon: 'fa-box' },
-      capela:         { x: 25, y: 24, w: 14, h: 26, label: 'Capela',                   icon: 'fa-wind' },
-      armario:        { x: 41, y: 24, w: 10, h: 26, label: 'Armário',                  icon: 'fa-archive' },
-      arCondicionado: { x: 36, y: 0,  w: 18, h: 8,  label: 'Ar-Condicionado',          icon: 'fa-snowflake' },
-      cartaCores:     { x: 40, y: 10, w: 12, h: 12, label: 'Carta de Cores',           icon: 'fa-palette' },
-      computador:     { x: 68, y: 30, w: 17, h: 24, label: 'Computador — Liberação de OPs', icon: 'fa-desktop' }
-    },
-    // Cada wall representa um dos 3 grupos de pranchetas. `sector` é o
-    // valor real usado em STATE (ffGetLotCurrentSector) para filtrar
-    // os lotes que aparecem ali.
     walls: {
       coloracao: {
-        // Segunda camada da bancada, logo abaixo da Estufa/Capela —
-        // é aqui, fisicamente, que ficam as OPs em Coloração.
-        x: 6, y: 54, w: 45, h: 20,
+        // Segunda parte da bancada, logo abaixo da Estufa/Capela.
+        x: 15, y: 68, w: 31, h: 15,
         sector: 'coloracao',
         label: 'Coloração',
         color: 'cyan'
       },
       coloracao_revisao: {
-        x: 68, y: 2, w: 30, h: 24,
+        // Parede de pranchetas à direita, canto superior.
+        x: 76, y: 7, w: 18, h: 30,
         sector: 'coloracao_revisao',
         label: 'Coloração Revisão',
         color: 'amber'
       },
       coloracao_amostras: {
-        x: 68, y: 60, w: 30, h: 30,
+        // Parede de pranchetas à direita, abaixo da Revisão.
+        x: 76, y: 39, w: 16, h: 31,
         sector: 'coloracao_amostras',
         label: 'Coloração Amostras',
         color: 'magenta'
@@ -66,7 +66,7 @@ const IMERSAO_SECTOR_MAP = {
 const IM_MAX_PRANCHETA_ICONS = 40;
 
 let _imState = {
-  activeZone: null,      // key dentro de walls, ou null = visão geral
+  activeZone: null,
   refreshTimer: null,
   tickTimer: null
 };
@@ -78,6 +78,11 @@ function renderImersaoColoracao() {
   const map = IMERSAO_SECTOR_MAP.coloracao;
   _imState.activeZone = null;
 
+  const cropAspect = (IM_CROP.width / IM_CROP.height).toFixed(4);
+  const imgWidthPct = ((IM_IMAGE_NATIVE.w / IM_CROP.width) * 100).toFixed(3);
+  const imgLeftPct = (-(IM_CROP.left / IM_CROP.width) * 100).toFixed(3);
+  const imgTopPct = (-(IM_CROP.top / IM_CROP.height) * 100).toFixed(3);
+
   page.innerHTML = `
     <div class="im-toolbar">
       <div>
@@ -86,27 +91,19 @@ function renderImersaoColoracao() {
       </div>
     </div>
 
-    <div class="im-stage" id="imStage">
+    <div class="im-stage" id="imStage" style="aspect-ratio:${cropAspect};">
       <button class="im-back-btn" id="imBackBtn" onclick="closeImersaoZoom()" hidden>
         <i class="fas fa-arrow-left"></i> Voltar
       </button>
       <div class="im-scene" id="imScene">
-        ${_imRenderFurniture(map.furniture)}
+        <img class="im-bg-img" src="${IM_IMAGE_SRC}" alt="Cenário do setor de Coloração"
+             style="left:${imgLeftPct}%; top:${imgTopPct}%; width:${imgWidthPct}%;">
         ${_imRenderWalls(map.walls)}
       </div>
     </div>
   `;
 
   _imStartTimers();
-}
-
-function _imRenderFurniture(furniture) {
-  return Object.entries(furniture).map(([key, f]) => `
-    <div class="im-furniture" style="left:${f.x}%; top:${f.y}%; width:${f.w}%; height:${f.h}%;" title="${escapeHtml(f.label)}">
-      <i class="fas ${f.icon}"></i>
-      <span class="im-furniture-label">${escapeHtml(f.label)}</span>
-    </div>
-  `).join('');
 }
 
 function _imRenderWalls(walls) {
@@ -124,7 +121,7 @@ function _imRenderWalls(walls) {
 }
 
 function _imRenderPranchetas(lots) {
-  if (!lots.length) return '<div class="im-wall-empty">Sem OPs</div>';
+  if (!lots.length) return '';
   const visible = lots.slice(0, IM_MAX_PRANCHETA_ICONS);
   const icons = visible.map(l => `
     <div class="im-prancheta" onclick="event.stopPropagation(); openImersaoOp('${l.id}')" title="OP ${escapeHtml(l.number || l.op || '')}">
@@ -146,7 +143,7 @@ function _imLotsForSector(sector) {
     .sort((a, b) => (a.sectorEnteredAt || 0) - (b.sectorEnteredAt || 0));
 }
 
-// --------- ZOOM NO PRÓPRIO MAPA (sem painel lateral) ---------
+// --------- ZOOM NA PRÓPRIA IMAGEM (sem painel lateral) ---------
 function openImersaoZoom(zoneKey) {
   const map = IMERSAO_SECTOR_MAP.coloracao;
   const wall = map.walls[zoneKey];
@@ -167,7 +164,6 @@ function openImersaoZoom(zoneKey) {
   if (backBtn) backBtn.hidden = false;
 
   document.querySelectorAll('.im-wall').forEach(el => el.classList.toggle('im-wall-focused', el.dataset.zone === zoneKey));
-  document.querySelectorAll('.im-furniture').forEach(el => el.classList.add('im-dimmed'));
 }
 
 function closeImersaoZoom() {
@@ -181,7 +177,6 @@ function closeImersaoZoom() {
   }
   if (backBtn) backBtn.hidden = true;
   document.querySelectorAll('.im-wall').forEach(el => el.classList.remove('im-wall-focused'));
-  document.querySelectorAll('.im-furniture').forEach(el => el.classList.remove('im-dimmed'));
 }
 
 // --------- MODAL RÁPIDO DE UMA OP (reaproveita padrão de modal existente) ---------
@@ -195,6 +190,7 @@ function openImersaoOp(lotId) {
   document.getElementById('modalImersaoOpTitle').textContent = `OP ${lot.number || lot.op || ''}`;
   document.getElementById('modalImersaoOpBody').innerHTML = `
     <table class="im-modal-table">
+      <tr><td>Cliente</td><td>${escapeHtml(lot.client || '–')}</td></tr>
       <tr><td>Produto</td><td><strong>${escapeHtml(lot.productName || '–')}</strong></td></tr>
       <tr><td>Quantidade</td><td>${escapeHtml(String(lot.qty || '–'))} ${escapeHtml(lot.unit || '')}</td></tr>
       <tr><td>Prazo de entrega</td><td>${formatDate(lot.deliveryDate)}</td></tr>
