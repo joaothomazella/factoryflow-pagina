@@ -544,6 +544,8 @@ const PAGE_MAP = {
 
   amostras:    { el:'pageAmostras',   label:'Amostras',          icon:'fas fa-vial',           roles:['admin','diretoria','pcp','pcp_lib','manager','viewer','vendor'], group:'pedidos' },
 
+  imersao_coloracao: { el:'pageImersaoColoracao', label:'Coloração', icon:'fas fa-palette', roles:['admin','diretoria','pcp','pcp_lib','manager','sector','viewer'], group:'imersao' },
+
   simulador_entrega:   { el:'pageSimuladorEntrega',  label:'Simulador',             icon:'fas fa-route',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'ferramentas', hidden:true },
   import:        { el:'pageImport',        label:'Importar Pedidos',  icon:'fas fa-file-import',    roles:['admin','pcp'], group:'ferramentas', hidden:true },
 
@@ -557,6 +559,7 @@ const SIDEBAR_GROUPS = [
   { key:'pedidos',        label:'Pedidos e Produção' },
   { key:'entregas',       label:'Entregas' },
   { key:'relatorios',     label:'Relatórios' },
+  { key:'imersao',        label:'Imersão na Fábrica' },
   { key:'ferramentas',    label:'Ferramentas' },
   { key:'administracao',  label:'Administração' },
 ];
@@ -714,6 +717,9 @@ function navigateTo(page) {
     case 'relatorio_tempos':  renderRelatorioTempos();     break;
     case 'fluxograma':
       if (typeof renderFluxograma === 'function') renderFluxograma();
+      break;
+    case 'imersao_coloracao':
+      if (typeof renderImersaoColoracao === 'function') renderImersaoColoracao();
       break;
     case 'simulador_entrega':
       if (typeof renderSimuladorEntrega === 'function') renderSimuladorEntrega();
