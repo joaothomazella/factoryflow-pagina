@@ -139,15 +139,16 @@
 .im-wall-cyan .im-wall-pranchetas {
   perspective: 240px;
   perspective-origin: 50% 0%;
+  gap: .6rem;
 }
 .im-wall-cyan .im-prancheta {
   transform-origin: bottom center;
 }
-.im-wall-cyan .im-prancheta:nth-child(3n+1) { transform: rotateX(42deg) rotate(-2.5deg); }
-.im-wall-cyan .im-prancheta:nth-child(3n+2) { transform: rotateX(42deg) rotate(1.5deg); }
-.im-wall-cyan .im-prancheta:nth-child(3n)   { transform: rotateX(42deg) rotate(-.5deg); }
+.im-wall-cyan .im-prancheta:nth-child(3n+1) { transform: rotateX(16deg) rotate(-2deg); }
+.im-wall-cyan .im-prancheta:nth-child(3n+2) { transform: rotateX(16deg) rotate(1deg); }
+.im-wall-cyan .im-prancheta:nth-child(3n)   { transform: rotateX(16deg) rotate(-.5deg); }
 .im-wall-cyan .im-prancheta:hover {
-  transform: rotateX(18deg) rotate(0deg) scale(1.28) translateY(-6%);
+  transform: rotateX(6deg) rotate(0deg) scale(1.28) translateY(-6%);
 }
 /* Prancheta = "prancheta de papel" real apoiada na bancada, não um
    ícone de UI solto: fundo cor de papel, presilha no topo, linhas de
