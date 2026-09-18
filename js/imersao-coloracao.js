@@ -4,9 +4,9 @@
 // IMERSÃO NA FÁBRICA — SETOR DE COLORAÇÃO (MVP)
 // Arquitetura em camadas:
 //   CAMADA 1 — imagem real do cenário (frontend/images/imersao/coloracao-cenario.png),
-//              usada como está, sem redesenho.
-//   CAMADA 2 — elementos HTML (pranchetas) posicionados sobre a imagem,
-//              nos locais físicos correspondentes.
+//              usada como está, sem redesenho, apenas escurecida por um véu
+//              para servir de pano de fundo ambiente.
+//   CAMADA 2 — cartões HTML das OPs, centralizados sobre a imagem.
 //   CAMADA 3 — dados reais das OPs, vindos de STATE.lots (mesmos dados
 //              do Kanban/Lotes) via ffGetLotCurrentSector. Nada mockado.
 //
@@ -14,53 +14,42 @@
 // + 3 tabelas já com números fixos desenhados nela). Como a regra do
 // projeto é "a imagem não é dado" e os números daquele mockup são fixos/
 // fictícios, usamos apenas a REGIÃO DA SALA da imagem (IM_CROP abaixo),
-// recortada via CSS (o arquivo original não é editado/tocado) — a barra
-// superior, o painel lateral e as tabelas de baixo (que tinham dado falso
-// embutido no próprio desenho) ficam fora da janela visível, e nosso
-// overlay HTML dinâmico assume o lugar delas com dados reais.
+// recortada via CSS (o arquivo original não é editado/tocado).
 // =========================================================
 
 const IM_IMAGE_SRC = 'images/imersao/coloracao-cenario.png';
 const IM_IMAGE_NATIVE = { w: 1536, h: 1024 };
 
 // Janela de recorte (em pixels da imagem original) — mostra só a sala
-// física (estufa, bancada, capela, armário, computador, paredes de
-// pranchetas), excluindo a barra superior, o painel lateral direito e
-// as tabelas inferiores do mockup original.
-// Ajustar aqui se o enquadramento precisar de retoque fino.
+// física, excluindo a barra superior, o painel lateral direito e as
+// tabelas inferiores do mockup original.
 const IM_CROP = { left: 0, top: 76, width: 1350, height: 530 };
 
-// --------- MAPA DE POSIÇÕES ---------
-// Coordenadas em % relativas à JANELA DE RECORTE acima (0-100), não à
-// tela. Cada `wall` é um local físico real onde ficam as pranchetas de
-// um dos 3 grupos, ligado ao setor real usado em STATE
-// (ffGetLotCurrentSector) para filtrar os lotes que aparecem ali.
+// --------- GRUPOS DE OPs ---------
+// Cada grupo é ligado ao setor real usado em STATE (ffGetLotCurrentSector)
+// para filtrar os lotes que aparecem no seu cartão. Sem coordenadas
+// físicas — os cartões ficam centralizados na tela, sobre o cenário
+// escurecido.
 const IMERSAO_SECTOR_MAP = {
   coloracao: {
-    walls: {
+    groups: {
       coloracao: {
-        // Segunda parte da bancada, logo abaixo da Estufa/Capela —
-        // deslocada um pouco mais para cima/centro da cena para que as
-        // pranchetas não fiquem espremidas/cortadas perto da borda
-        // inferior do quadro.
-        x: 12, y: 58, w: 34, h: 24,
         sector: 'coloracao',
         label: 'Coloração',
-        color: 'cyan'
+        color: '#22d3ee',
+        glow: 'rgba(34,211,238,.5)'
       },
       coloracao_revisao: {
-        // Parede de pranchetas à direita, canto superior.
-        x: 76, y: 7, w: 18, h: 30,
         sector: 'coloracao_revisao',
         label: 'Coloração Revisão',
-        color: 'amber'
+        color: '#f59e0b',
+        glow: 'rgba(245,158,11,.5)'
       },
       coloracao_amostras: {
-        // Parede de pranchetas à direita, abaixo da Revisão.
-        x: 76, y: 39, w: 16, h: 31,
         sector: 'coloracao_amostras',
         label: 'Coloração Amostras',
-        color: 'magenta'
+        color: '#e879f9',
+        glow: 'rgba(232,121,249,.5)'
       }
     }
   }
@@ -69,7 +58,6 @@ const IMERSAO_SECTOR_MAP = {
 const IM_MAX_PRANCHETA_ICONS = 40;
 
 let _imState = {
-  activeZone: null,
   refreshTimer: null,
   tickTimer: null
 };
@@ -79,7 +67,6 @@ function renderImersaoColoracao() {
   if (!page) return;
 
   const map = IMERSAO_SECTOR_MAP.coloracao;
-  _imState.activeZone = null;
 
   const cropAspect = (IM_CROP.width / IM_CROP.height).toFixed(4);
   const imgWidthPct = ((IM_IMAGE_NATIVE.w / IM_CROP.width) * 100).toFixed(3);
@@ -90,18 +77,16 @@ function renderImersaoColoracao() {
     <div class="im-toolbar">
       <div>
         <h2><i class="fas fa-vr-cardboard"></i> Imersão na Fábrica — Coloração</h2>
-        <p class="im-subtitle">Visualização em tempo real do setor. Clique num grupo de pranchetas para aproximar.</p>
+        <p class="im-subtitle">Visualização em tempo real do setor. Clique numa prancheta para ver os detalhes da OP.</p>
       </div>
     </div>
 
     <div class="im-stage" id="imStage" style="aspect-ratio:${cropAspect};">
-      <button class="im-back-btn" id="imBackBtn" onclick="closeImersaoZoom()" hidden>
-        <i class="fas fa-arrow-left"></i> Voltar
-      </button>
       <div class="im-scene" id="imScene">
         <img class="im-bg-img" src="${IM_IMAGE_SRC}" alt="Cenário do setor de Coloração"
              style="left:${imgLeftPct}%; top:${imgTopPct}%; width:${imgWidthPct}%;">
-        ${_imRenderWalls(map.walls)}
+        <div class="im-dim"></div>
+        <div class="im-center-wrap">${_imRenderGroupCards(map.groups)}</div>
       </div>
     </div>
   `;
@@ -109,22 +94,20 @@ function renderImersaoColoracao() {
   _imStartTimers();
 }
 
-function _imRenderWalls(walls) {
-  return Object.entries(walls).map(([key, w]) => {
-    const lots = _imLotsForSector(w.sector);
+function _imRenderGroupCards(groups) {
+  return Object.entries(groups).map(([key, g]) => {
+    const lots = _imLotsForSector(g.sector);
     return `
-      <div class="im-wall im-wall-${w.color}" data-zone="${key}" id="imWall_${key}"
-           style="left:${w.x}%; top:${w.y}%; width:${w.w}%; height:${w.h}%;"
-           onclick="openImersaoZoom('${key}')" role="button" tabindex="0">
-        <div class="im-wall-label">${escapeHtml(w.label)} <span class="im-wall-count" id="imCount_${key}">${lots.length}</span></div>
-        <div class="im-wall-pranchetas" id="imPranchetas_${key}">${_imRenderPranchetas(lots)}</div>
+      <div class="im-group-card" id="imWall_${key}" style="--im-color:${g.color}; --im-glow:${g.glow};">
+        <div class="im-group-title">${escapeHtml(g.label)} <span class="im-wall-count" id="imCount_${key}">${lots.length}</span></div>
+        <div class="im-card-pranchetas" id="imPranchetas_${key}">${_imRenderPranchetas(lots)}</div>
       </div>
     `;
   }).join('');
 }
 
 function _imRenderPranchetas(lots) {
-  if (!lots.length) return '';
+  if (!lots.length) return '<div class="im-card-empty">Nenhuma OP neste grupo agora.</div>';
   const visible = lots.slice(0, IM_MAX_PRANCHETA_ICONS);
   const icons = visible.map(l => {
     const op = l.number || l.op || '?';
@@ -149,50 +132,6 @@ function _imLotsForSector(sector) {
   return lots
     .filter(l => !l.rejected && ffGetLotCurrentSector(l) === sector)
     .sort((a, b) => (a.sectorEnteredAt || 0) - (b.sectorEnteredAt || 0));
-}
-
-// --------- ZOOM NA PRÓPRIA IMAGEM (sem painel lateral) ---------
-// O centro do grupo clicado é levado para o CENTRO da tela (não fica
-// fixo no canto onde ele já estava), então nada some para fora do
-// enquadramento depois do zoom.
-const IM_ZOOM_SCALE = 2;
-
-function openImersaoZoom(zoneKey) {
-  const map = IMERSAO_SECTOR_MAP.coloracao;
-  const wall = map.walls[zoneKey];
-  if (!wall) return;
-
-  _imState.activeZone = zoneKey;
-
-  const scene = document.getElementById('imScene');
-  const stage = document.getElementById('imStage');
-  const backBtn = document.getElementById('imBackBtn');
-  if (scene && stage) {
-    const cx = wall.x + wall.w / 2;
-    const cy = wall.y + wall.h / 2;
-    const tx = 50 - IM_ZOOM_SCALE * cx;
-    const ty = 50 - IM_ZOOM_SCALE * cy;
-    scene.style.transformOrigin = '0 0';
-    scene.style.transform = `translate(${tx}%, ${ty}%) scale(${IM_ZOOM_SCALE})`;
-    stage.classList.add('im-zoomed');
-  }
-  if (backBtn) backBtn.hidden = false;
-
-  document.querySelectorAll('.im-wall').forEach(el => el.classList.toggle('im-wall-focused', el.dataset.zone === zoneKey));
-}
-
-function closeImersaoZoom() {
-  _imState.activeZone = null;
-  const scene = document.getElementById('imScene');
-  const stage = document.getElementById('imStage');
-  const backBtn = document.getElementById('imBackBtn');
-  if (scene && stage) {
-    stage.classList.remove('im-zoomed');
-    scene.style.transform = '';
-    scene.style.transformOrigin = '';
-  }
-  if (backBtn) backBtn.hidden = true;
-  document.querySelectorAll('.im-wall').forEach(el => el.classList.remove('im-wall-focused'));
 }
 
 // --------- MODAL RÁPIDO DE UMA OP (reaproveita padrão de modal existente) ---------
@@ -253,8 +192,8 @@ function _imRefreshCounts() {
   if (!page || !page.classList.contains('active')) return;
 
   const map = IMERSAO_SECTOR_MAP.coloracao;
-  Object.entries(map.walls).forEach(([key, w]) => {
-    const lots = _imLotsForSector(w.sector);
+  Object.entries(map.groups).forEach(([key, g]) => {
+    const lots = _imLotsForSector(g.sector);
     const countEl = document.getElementById(`imCount_${key}`);
     const pranchetasEl = document.getElementById(`imPranchetas_${key}`);
     if (countEl && countEl.textContent !== String(lots.length)) {
@@ -268,6 +207,4 @@ function _imRefreshCounts() {
 }
 
 window.renderImersaoColoracao = renderImersaoColoracao;
-window.openImersaoZoom = openImersaoZoom;
-window.closeImersaoZoom = closeImersaoZoom;
 window.openImersaoOp = openImersaoOp;
