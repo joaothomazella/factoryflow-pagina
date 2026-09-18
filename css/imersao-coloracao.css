@@ -130,6 +130,28 @@
   gap: .2rem;
   flex: 1;
 }
+
+/* Efeito de profundidade: o grupo Coloração fica sobre uma prateleira
+   horizontal vista em ângulo (perspectiva da foto), então inclinamos a
+   fileira em 3D para as pranchetas parecerem deitadas dentro do vão
+   entre as duas bancadas, e não coladas retas por cima da imagem. */
+.im-wall-cyan .im-wall-pranchetas {
+  perspective: 240px;
+  perspective-origin: 50% 0%;
+}
+.im-wall-cyan .im-prancheta {
+  transform-origin: bottom center;
+}
+.im-wall-cyan .im-prancheta:nth-child(3n+1) { transform: rotateX(42deg) rotate(-2.5deg); }
+.im-wall-cyan .im-prancheta:nth-child(3n+2) { transform: rotateX(42deg) rotate(1.5deg); }
+.im-wall-cyan .im-prancheta:nth-child(3n)   { transform: rotateX(42deg) rotate(-.5deg); }
+.im-wall-cyan .im-prancheta:hover {
+  transform: rotateX(18deg) rotate(0deg) scale(1.28) translateY(-6%);
+}
+/* sombra do vão entre as bancadas, reforça a sensação de encaixe */
+.im-wall-cyan {
+  box-shadow: inset 0 10px 14px -6px rgba(0,0,0,.65);
+}
 /* Prancheta = "prancheta de papel" real apoiada na bancada, não um
    ícone de UI solto: fundo cor de papel, presilha no topo, linhas de
    texto simuladas, leve inclinação alternada para parecer um objeto
