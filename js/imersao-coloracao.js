@@ -152,6 +152,11 @@ function _imLotsForSector(sector) {
 }
 
 // --------- ZOOM NA PRÓPRIA IMAGEM (sem painel lateral) ---------
+// O centro do grupo clicado é levado para o CENTRO da tela (não fica
+// fixo no canto onde ele já estava), então nada some para fora do
+// enquadramento depois do zoom.
+const IM_ZOOM_SCALE = 2;
+
 function openImersaoZoom(zoneKey) {
   const map = IMERSAO_SECTOR_MAP.coloracao;
   const wall = map.walls[zoneKey];
@@ -165,9 +170,11 @@ function openImersaoZoom(zoneKey) {
   if (scene && stage) {
     const cx = wall.x + wall.w / 2;
     const cy = wall.y + wall.h / 2;
-    scene.style.transformOrigin = `${cx}% ${cy}%`;
+    const tx = 50 - IM_ZOOM_SCALE * cx;
+    const ty = 50 - IM_ZOOM_SCALE * cy;
+    scene.style.transformOrigin = '0 0';
+    scene.style.transform = `translate(${tx}%, ${ty}%) scale(${IM_ZOOM_SCALE})`;
     stage.classList.add('im-zoomed');
-    scene.classList.add('im-zoomed-scene');
   }
   if (backBtn) backBtn.hidden = false;
 
@@ -181,7 +188,8 @@ function closeImersaoZoom() {
   const backBtn = document.getElementById('imBackBtn');
   if (scene && stage) {
     stage.classList.remove('im-zoomed');
-    scene.classList.remove('im-zoomed-scene');
+    scene.style.transform = '';
+    scene.style.transformOrigin = '';
   }
   if (backBtn) backBtn.hidden = true;
   document.querySelectorAll('.im-wall').forEach(el => el.classList.remove('im-wall-focused'));
