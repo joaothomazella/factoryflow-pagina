@@ -57,13 +57,10 @@ const IMERSAO_SECTOR_MAP = {
 
 const IM_MAX_PRANCHETA_ICONS = 40;
 
-// Setores que antecedem a Coloração no fluxo real de uma tinta (a única
-// linha de produto cujo PRODUCT_FLOWS inclui 'coloracao' — diluente,
-// endurecedor e base não passam por lá). Usado só para a previsão de
-// chegada abaixo.
-const IM_FLOW_BEFORE_COLORACAO = (typeof PRODUCT_FLOWS !== 'undefined' && PRODUCT_FLOWS.tinta)
-  ? PRODUCT_FLOWS.tinta.slice(0, PRODUCT_FLOWS.tinta.indexOf('coloracao'))
-  : ['coloracao_revisao', 'laboratorio_revisao', 'pcp_liberacao', 'pesagem', 'producao'];
+// Setor(es) considerado(s) para a previsão de chegada à Coloração. A
+// pedido do usuário, PCP e Pesagem são ignorados aqui (fila deles não é
+// confiável para prever gargalo) — só Produção conta como "a caminho".
+const IM_FLOW_BEFORE_COLORACAO = ['producao'];
 
 const IM_FORECAST_HORIZON_MS = 24 * 60 * 60 * 1000; // horizonte de previsão: 24h
 const IM_BOTTLENECK_THRESHOLD = 5;
