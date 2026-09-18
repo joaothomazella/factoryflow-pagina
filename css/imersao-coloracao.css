@@ -124,8 +124,10 @@
 .im-wall-pranchetas {
   display: flex;
   flex-wrap: wrap;
-  align-content: flex-start;
-  gap: .25rem;
+  align-content: flex-end;   /* pranchetas "pousam" na borda de baixo da prateleira */
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: .2rem;
   flex: 1;
 }
 /* Prancheta = "prancheta de papel" real apoiada na bancada, não um
@@ -134,9 +136,10 @@
    físico pousado, não uma grade perfeita de widgets. */
 .im-prancheta {
   position: relative;
-  width: 16%;
-  min-width: 22px;
-  aspect-ratio: 3 / 4;
+  width: 13%;
+  min-width: 16px;
+  max-height: 92%;
+  aspect-ratio: 3 / 3.6;
   border-radius: 2px 2px 3px 3px;
   background: linear-gradient(180deg, rgba(226,232,240,.14) 0%, rgba(148,163,184,.06) 100%);
   box-shadow: 0 0 0 1px var(--im-color, #22d3ee), 0 3px 6px rgba(0,0,0,.4), inset 0 0 8px rgba(34,211,238,.08);

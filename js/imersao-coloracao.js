@@ -39,8 +39,10 @@ const IMERSAO_SECTOR_MAP = {
   coloracao: {
     walls: {
       coloracao: {
-        // Segunda parte da bancada, logo abaixo da Estufa/Capela.
-        x: 15, y: 68, w: 31, h: 15,
+        // Segunda parte da bancada, logo abaixo da Estufa/Capela —
+        // caixa mais baixa e rasa para colar na borda da prateleira
+        // onde as pranchetas realmente se apoiam.
+        x: 16, y: 74, w: 29, h: 10,
         sector: 'coloracao',
         label: 'Coloração',
         color: 'cyan'
