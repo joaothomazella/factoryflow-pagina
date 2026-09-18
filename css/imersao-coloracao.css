@@ -127,8 +127,10 @@
   align-content: flex-end;   /* pranchetas "pousam" na borda de baixo da prateleira */
   align-items: flex-end;
   justify-content: flex-start;
-  gap: .2rem;
+  gap: .35rem;
   flex: 1;
+  perspective: 320px;
+  perspective-origin: 50% 50%;
 }
 
 /* Efeito de profundidade: o grupo Coloração fica sobre uma prateleira
@@ -164,7 +166,11 @@
   aspect-ratio: 3 / 3.6;
   border-radius: 3px 3px 4px 4px;
   background: linear-gradient(180deg, rgba(226,232,240,.18) 0%, rgba(148,163,184,.07) 100%);
-  box-shadow: 0 0 0 1.5px var(--im-color, #22d3ee), 0 4px 8px rgba(0,0,0,.45), inset 0 0 10px rgba(34,211,238,.1);
+  box-shadow:
+    0 0 0 1.5px var(--im-color, #22d3ee),
+    3px 5px 0 -1px rgba(2,6,23,.55),   /* aresta lateral = espessura do objeto */
+    6px 9px 10px -4px rgba(0,0,0,.55), /* sombra projetada para o lado */
+    inset 0 0 10px rgba(34,211,238,.1);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -174,8 +180,10 @@
   color: var(--im-color, #22d3ee);
   font-size: .78rem;
   cursor: pointer;
-  transform: rotate(0deg);
-  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transform: rotateY(28deg) rotate(0deg);
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
 }
 .im-prancheta::before {
   /* presilha da prancheta */
@@ -206,11 +214,11 @@
   );
   opacity: .35;
 }
-.im-prancheta:nth-child(3n+1) { transform: rotate(-2.5deg); }
-.im-prancheta:nth-child(3n+2) { transform: rotate(1.5deg); }
-.im-prancheta:nth-child(3n)   { transform: rotate(-.5deg); }
+.im-prancheta:nth-child(3n+1) { transform: rotateY(30deg) rotate(-2.5deg); }
+.im-prancheta:nth-child(3n+2) { transform: rotateY(22deg) rotate(1.5deg); }
+.im-prancheta:nth-child(3n)   { transform: rotateY(26deg) rotate(-.5deg); }
 .im-prancheta:hover {
-  transform: scale(1.22) rotate(0deg);
+  transform: rotateY(0deg) rotate(0deg) scale(1.22) translateZ(20px);
   box-shadow: 0 0 14px var(--im-glow, rgba(34,211,238,.75)), 0 0 0 1px var(--im-color, #22d3ee);
   background: linear-gradient(180deg, rgba(226,232,240,.22) 0%, rgba(148,163,184,.1) 100%);
   z-index: 2;
