@@ -158,21 +158,21 @@
    físico pousado, não uma grade perfeita de widgets. */
 .im-prancheta {
   position: relative;
-  width: 13%;
-  min-width: 16px;
+  width: 22%;
+  min-width: 30px;
   max-height: 92%;
   aspect-ratio: 3 / 3.6;
-  border-radius: 2px 2px 3px 3px;
-  background: linear-gradient(180deg, rgba(226,232,240,.14) 0%, rgba(148,163,184,.06) 100%);
-  box-shadow: 0 0 0 1px var(--im-color, #22d3ee), 0 3px 6px rgba(0,0,0,.4), inset 0 0 8px rgba(34,211,238,.08);
+  border-radius: 3px 3px 4px 4px;
+  background: linear-gradient(180deg, rgba(226,232,240,.18) 0%, rgba(148,163,184,.07) 100%);
+  box-shadow: 0 0 0 1.5px var(--im-color, #22d3ee), 0 4px 8px rgba(0,0,0,.45), inset 0 0 10px rgba(34,211,238,.1);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 22%;
-  gap: 2px;
+  padding-top: 20%;
+  gap: 3px;
   color: var(--im-color, #22d3ee);
-  font-size: .46rem;
+  font-size: .78rem;
   cursor: pointer;
   transform: rotate(0deg);
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
@@ -252,6 +252,6 @@
 @media (max-width: 900px) {
   .im-stage { max-height: none; }
   .im-wall-label { font-size: .52rem; }
-  .im-prancheta { width: 22%; min-width: 18px; }
+  .im-prancheta { width: 30%; min-width: 26px; font-size: .68rem; }
   .im-scene.im-zoomed-scene { transform: scale(1.9); }
 }

@@ -8,31 +8,69 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg:#0f172a; --bg2:#1e293b; --border:#334155;
-      --text:#f1f5f9; --text2:#94a3b8; --green:#22c55e; --orange:#f97316; --red:#ef4444;
+      /* Paleta oficial Induscolor: azul Pantone 661C e amarelo Pro Yellow C */
+      --ic-blue:#144196; --ic-blue-dark:#0a2560; --ic-blue-darker:#061a45;
+      --ic-yellow:#fff000; --ic-yellow-dim:#e0d400;
+      --bg2:#0e1a3d; --border:rgba(255,240,0,.18);
+      --text:#f4f7ff; --text2:#a9b8dd;
+      --green:#22c55e; --orange:#f97316; --red:#ef4444;
     }
     * { box-sizing:border-box; margin:0; padding:0; }
     body {
-      font-family:'DM Sans', sans-serif; background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);
+      font-family:'DM Sans', sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255,240,0,.08), transparent 40%),
+        radial-gradient(circle at 85% 90%, rgba(255,240,0,.05), transparent 45%),
+        linear-gradient(150deg, var(--ic-blue-darker) 0%, var(--ic-blue-dark) 45%, var(--ic-blue) 100%);
       color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1.5rem;
     }
     .card {
-      background:var(--bg2); border:1px solid var(--border); border-radius:20px;
-      padding:2.5rem 2rem; width:100%; max-width:420px; text-align:center;
-      box-shadow:0 4px 24px rgba(0,0,0,.5);
+      position:relative;
+      background:linear-gradient(180deg, var(--bg2) 0%, var(--ic-blue-darker) 100%);
+      border:1px solid var(--border); border-radius:20px;
+      padding:2.75rem 2rem 2.25rem; width:100%; max-width:420px; text-align:center;
+      box-shadow:0 20px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,240,0,.04);
+      overflow:hidden;
     }
-    .logo { font-size:1.1rem; font-weight:700; color:var(--text2); letter-spacing:.05em; text-transform:uppercase; margin-bottom:1.5rem; }
-    .icon { font-size:3.5rem; margin-bottom:1rem; }
-    .titulo { font-size:1.5rem; font-weight:800; margin-bottom:.5rem; }
-    .subtitulo { color:var(--text2); font-size:.95rem; margin-bottom:1.5rem; }
-    .pedido { font-size:.85rem; color:var(--text2); margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border); }
-    .pedido b { color:var(--text); }
+    .card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:5px;
+      background:linear-gradient(90deg, var(--ic-yellow) 0%, var(--ic-blue) 55%, var(--ic-yellow) 100%);
+    }
+    .logo {
+      display:inline-flex; align-items:center; gap:.45rem;
+      font-size:1rem; font-weight:800; color:var(--text); letter-spacing:.06em; text-transform:uppercase;
+      margin-bottom:1.75rem;
+    }
+    .logo::before {
+      content:''; width:9px; height:9px; border-radius:2px; background:var(--ic-yellow);
+      box-shadow:0 0 10px rgba(255,240,0,.7); transform:rotate(45deg);
+    }
+    .icon-wrap {
+      width:4.5rem; height:4.5rem; margin:0 auto 1.25rem; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      background:radial-gradient(circle at 35% 30%, rgba(255,240,0,.16), rgba(255,255,255,0) 70%), rgba(255,255,255,.03);
+      border:2px solid var(--ring, var(--ic-yellow));
+      box-shadow:0 0 24px var(--glow, rgba(255,240,0,.35));
+    }
+    .icon { font-size:2.1rem; line-height:1; }
+    .titulo { font-size:1.4rem; font-weight:800; margin-bottom:.5rem; color:var(--text); }
+    .subtitulo { color:var(--text2); font-size:.92rem; margin-bottom:1.5rem; line-height:1.5; }
+    .pedido {
+      font-size:.85rem; color:var(--text2); margin-top:1.5rem; padding-top:1.25rem;
+      border-top:1px dashed rgba(255,240,0,.2);
+    }
+    .pedido b {
+      color:var(--ic-yellow); font-size:.95rem; letter-spacing:.03em;
+    }
+    .status-pronto   { --ring:var(--ic-yellow); --glow:rgba(255,240,0,.45); }
     .status-pronto .icon { color:var(--green); }
+    .status-producao { --ring:var(--orange); --glow:rgba(249,115,22,.4); }
     .status-producao .icon { color:var(--orange); }
+    .status-erro     { --ring:var(--red); --glow:rgba(239,68,68,.4); }
     .status-erro .icon { color:var(--red); }
     .spinner {
-      width:2.5rem; height:2.5rem; border:3px solid var(--border); border-top-color:var(--orange);
-      border-radius:50%; margin:0 auto 1rem; animation:spin 1s linear infinite;
+      width:2.5rem; height:2.5rem; border:3px solid rgba(255,240,0,.15); border-top-color:var(--ic-yellow);
+      border-radius:50%; margin:0 auto 1.25rem; animation:spin .9s linear infinite;
     }
     @keyframes spin { to { transform:rotate(360deg); } }
   </style>
@@ -52,7 +90,7 @@
       card.className = 'card ' + className;
       card.innerHTML = `
         <div class="logo">FactoryFlow</div>
-        <div class="icon">${icon}</div>
+        <div class="icon-wrap"><div class="icon">${icon}</div></div>
         <div class="titulo">${titulo}</div>
         <div class="subtitulo">${subtitulo}</div>
         ${pedido ? `<div class="pedido">Pedido <b>${pedido}</b></div>` : ''}
