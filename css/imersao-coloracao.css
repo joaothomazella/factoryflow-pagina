@@ -83,6 +83,14 @@
   box-shadow: 0 0 24px var(--im-glow), 0 10px 30px rgba(0,0,0,.5);
 }
 
+/* Cartão da Coloração é o principal do setor: mais largo, para caber
+   4 pranchetas lado a lado antes de quebrar linha. */
+#imWall_coloracao {
+  min-width: 380px;
+  max-width: 420px;
+  flex: 1 1 400px;
+}
+
 .im-group-title {
   font-size: .68rem;
   font-weight: 800;
@@ -381,7 +389,7 @@
 @media (max-width: 900px) {
   .im-stage { max-height: none; }
   .im-center-wrap { padding: .6rem; gap: .5rem; }
-  .im-group-card { min-width: 0; flex-basis: 100%; max-width: none; max-height: 32vh; }
+  .im-group-card, #imWall_coloracao { min-width: 0; flex-basis: 100%; max-width: none; max-height: 32vh; }
   .im-prancheta { width: 4.6rem; min-width: 4.2rem; font-size: .58rem; }
   .im-analytics-card { min-width: 0; flex-basis: 100%; }
   .im-chart-wrap { height: 180px; }
