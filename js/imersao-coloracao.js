@@ -126,11 +126,17 @@ function _imRenderWalls(walls) {
 function _imRenderPranchetas(lots) {
   if (!lots.length) return '';
   const visible = lots.slice(0, IM_MAX_PRANCHETA_ICONS);
-  const icons = visible.map(l => `
-    <div class="im-prancheta" onclick="event.stopPropagation(); openImersaoOp('${l.id}')" title="OP ${escapeHtml(l.number || l.op || '')}">
-      <span class="im-prancheta-label">${escapeHtml(l.number || l.op || '?')}</span>
+  const icons = visible.map(l => {
+    const op = l.number || l.op || '?';
+    const client = l.client || '';
+    const tooltip = client ? `OP ${op} · ${client}` : `OP ${op}`;
+    return `
+    <div class="im-prancheta" onclick="event.stopPropagation(); openImersaoOp('${l.id}')" title="${escapeHtml(tooltip)}">
+      <span class="im-prancheta-label">OP ${escapeHtml(op)}</span>
+      ${client ? `<span class="im-prancheta-client">${escapeHtml(client)}</span>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
   const overflow = lots.length > IM_MAX_PRANCHETA_ICONS
     ? `<div class="im-prancheta im-prancheta-more">+${lots.length - IM_MAX_PRANCHETA_ICONS}</div>`
     : '';
