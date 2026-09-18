@@ -112,11 +112,15 @@ function _imRenderPranchetas(lots) {
   const icons = visible.map(l => {
     const op = l.number || l.op || '?';
     const client = l.client || '';
-    const tooltip = client ? `OP ${op} · ${client}` : `OP ${op}`;
+    const product = l.productName || '';
+    const due = l.deliveryDate ? formatDate(l.deliveryDate) : '';
+    const tooltipParts = [`OP ${op}`, client, product, due ? `Prazo ${due}` : ''].filter(Boolean);
     return `
-    <div class="im-prancheta" onclick="event.stopPropagation(); openImersaoOp('${l.id}')" title="${escapeHtml(tooltip)}">
+    <div class="im-prancheta" onclick="event.stopPropagation(); openImersaoOp('${l.id}')" title="${escapeHtml(tooltipParts.join(' · '))}">
       <span class="im-prancheta-label">OP ${escapeHtml(op)}</span>
       ${client ? `<span class="im-prancheta-client">${escapeHtml(client)}</span>` : ''}
+      ${product ? `<span class="im-prancheta-product">${escapeHtml(product)}</span>` : ''}
+      ${due ? `<span class="im-prancheta-due"><i class="fas fa-truck"></i> ${escapeHtml(due)}</span>` : ''}
     </div>
   `;
   }).join('');
