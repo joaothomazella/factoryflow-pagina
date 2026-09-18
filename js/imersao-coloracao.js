@@ -255,9 +255,14 @@ function _imHexToRgba(hex, alpha) {
 }
 
 // --------- PERMISSÃO: tempo médio e previsão só para o setor logado ---------
+// (ou para quem enxerga a fábrica inteira: admin, diretoria, gerente e PCP)
+const IM_FULL_VISIBILITY_ROLES = ['admin', 'diretoria', 'manager', 'pcp', 'pcp_lib'];
+
 function _imCanSeeAnalytics(sector) {
   const u = STATE.currentUser;
-  return !!(u && u.sector === sector);
+  if (!u) return false;
+  if (IM_FULL_VISIBILITY_ROLES.includes(u.role)) return true;
+  return u.sector === sector;
 }
 
 function _imRenderGroupCards(groups) {
