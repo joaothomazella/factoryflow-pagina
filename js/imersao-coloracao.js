@@ -1,20 +1,23 @@
 'use strict';
 
 // =========================================================
-// IMERSÃO NA FÁBRICA — SETOR DE COLORAÇÃO (MVP)
+// IMERSÃO NA FÁBRICA (MVP)
 // Arquitetura em camadas:
-//   CAMADA 1 — imagem real do cenário (frontend/images/imersao/coloracao-cenario.png),
-//              usada como está, sem redesenho, apenas escurecida por um véu
-//              para servir de pano de fundo ambiente.
-//   CAMADA 2 — cartões HTML das OPs, centralizados sobre a imagem.
+//   CAMADA 1 — imagem real do cenário (só existe para a Coloração hoje,
+//              frontend/images/imersao/coloracao-cenario.png, usada como
+//              está, sem redesenho, apenas escurecida por um véu). Os
+//              demais setores usam um fundo ambiente genérico (gradiente)
+//              até termos fotos reais deles.
+//   CAMADA 2 — cartões HTML das OPs, centralizados sobre o fundo.
 //   CAMADA 3 — dados reais das OPs, vindos de STATE.lots (mesmos dados
 //              do Kanban/Lotes) via ffGetLotCurrentSector. Nada mockado.
 //
-// A imagem original é um mockup completo (barra superior + painel lateral
-// + 3 tabelas já com números fixos desenhados nela). Como a regra do
-// projeto é "a imagem não é dado" e os números daquele mockup são fixos/
-// fictícios, usamos apenas a REGIÃO DA SALA da imagem (IM_CROP abaixo),
-// recortada via CSS (o arquivo original não é editado/tocado).
+// Navegação: a tela abre num HUB com um quadradinho por setor (com a
+// contagem de OPs de cada um). Qualquer usuário pode clicar em qualquer
+// setor para ver as OPs reais de lá. Tempo médio de liberação e previsão
+// de chegada (hoje só calculados para a Coloração) só aparecem para quem
+// está logado com o setor daquele setor — os demais usuários e os outros
+// setores veem só as OPs sobre o fundo.
 // =========================================================
 
 const IM_IMAGE_SRC = 'images/imersao/coloracao-cenario.png';
@@ -25,11 +28,10 @@ const IM_IMAGE_NATIVE = { w: 1536, h: 1024 };
 // tabelas inferiores do mockup original.
 const IM_CROP = { left: 0, top: 76, width: 1350, height: 530 };
 
-// --------- GRUPOS DE OPs ---------
-// Cada grupo é ligado ao setor real usado em STATE (ffGetLotCurrentSector)
-// para filtrar os lotes que aparecem no seu cartão. Sem coordenadas
-// físicas — os cartões ficam centralizados na tela, sobre o cenário
-// escurecido.
+// --------- GRUPOS DE OPs DA COLORAÇÃO ---------
+// A Coloração é o único setor com cenário fotográfico + subdivisão em 3
+// grupos (mesma bancada física). Os demais setores do HUB usam a view
+// genérica (um card só, ver _imRenderGenericDetail).
 const IMERSAO_SECTOR_MAP = {
   coloracao: {
     groups: {
@@ -55,6 +57,24 @@ const IMERSAO_SECTOR_MAP = {
   }
 };
 
+// --------- SETORES DO HUB ---------
+// Todo setor do fluxo real ganha um quadradinho no hub (exceto 'pronto',
+// que não é um lugar físico onde uma OP fica parada). O clique leva à
+// view daquele setor com as OPs reais de lá.
+const IM_HUB_SECTORS = [
+  { key: 'coloracao_revisao',   icon: 'fa-magnifying-glass' },
+  { key: 'laboratorio_revisao', icon: 'fa-flask-vial' },
+  { key: 'pcp_liberacao',       icon: 'fa-clipboard-check' },
+  { key: 'laboratorio_amostras', icon: 'fa-vial' },
+  { key: 'coloracao_amostras',  icon: 'fa-droplet' },
+  { key: 'pesagem',             icon: 'fa-weight-scale' },
+  { key: 'producao',            icon: 'fa-industry' },
+  { key: 'coloracao',           icon: 'fa-palette' },
+  { key: 'laboratorio',         icon: 'fa-flask' },
+  { key: 'envase_produzir',     icon: 'fa-fill-drip' },
+  { key: 'envase_enlatamento',  icon: 'fa-box' }
+];
+
 const IM_MAX_PRANCHETA_ICONS = 40;
 
 // Setor(es) considerado(s) para a previsão de chegada à Coloração. A
@@ -67,25 +87,96 @@ const IM_BOTTLENECK_THRESHOLD = 5;
 const IM_DEFAULT_SECTOR_MS = 90 * 60 * 1000; // fallback quando não há histórico (90min)
 
 let _imState = {
+  view: 'hub',
+  groups: null,
   refreshTimer: null,
   tickTimer: null,
   analyticsTimer: null,
   chart: null
 };
 
+// --------- ENTRADA DA PÁGINA (sempre abre no hub) ---------
 function renderImersaoColoracao() {
+  _imRenderHub();
+}
+
+// --------- HUB: um quadradinho por setor ---------
+function _imRenderHub() {
   const page = document.getElementById('pageImersaoColoracao');
   if (!page) return;
 
-  const map = IMERSAO_SECTOR_MAP.coloracao;
+  _imClearTimers();
+  _imState.view = 'hub';
+  _imState.groups = null;
+
+  const tiles = IM_HUB_SECTORS.map(s => {
+    const label = SECTOR_LABELS[s.key] || s.key;
+    const color = SECTOR_COLORS[s.key] || '#38bdf8';
+    const count = _imLotsForSector(s.key).length;
+    return `
+      <div class="im-hub-tile" id="imHubTile_${s.key}" style="--im-color:${color};" onclick="_imOpenSector('${s.key}')">
+        <div class="im-hub-tile-icon"><i class="fas ${s.icon}"></i></div>
+        <div class="im-hub-tile-label">${escapeHtml(label)}</div>
+        <div class="im-hub-tile-count" id="imHubCount_${s.key}">${count} OP${count === 1 ? '' : 's'}</div>
+      </div>
+    `;
+  }).join('');
+
+  page.innerHTML = `
+    <div class="im-toolbar">
+      <div>
+        <h2><i class="fas fa-vr-cardboard"></i> Imersão na Fábrica</h2>
+        <p class="im-subtitle">Selecione um setor para ver as OPs em tempo real de lá.</p>
+      </div>
+    </div>
+
+    <div class="im-hub-stage">
+      <div class="im-hub-tiles">${tiles}</div>
+    </div>
+  `;
+
+  _imState.refreshTimer = setInterval(_imRefreshHubCounts, 5000);
+}
+
+function _imRefreshHubCounts() {
+  const page = document.getElementById('pageImersaoColoracao');
+  if (!page || !page.classList.contains('active') || _imState.view !== 'hub') return;
+  IM_HUB_SECTORS.forEach(s => {
+    const el = document.getElementById(`imHubCount_${s.key}`);
+    if (!el) return;
+    const count = _imLotsForSector(s.key).length;
+    const text = `${count} OP${count === 1 ? '' : 's'}`;
+    if (el.textContent !== text) el.textContent = text;
+  });
+}
+
+function _imOpenSector(sector) {
+  if (sector === 'coloracao') _imRenderColoracaoDetail();
+  else _imRenderGenericDetail(sector);
+}
+
+function _imBackToHub() {
+  _imRenderHub();
+}
+
+// --------- VIEW DA COLORAÇÃO (cenário fotográfico + analytics) ---------
+function _imRenderColoracaoDetail() {
+  const page = document.getElementById('pageImersaoColoracao');
+  if (!page) return;
+
+  _imClearTimers();
+  _imState.view = 'coloracao';
+  _imState.groups = IMERSAO_SECTOR_MAP.coloracao.groups;
 
   const cropAspect = (IM_CROP.width / IM_CROP.height).toFixed(4);
   const imgWidthPct = ((IM_IMAGE_NATIVE.w / IM_CROP.width) * 100).toFixed(3);
   const imgLeftPct = (-(IM_CROP.left / IM_CROP.width) * 100).toFixed(3);
   const imgTopPct = (-(IM_CROP.top / IM_CROP.height) * 100).toFixed(3);
+  const canSeeAnalytics = _imCanSeeAnalytics('coloracao');
 
   page.innerHTML = `
     <div class="im-toolbar">
+      <button class="im-back-btn" onclick="_imBackToHub()"><i class="fas fa-arrow-left"></i> Setores</button>
       <div>
         <h2><i class="fas fa-vr-cardboard"></i> Imersão na Fábrica — Coloração</h2>
         <p class="im-subtitle">Visualização em tempo real do setor. Clique numa prancheta para ver os detalhes da OP.</p>
@@ -97,10 +188,11 @@ function renderImersaoColoracao() {
         <img class="im-bg-img" src="${IM_IMAGE_SRC}" alt="Cenário do setor de Coloração"
              style="left:${imgLeftPct}%; top:${imgTopPct}%; width:${imgWidthPct}%;">
         <div class="im-dim"></div>
-        <div class="im-center-wrap">${_imRenderGroupCards(map.groups)}</div>
+        <div class="im-center-wrap">${_imRenderGroupCards(_imState.groups)}</div>
       </div>
     </div>
 
+    ${canSeeAnalytics ? `
     <div class="im-analytics-row">
       <div class="im-analytics-card">
         <div class="im-analytics-title"><i class="fas fa-chart-column"></i> Tempo médio de liberação — Coloração</div>
@@ -111,10 +203,61 @@ function renderImersaoColoracao() {
         <div id="imForecastBody">Calculando...</div>
       </div>
     </div>
+    ` : ''}
   `;
 
-  _imStartTimers();
-  _imRenderAnalytics();
+  _imStartTimers({ analytics: canSeeAnalytics });
+  if (canSeeAnalytics) _imRenderAnalytics();
+}
+
+// --------- VIEW GENÉRICA (qualquer outro setor do hub) ---------
+// Sem foto real ainda (só a Coloração tem cenário fotografado hoje) — usa
+// um fundo ambiente escuro com um brilho na cor do setor, e mostra as OPs
+// reais daquele setor exatamente como na Coloração (mesma prancheta).
+function _imRenderGenericDetail(sector) {
+  const page = document.getElementById('pageImersaoColoracao');
+  if (!page) return;
+
+  _imClearTimers();
+  _imState.view = sector;
+
+  const label = SECTOR_LABELS[sector] || sector;
+  const color = SECTOR_COLORS[sector] || '#38bdf8';
+  _imState.groups = {
+    [sector]: { sector, label, color, glow: _imHexToRgba(color, .5) }
+  };
+
+  page.innerHTML = `
+    <div class="im-toolbar">
+      <button class="im-back-btn" onclick="_imBackToHub()"><i class="fas fa-arrow-left"></i> Setores</button>
+      <div>
+        <h2><i class="fas fa-vr-cardboard"></i> Imersão na Fábrica — ${escapeHtml(label)}</h2>
+        <p class="im-subtitle">Visualização em tempo real do setor. Clique numa prancheta para ver os detalhes da OP.</p>
+      </div>
+    </div>
+
+    <div class="im-stage im-stage-generic" style="--im-generic-glow:${_imHexToRgba(color, .16)};">
+      <div class="im-scene">
+        <div class="im-center-wrap">${_imRenderGroupCards(_imState.groups)}</div>
+      </div>
+    </div>
+  `;
+
+  _imStartTimers({ analytics: false });
+}
+
+function _imHexToRgba(hex, alpha) {
+  const clean = (hex || '#38bdf8').replace('#', '');
+  const full = clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean;
+  const num = parseInt(full, 16) || 0x38bdf8;
+  const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// --------- PERMISSÃO: tempo médio e previsão só para o setor logado ---------
+function _imCanSeeAnalytics(sector) {
+  const u = STATE.currentUser;
+  return !!(u && u.sector === sector);
 }
 
 function _imRenderGroupCards(groups) {
@@ -194,12 +337,15 @@ function openImersaoOp(lotId) {
 // --------- ATUALIZAÇÃO CONTÍNUA (dados reais, sem mock) ---------
 // STATE.lots já é mantido atualizado pelo ciclo global de auto-update do
 // app (app.js). Aqui só recalculamos pranchetas/contadores periodicamente
-// e atualizamos o relógio de "tempo no setor" do modal a cada segundo.
-function _imStartTimers() {
+// e atualizamos o relógio de "tempo no setor" a cada segundo.
+function _imStartTimers(opts) {
+  opts = opts || {};
   _imClearTimers();
   _imState.tickTimer = setInterval(_imTickClocks, 1000);
   _imState.refreshTimer = setInterval(_imRefreshCounts, 4000);
-  _imState.analyticsTimer = setInterval(_imRenderAnalytics, 20000);
+  if (opts.analytics) {
+    _imState.analyticsTimer = setInterval(_imRenderAnalytics, 20000);
+  }
 }
 
 function _imClearTimers() {
@@ -209,6 +355,10 @@ function _imClearTimers() {
   _imState.tickTimer = null;
   _imState.refreshTimer = null;
   _imState.analyticsTimer = null;
+  if (_imState.chart) {
+    try { _imState.chart.destroy(); } catch (_) { /* já removido do DOM */ }
+    _imState.chart = null;
+  }
 }
 
 function _imTickClocks() {
@@ -225,10 +375,9 @@ function _imTickClocks() {
 
 function _imRefreshCounts() {
   const page = document.getElementById('pageImersaoColoracao');
-  if (!page || !page.classList.contains('active')) return;
+  if (!page || !page.classList.contains('active') || !_imState.groups) return;
 
-  const map = IMERSAO_SECTOR_MAP.coloracao;
-  Object.entries(map.groups).forEach(([key, g]) => {
+  Object.entries(_imState.groups).forEach(([key, g]) => {
     const lots = _imLotsForSector(g.sector);
     const countEl = document.getElementById(`imCount_${key}`);
     const pranchetasEl = document.getElementById(`imPranchetas_${key}`);
@@ -246,6 +395,7 @@ function _imRefreshCounts() {
 // Cada visita finalizada de um lote pela Coloração fica registrada em
 // lot.sectorMetrics (enteredAt/leftAt/totalMs). Juntamos isso de todos os
 // lotes em STATE.lots para calcular a média de hoje/semana/mês — sem mock.
+// Só é chamado quando _imCanSeeAnalytics('coloracao') é verdadeiro.
 function _imColoracaoMetricEntries() {
   const lots = Array.isArray(STATE.lots) ? STATE.lots : [];
   const entries = [];
@@ -267,7 +417,8 @@ function _imAvgMsSince(entries, sinceTs) {
 
 function _imRenderAnalytics() {
   const page = document.getElementById('pageImersaoColoracao');
-  if (!page || !page.classList.contains('active')) return;
+  if (!page || !page.classList.contains('active') || _imState.view !== 'coloracao') return;
+  if (!_imCanSeeAnalytics('coloracao')) return;
 
   const entries = _imColoracaoMetricEntries();
   const now = new Date();
@@ -320,12 +471,11 @@ function _imDrawAvgChart(avgs) {
 }
 
 // --------- PREVISÃO DE CHEGADA / GARGALO ---------
-// Olha os lotes que ainda estão em setores ANTERIORES à Coloração, no
-// fluxo real de uma tinta (PRODUCT_FLOWS.tinta), e estima quando cada um
-// deve chegar somando o tempo médio restante no setor atual + o tempo
-// médio dos setores intermediários até a Coloração (usando o histórico
-// real de sectorMetrics de cada setor, com fallback genérico quando não
-// há histórico suficiente).
+// Olha os lotes que ainda estão em Produção — o único setor considerado
+// "a caminho" (PCP e Pesagem ficam de fora a pedido do usuário) — e
+// estima quando cada um deve chegar usando o tempo médio real da
+// Produção (sectorMetrics), com fallback genérico quando não há
+// histórico suficiente. Só é chamado quando _imCanSeeAnalytics('coloracao').
 function _imAvgMsForSector(sector) {
   const lots = Array.isArray(STATE.lots) ? STATE.lots : [];
   const totals = [];
@@ -407,3 +557,5 @@ function _imRenderForecastPanel(avgColoracaoMsOverride) {
 
 window.renderImersaoColoracao = renderImersaoColoracao;
 window.openImersaoOp = openImersaoOp;
+window._imOpenSector = _imOpenSector;
+window._imBackToHub = _imBackToHub;

@@ -7,9 +7,26 @@
 /*   o fundo escurecido.                            */
 /* ============================================= */
 
-.im-toolbar { margin-bottom: 1rem; }
+.im-toolbar { display: flex; align-items: center; gap: .9rem; margin-bottom: 1rem; }
 .im-toolbar h2 { margin: 0 0 .25rem; font-size: 1.3rem; }
 .im-subtitle { margin: 0; color: var(--text2, #94a3b8); font-size: .85rem; }
+
+.im-back-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(148,163,184,.08);
+  border: 1px solid rgba(148,163,184,.25);
+  color: var(--text2, #94a3b8);
+  border-radius: 8px;
+  padding: .5rem .8rem;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.im-back-btn:hover { background: rgba(56,189,248,.12); color: #38bdf8; border-color: rgba(56,189,248,.4); }
 
 /* Janela do cenário: ocupa a área principal, com a proporção do
    recorte da imagem (definida via aspect-ratio inline no JS a partir
@@ -249,8 +266,8 @@
   display: flex;
   align-items: center;
   gap: .2rem;
-  font-weight: 700;
-  font-size: .68em;
+  font-weight: 800;
+  font-size: .82em;
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
@@ -380,6 +397,89 @@
 .im-forecast-detail { color: var(--text2, #94a3b8); font-size: .92em; }
 .im-forecast-eta { color: #fde68a; font-weight: 600; font-size: .92em; }
 
+/* ---------- HUB: quadradinho por setor (tela inicial da Imersão) ---------- */
+.im-hub-stage {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(56,189,248,.10), transparent 55%),
+    radial-gradient(circle at 85% 100%, rgba(232,121,249,.08), transparent 50%),
+    linear-gradient(165deg, #0c1428 0%, #01030b 70%);
+  border: 1px solid rgba(56,189,248,.25);
+  box-shadow: 0 0 30px rgba(8,145,178,.10);
+  padding: 2rem 1.2rem;
+  min-height: 55vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.im-hub-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 980px;
+}
+
+.im-hub-tile {
+  --im-color: #38bdf8;
+  position: relative;
+  background: linear-gradient(180deg, rgba(8,15,35,.9) 0%, rgba(3,7,20,.95) 100%);
+  border: 1px solid var(--im-color);
+  border-radius: 14px;
+  padding: 1.2rem .9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 0 16px rgba(56,189,248,.15), 0 8px 20px rgba(0,0,0,.4);
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease;
+}
+.im-hub-tile:hover {
+  transform: translateY(-.35rem) scale(1.04);
+  box-shadow: 0 0 26px var(--im-color), 0 14px 26px rgba(0,0,0,.5);
+}
+.im-hub-tile-icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.05);
+  color: var(--im-color);
+  font-size: 1.15rem;
+  box-shadow: inset 0 0 0 1.5px var(--im-color);
+}
+.im-hub-tile-label {
+  font-weight: 800;
+  font-size: .82rem;
+  color: var(--text, #f4f7ff);
+  letter-spacing: .01em;
+}
+.im-hub-tile-count {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--im-color);
+  background: rgba(255,255,255,.04);
+  padding: .15rem .55rem;
+  border-radius: 999px;
+}
+
+/* ---------- Fundo genérico para setores sem foto real ainda ---------- */
+.im-stage-generic {
+  aspect-ratio: 21 / 9;
+  min-height: 320px;
+  max-height: 70vh;
+  background:
+    radial-gradient(circle at 30% 20%, var(--im-generic-glow, rgba(56,189,248,.14)), transparent 60%),
+    linear-gradient(160deg, #0b1224 0%, #01030b 100%);
+}
+
 /* ---------- Modal rápido de uma OP (reaproveita o modal padrão do app) ---------- */
 .im-modal-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
 .im-modal-table td { padding: .5rem .4rem; border-bottom: 1px solid rgba(148,163,184,.12); font-size: .85rem; }
@@ -387,10 +487,14 @@
 .im-btn-full { width: 100%; justify-content: center; }
 
 @media (max-width: 900px) {
+  .im-toolbar { flex-wrap: wrap; }
   .im-stage { max-height: none; }
+  .im-stage-generic { aspect-ratio: auto; min-height: 40vh; max-height: none; }
   .im-center-wrap { padding: .6rem; gap: .5rem; }
   .im-group-card, #imWall_coloracao { min-width: 0; flex-basis: 100%; max-width: none; max-height: 32vh; }
   .im-prancheta { width: 4.6rem; min-width: 4.2rem; font-size: .58rem; }
   .im-analytics-card { min-width: 0; flex-basis: 100%; }
   .im-chart-wrap { height: 180px; }
+  .im-hub-stage { min-height: 0; padding: 1.2rem .8rem; }
+  .im-hub-tiles { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .7rem; }
 }
