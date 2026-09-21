@@ -208,7 +208,7 @@ function _lsRenderContent() {
       </div>
       <div class="metric-card metric-orange">
         <div class="metric-num">${lsFmtL(r.total_litros_finalizados_nao_base)}</div>
-        <div class="metric-label">Produto acabado (sem base)</div>
+        <div class="metric-label">Produtos de linha finais</div>
       </div>
     </div>
 
@@ -245,7 +245,7 @@ function _lsRenderContent() {
               <th style="text-align:right">Média diária (base)</th>
               <th style="text-align:right">Total no período</th>
               <th style="text-align:right">Base</th>
-              <th style="text-align:right">Sem base</th>
+              <th style="text-align:right">Linha final</th>
               <th style="text-align:right">Dias</th>
               <th style="text-align:right">Lotes</th>
             </tr>
@@ -278,7 +278,7 @@ function _lsRenderContent() {
         <div style="height:280px"><canvas id="lsChartMes"></canvas></div>
       </div>
       <div class="chart-card">
-        <h4>Participação de cada setor no total</h4>
+        <h4>Capacidade média diária por setor</h4>
         <div style="height:280px"><canvas id="lsChartSetores"></canvas></div>
       </div>
     </div>
@@ -292,7 +292,7 @@ function _lsRenderContent() {
               <th>Mês</th><th style="text-align:right">Dias</th>
               <th style="text-align:right">Concluído</th>
               <th style="text-align:right">Base</th>
-              <th style="text-align:right">Sem base</th>
+              <th style="text-align:right">Linha final</th>
               <th style="text-align:right">Média/dia</th>
             </tr>
           </thead>
@@ -463,7 +463,7 @@ function _lsRenderChartMes() {
     data: {
       labels: _lsData.mensal.map(m => lsMesLabel(m.mes)),
       datasets: [
-        { label: 'Sem base', data: _lsData.mensal.map(m => m.litros_finalizados_nao_base), backgroundColor: '#2563eb', borderRadius: 3 },
+        { label: 'Linha final', data: _lsData.mensal.map(m => m.litros_finalizados_nao_base), backgroundColor: '#2563eb', borderRadius: 3 },
         { label: 'Base', data: _lsData.mensal.map(m => m.litros_finalizados_base), backgroundColor: '#9333ea', borderRadius: 3 }
       ]
     },
@@ -483,15 +483,19 @@ function _lsRenderChartSetores() {
   if (ctx._chart) ctx._chart.destroy();
   ctx._chart = new Chart(ctx, {
     type: 'bar',
-    indexAxis: 'y',
     data: {
       labels: setores.map(s => s.label),
       datasets: [{ label: 'Média diária', data: setores.map(s => s.media_diaria), backgroundColor: setores.map(s => LS_CORES[s.setor] || '#94a3b8'), borderRadius: 3 }]
     },
     options: {
+      // barras deitadas: o nome do setor fica legível no eixo vertical
+      indexAxis: 'y',
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => lsFmtL(c.parsed.x) + '/dia' } } },
-      scales: { x: { beginAtZero: true, ticks: { callback: v => lsFmt(v) + ' L' } }, y: { grid: { display: false } } }
+      scales: {
+        x: { beginAtZero: true, ticks: { callback: v => lsFmt(v) + ' L' } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
     }
   });
 }
@@ -540,7 +544,7 @@ function exportLitragemSetorPDF() {
     ['Produção concluída', lsFmtL(r.total_litros_finalizados), [37, 99, 235]],
     ['Capacidade média/dia', lsFmtL(r.media_diaria_finalizados), [22, 163, 74]],
     ['Somente base', lsFmtL(r.total_litros_finalizados_base), [147, 51, 234]],
-    ['Sem base', lsFmtL(r.total_litros_finalizados_nao_base), [234, 88, 12]]
+    ['Linha final', lsFmtL(r.total_litros_finalizados_nao_base), [234, 88, 12]]
   ];
   const cw = (W - 80 - 3 * 14) / 4;
   cards.forEach((c, i) => {
@@ -555,7 +559,7 @@ function exportLitragemSetorPDF() {
 
   doc.autoTable({
     startY: 180,
-    head: [['Setor', 'Média diária', 'Média diária (base)', 'Total no período', 'Base', 'Sem base', 'Dias', 'Lotes']],
+    head: [['Setor', 'Média diária', 'Média diária (base)', 'Total no período', 'Base', 'Linha final', 'Dias', 'Lotes']],
     body: d.setores.filter(s => s.produtivo).map(s => [
       s.label, lsFmtL(s.media_diaria), lsFmtL(s.media_diaria_base), lsFmtL(s.litros_total),
       lsFmtL(s.litros_base), lsFmtL(s.litros_nao_base), String(s.dias_com_producao), String(s.lotes)
@@ -587,7 +591,7 @@ function exportLitragemSetorPDF() {
   _lsPdfTitulo(doc, 'Resumo mensal', W);
   doc.autoTable({
     startY: 80,
-    head: [['Mês', 'Dias com produção', 'Concluído', 'Base', 'Sem base', 'Média/dia']],
+    head: [['Mês', 'Dias com produção', 'Concluído', 'Base', 'Linha final', 'Média/dia']],
     body: d.mensal.map(m => [lsMesLabel(m.mes), String(m.dias_com_producao), lsFmtL(m.litros_finalizados),
       lsFmtL(m.litros_finalizados_base), lsFmtL(m.litros_finalizados_nao_base), lsFmtL(m.media_diaria_finalizados)]),
     theme: 'striped',
@@ -669,7 +673,7 @@ async function exportLitragemSetorPPT() {
       ['Produção concluída', lsFmtL(r.total_litros_finalizados), '2563EB'],
       ['Capacidade média/dia', lsFmtL(r.media_diaria_finalizados), '16A34A'],
       ['Somente base', lsFmtL(r.total_litros_finalizados_base), '9333EA'],
-      ['Sem base', lsFmtL(r.total_litros_finalizados_nao_base), 'EA580C']
+      ['Linha final', lsFmtL(r.total_litros_finalizados_nao_base), 'EA580C']
     ];
     cards.forEach((c, i) => {
       const x = 0.55 + i * 3.1;
@@ -681,7 +685,7 @@ async function exportLitragemSetorPPT() {
     s.addTable(
       [[{ text: 'Setor', options: { bold: true } }, { text: 'Média diária', options: { bold: true } },
         { text: 'Média diária (base)', options: { bold: true } }, { text: 'Total', options: { bold: true } },
-        { text: 'Base', options: { bold: true } }, { text: 'Sem base', options: { bold: true } },
+        { text: 'Base', options: { bold: true } }, { text: 'Linha final', options: { bold: true } },
         { text: 'Dias', options: { bold: true } }]]
         .concat(prod.map(x => [x.label, lsFmtL(x.media_diaria), lsFmtL(x.media_diaria_base), lsFmtL(x.litros_total), lsFmtL(x.litros_base), lsFmtL(x.litros_nao_base), String(x.dias_com_producao)])),
       { x: 0.55, y: 3.3, w: 12.2, fontSize: 11, border: { pt: 0.5, color: 'DDDDDD' }, fill: { color: 'F8FAFC' }, color: '1F2937', align: 'right', colW: [3.2, 1.6, 1.9, 1.7, 1.5, 1.5, 0.8] }
@@ -704,7 +708,7 @@ async function exportLitragemSetorPPT() {
     sm.addTable(
       [[{ text: 'Mês', options: { bold: true } }, { text: 'Dias', options: { bold: true } },
         { text: 'Concluído', options: { bold: true } }, { text: 'Base', options: { bold: true } },
-        { text: 'Sem base', options: { bold: true } }, { text: 'Média/dia', options: { bold: true } }]]
+        { text: 'Linha final', options: { bold: true } }, { text: 'Média/dia', options: { bold: true } }]]
         .concat(d.mensal.map(m => [lsMesLabel(m.mes), String(m.dias_com_producao), lsFmtL(m.litros_finalizados),
           lsFmtL(m.litros_finalizados_base), lsFmtL(m.litros_finalizados_nao_base), lsFmtL(m.media_diaria_finalizados)])),
       { x: 0.6, y: 1.5, w: 12.1, fontSize: 13, border: { pt: 0.5, color: 'DDDDDD' }, fill: { color: 'F8FAFC' }, color: '1F2937', align: 'right', colW: [2.6, 1.6, 2.2, 2.0, 2.0, 1.7] }
