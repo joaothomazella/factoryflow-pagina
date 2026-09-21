@@ -189,6 +189,7 @@ function _silentRefresh(page) {
       case 'relatorio_tempos':  /* não auto-atualiza – dados são carregados sob demanda */ break;
       case 'relatorio_litragem': /* não auto-atualiza – dados são carregados sob demanda */ break;
       case 'litragem_setor':     /* não auto-atualiza – dados são carregados sob demanda */ break;
+      case 'ops_setor':          /* não auto-atualiza – dados são carregados sob demanda */ break;
       case 'simulador_entrega': /* carregado sob demanda – não auto-atualiza */ break;
       case 'pedidos_novos': if (typeof renderPedidosNovos === 'function') renderPedidosNovos(); break;
     }
