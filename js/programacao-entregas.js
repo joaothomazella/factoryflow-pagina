@@ -16,6 +16,14 @@ const PE_MONTHS_PT = [
 ];
 const PE_DAYS_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
+// Quem pode remarcar a entrega de um pedido no calendário.
+// 'gerente' e 'manager' são o mesmo cargo: o login aceita os dois formatos.
+const PE_ROLES_EDITA_DATA = ['admin', 'pcp', 'pcp_lib', 'manager', 'gerente'];
+
+function _peCanEditDate(user) {
+  return !!user && PE_ROLES_EDITA_DATA.includes(String(user.role || '').toLowerCase());
+}
+
 // ===================================================
 // HELPERS GERAIS
 // ===================================================
@@ -210,7 +218,7 @@ function renderProgramacaoEntregas() {
   if (!page) return;
 
   const user = STATE.currentUser;
-  const canEdit = user && ['admin','pcp','pcp_lib'].includes(String(user.role || '').toLowerCase());
+  const canEdit = _peCanEditDate(user);
 
   page.innerHTML = `
     <div class="page-header">
@@ -345,7 +353,7 @@ function openDeliveryDay(dateStr) {
   const isPast = dateStr < today;
 
   const user = STATE.currentUser;
-  const canEditDate = user && ['admin','pcp','pcp_lib'].includes(String(user.role || '').toLowerCase());
+  const canEditDate = _peCanEditDate(user);
 
   if (orders.length === 0) {
     panel.innerHTML = `
@@ -577,7 +585,7 @@ function _peToggleDateInput(id) {
 
 async function updateOrderDeliveryDate(pedido) {
   const user = STATE.currentUser;
-  if (!user || !['admin','pcp','pcp_lib'].includes(String(user.role || '').toLowerCase())) {
+  if (!_peCanEditDate(user)) {
     showToast('⛔ Sem permissão para alterar datas.', 'error');
     return;
   }
