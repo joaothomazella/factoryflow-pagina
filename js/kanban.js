@@ -428,13 +428,13 @@ function buildKanbanCard(lot, user, currentSector) {
         <div class="kc2-bar-paused" style="width:${pPct}%"></div>
         <div class="kc2-bar-idle" style="width:${idlePct}%"></div>
       </div>
+      ${(timeSummary.worked > 0 || timeSummary.paused > 0) ? `
       <div class="kc2-time-chips">
-        <span class="kc2-chip kc2-chip-total"><i class="fas fa-clock"></i> ${formatMs(timeSummary.total)}</span>
         ${timeSummary.worked > 0 ? `<span class="kc2-chip kc2-chip-worked"><i class="fas fa-play"></i> ${formatMsShort(timeSummary.worked)}</span>` : ''}
         ${timeSummary.paused > 0 ? `<span class="kc2-chip kc2-chip-paused"><i class="fas fa-pause"></i> ${formatMsShort(timeSummary.paused)}</span>` : ''}
-      </div>
-      ${elapsedSector > 60000 ? `
-      <div class="kc2-elapsed ${elapsedCls}">
+      </div>` : ''}
+      ${elapsedSector >= 1000 ? `
+      <div class="kc2-elapsed ${elapsedCls}" title="Tempo útil no setor, sem contar expediente fechado">
         <i class="fas fa-stopwatch"></i>
         No setor há <strong>${(typeof rtFormatMs === 'function' ? rtFormatMs : formatMs)(elapsedSector)}</strong>
         ${effPct > 0 ? `<span class="kc2-eff">${effPct}% efic.</span>` : ''}

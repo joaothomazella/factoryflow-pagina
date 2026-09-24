@@ -1621,12 +1621,82 @@ function ffCalculateRawLotTimeSummary(lot, options = {}) {
   };
 }
 
+/**
+ * Tempo do setor atual calculado pelo backend (ff_tempoSetor), já descontando
+ * todo período de expediente fechado pelos eventos reais de abrir/fechar.
+ *
+ * Por que isso existe: o cálculo local media relógio de parede desde a entrada no
+ * setor, então uma OP parada desde junho aparecia no card com ~2.400h enquanto o
+ * Relatório de Tempos, que desconta expediente fechado, mostrava ~574h para a
+ * mesma OP. Agora o card usa o número do backend e os dois batem por construção.
+ *
+ * Entre duas atualizações da tela o valor continua correndo sozinho, mas só
+ * enquanto o expediente do setor estiver aberto — igual ao que o backend fará
+ * na próxima resposta.
+ */
+function ffBackendSectorSummary(lot, sector) {
+  const t = lot?.tempoSetor || lot?.raw_mysql?.ff_tempoSetor;
+  if (!t || typeof t !== 'object') return null;
+  if (!Number.isFinite(Number(t.totalMs))) return null;
+  // Comparação exata (não por grupo): coloracao e coloracao_revisao são passagens
+  // diferentes, e aceitar uma pela outra faria o card mostrar o tempo do setor anterior
+  // no intervalo entre o avanço e a próxima atualização vinda do backend.
+  if (ffTimeNormalizeSector(t.setor) !== sector) return null;
+
+  const asOf = ffTimeToMs(t.asOf);
+  const trackable = typeof canTrackWork === 'function' ? canTrackWork(sector) : true;
+  const abertoAgora = typeof isExpedienteAbertoForSector === 'function'
+    ? isExpedienteAbertoForSector(sector)
+    : (t.expedienteAberto !== false);
+
+  // Só deixa o cronômetro andar se o expediente está aberto tanto no momento do
+  // cálculo do backend quanto agora na tela.
+  const contando = t.expedienteAberto !== false && (!trackable || abertoAgora);
+  const decorrido = (contando && asOf > 0) ? Math.max(0, Date.now() - asOf) : 0;
+
+  const total = Math.max(0, Number(t.totalMs || 0)) + decorrido;
+  const rodando = String(lot?.lotStatus || '').toLowerCase() === 'working';
+  const emPausa = String(lot?.lotStatus || '').toLowerCase() === 'paused';
+
+  let worked = Math.max(0, Number(t.workedMs || 0)) + (rodando ? decorrido : 0);
+  let paused = Math.max(0, Number(t.pausedMs || 0)) + (emPausa ? decorrido : 0);
+
+  worked = Math.max(0, Math.min(worked, total));
+  paused = Math.max(0, Math.min(paused, Math.max(0, total - worked)));
+
+  return {
+    total,
+    worked,
+    paused,
+    idle: Math.max(0, total - worked - paused),
+    efficiency: total > 0 ? Math.min(100, Math.round((worked / total) * 100)) : 0,
+    status: lot?.lotStatus || 'idle',
+    sector: ffTimeNormalizeSector(t.setor || sector),
+    enteredAt: ffTimeToMs(t.enteredAt) || null,
+    exitAt: null,
+    effectiveNow: Date.now(),
+    frozen: !contando,
+    fonte: 'backend_expediente'
+  };
+}
+
 function ffCalculateLotTimeSummary(lot, options = {}) {
   if (!lot) {
     return { total: 0, worked: 0, paused: 0, idle: 0, efficiency: 0, status: 'idle', sector: '', enteredAt: null, exitAt: null };
   }
 
   const sector = ffTimeNormalizeSector(options.sector || lot.sector || lot.stage || lot.status || lot.currentSector || '');
+
+  // Passagem em aberto no setor atual: o backend já calculou o tempo útil.
+  // Quando pedem uma passagem fechada (exitAt/leftAt) o cálculo local continua valendo.
+  if (!options.exitAt && !options.leftAt && !options.enteredAt) {
+    const doBackend = ffBackendSectorSummary(lot, sector);
+    if (doBackend) {
+      if (window.DEBUG_TEMPOS) console.log('[TEMPOS] usando tempo do backend', doBackend);
+      return doBackend;
+    }
+  }
+
   const group = ffTimeNormalizeGroup(sector);
   const key = `${lot.id || lot.number || 'sem_lote'}::${group}`;
   const trackable = typeof canTrackWork === 'function' ? canTrackWork(sector) : true;
@@ -2354,6 +2424,9 @@ function deserializeBridgeLot(row) {
     updatedAt,
     updated_at:     row.updated_at || '',
     sectorEnteredAt: ffSectorEnteredAt || updatedAt,
+    // Tempo do setor atual já calculado pelo backend com os eventos reais de expediente
+    // (mesmo motor do Relatório de Tempos). É a fonte preferida dos cards.
+    tempoSetor:    (row.ff_tempoSetor && typeof row.ff_tempoSetor === 'object') ? row.ff_tempoSetor : null,
     history:       ffHistory,
     workSessions:  ffWorkSessions,
     sectorMetrics: ffSectorMetrics,
@@ -2780,12 +2853,14 @@ async function freezeLotsForShiftClose(group, closeMs) {
 async function resumeLotsForShiftOpen(group, openMs, lastCloseMs) {
   const lots = getLotsByShiftGroup(group);
   const user = STATE.currentUser || {};
-  const closedMs = lastCloseMs ? Math.max(0, openMs - lastCloseMs) : 0;
 
   lots.forEach(lot => {
-    if (closedMs > 0) {
-      lot.sectorEnteredAt = (Number(lot.sectorEnteredAt) || Number(lot.createdAt) || openMs) + closedMs;
-    }
+    // Antes, ao reabrir o expediente, a hora de entrada no setor era empurrada para
+    // frente pelo tempo que ficou fechado, para que "agora - entrada" desse o tempo útil.
+    // Isso corrompia ff_sectorEnteredAt (deixava de ser o instante real da entrada),
+    // dependia de ter alguém com a tela aberta na hora da reabertura e só funcionava
+    // uma vez por fechamento. O desconto de expediente agora é feito pelo backend, em
+    // cima dos eventos reais de abrir/fechar, então a entrada fica como ela é.
 
     const sessions = Array.isArray(lot.workSessions) ? [...lot.workSessions] : [];
     if (lot.expedientePausedStatus === 'working') {

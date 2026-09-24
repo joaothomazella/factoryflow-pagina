@@ -626,6 +626,15 @@ function calculateSectorTimesFromLot(lot) {
 function getCurrentSectorElapsedTime(lot) {
   if (!lot) return 0;
   try {
+    // Precisa ser o mesmo número do Relatório de Tempos: tempo útil, já sem os
+    // períodos de expediente fechado. Antes isto era relógio de parede puro
+    // (agora - entrada), então o card de uma OP parada há meses mostrava milhares
+    // de horas enquanto o relatório mostrava algumas centenas.
+    if (typeof ffCalculateLotTimeSummary === 'function') {
+      const ts = ffCalculateLotTimeSummary(lot);
+      return Math.max(0, Number(ts?.total || 0));
+    }
+
     const enteredAt = lot.sectorEnteredAt || lot.createdAt || 0;
     if (!enteredAt) return 0;
     return Math.max(0, Date.now() - Number(enteredAt));

@@ -1241,6 +1241,7 @@ async function confirmSendToSector() {
 
   const savedSector = ffApplySectorToLot(lot, _pendingSendSector);
   lot.sectorEnteredAt = now; // ← CRITICAL: reset timer when lot moves to new sector
+  lot.tempoSetor      = null;       // o tempo vindo do backend era do setor anterior
   lot.lotStatus       = 'idle';     // reset work status on sector change
 
   history.push({
