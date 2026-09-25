@@ -865,6 +865,74 @@ function ffReplaceLotInState(updatedLot) {
   }
 }
 
+// ───────────────────────────────────────────────────────────────
+// MOVIMENTAÇÕES RECÉM-GRAVADAS (rede de segurança contra dado velho)
+// ───────────────────────────────────────────────────────────────
+// Quando o lote avança de setor, o front grava no backend e recarrega a lista
+// poucos instantes depois. Se essa leitura for servida por um cache ainda não
+// expirado (ou por outra instância do backend), ela devolve o lote no setor
+// ANTIGO e o card reaparece na coluna de onde já saiu — era preciso atualizar
+// a página na mão para ele sumir.
+// Aqui guardamos por pouco tempo o setor que acabamos de gravar e aplicamos
+// esse valor em cima de qualquer linha atrasada que voltar do backend.
+const FF_PENDING_MOVE_TTL = 60000;
+window.FF_PENDING_MOVES = window.FF_PENDING_MOVES || new Map();
+
+function ffRememberSectorMove(bridgeId, lot) {
+  const key = String(bridgeId || '').trim();
+  if (!key) return;
+  window.FF_PENDING_MOVES.set(key, {
+    op: String(lot?.op || lot?.number || '').trim(),
+    // Setor que o backend ainda mostrava na última leitura. Só corrigimos linhas
+    // que voltem exatamente com ele — assim, se outra pessoa mover o lote para
+    // um terceiro setor, a movimentação dela prevalece.
+    fromSector: String(lot?.raw_mysql?.setor_atual || '').trim(),
+    sector: String(lot?.sector || '').trim(),
+    status: lot?.rejected ? 'rejeitado' : (lot?.sector === 'pronto' ? 'pronto' : 'em_producao'),
+    sectorEnteredAt: Number(lot?.sectorEnteredAt) || Date.now(),
+    at: Date.now()
+  });
+}
+
+function ffApplyPendingSectorMoves(rows) {
+  const pend = window.FF_PENDING_MOVES;
+  if (!pend || !pend.size || !Array.isArray(rows)) return rows;
+
+  const now = Date.now();
+  for (const [key, mv] of Array.from(pend.entries())) {
+    if (!mv || (now - mv.at) > FF_PENDING_MOVE_TTL) pend.delete(key);
+  }
+  if (!pend.size) return rows;
+
+  for (const row of rows) {
+    const mv = pend.get(String(row?.id || '')) ||
+               (row?.op ? [...pend.values()].find(m => m.op && m.op === String(row.op).trim()) : null);
+    if (!mv || !mv.sector) continue;
+
+    const atual = String(row.setor_atual || '').trim();
+    if (atual === mv.sector) {
+      // O backend já alcançou a gravação: nada mais a corrigir para este lote.
+      pend.delete(String(row.id || ''));
+      continue;
+    }
+
+    // Linha atrasada é a que ainda mostra o setor de origem. Qualquer outro
+    // setor é movimentação mais nova (de outro usuário) e deve passar.
+    if (mv.fromSector && atual !== mv.fromSector) {
+      pend.delete(String(row.id || ''));
+      continue;
+    }
+
+    row.setor_atual        = mv.sector;
+    row.status             = mv.status || row.status;
+    row.ff_sectorEnteredAt = mv.sectorEnteredAt;
+    row.ff_lotStatus       = 'idle';
+    row.ff_tempoSetor      = null; // o tempo que veio era do setor anterior
+  }
+
+  return rows;
+}
+
 async function apiUpdateLot(lot) {
 
   // 🔥 Se for lote vindo do MySQL (bridge)
@@ -910,6 +978,7 @@ async function apiUpdateLot(lot) {
       throw new Error(json.error || json.detail || `PATCH producao/${bridgeId} falhou`);
     }
 
+    ffRememberSectorMove(bridgeId, lot);
     ffReplaceLotInState(lot);
     ffRenderAfterLotChange(lot);
 
@@ -2247,7 +2316,9 @@ async function bridgeApiGet(path, params = {}, options = {}) {
   const timer = controller ? setTimeout(() => controller.abort(), timeout) : null;
 
   try {
-    const fetchOptions = { headers: bridgeAuthHeaders(false) };
+    // no-store: lista de produção é dado vivo. Sem isto o navegador pode
+    // devolver uma resposta guardada e mostrar o lote no setor antigo.
+    const fetchOptions = { headers: bridgeAuthHeaders(false), cache: 'no-store' };
     if (controller) fetchOptions.signal = controller.signal;
     const res = await fetch(url, fetchOptions);
     if (timer) clearTimeout(timer);
@@ -2497,7 +2568,10 @@ async function loadBridgeLots(options = {}) {
       return;
     }
 
-    const rows = result.data;
+    // Antes de montar os lotes, corrige qualquer linha que ainda volte no setor
+    // antigo por causa de cache/replicação — senão o card volta para a coluna
+    // de onde o usuário acabou de tirá-lo.
+    const rows = ffApplyPendingSectorMoves(result.data);
 
     // O backend já manda apenas ativos; aqui só bloqueamos estados realmente finalizados/entregues.
     const excludedSector = new Set(['entrega', 'entregue', 'finalizado', 'finalizada', 'cancelado', 'cancelada', 'rejeitado', 'rejeitada']);
