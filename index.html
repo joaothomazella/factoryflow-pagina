@@ -817,6 +817,11 @@
           <label>Cliente *</label>
           <input type="text" id="lm_cliente_nome" placeholder="Nome do cliente" required autocomplete="off" />
         </div>
+        <div class="form-group">
+          <label>Data de Entrega</label>
+          <input type="date" id="lm_data_entrega" autocomplete="off" />
+          <small class="ff-manual-hint">Preenchendo aqui, o pedido já aparece na Programação de Entregas.</small>
+        </div>
       </div>
 
       <input type="hidden" id="lm_cliente_endereco" />
@@ -966,7 +971,7 @@
 <script src="js/dashboard.js?v=10"></script>
 <script src="js/reports.js"></script>
 <script src="js/expediente-alerts.js?v=1"></script>
-<script src="js/app.js?v=10"></script>
+<script src="js/app.js?v=11"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

@@ -372,7 +372,14 @@ function adicionarLinhaLoteManual(dados = {}) {
     <div class="ff-manual-lote-grid">
       <div class="form-group"><label>OP / Lote *</label><input type="text" class="lm-op" placeholder="Ex: 087999" required autocomplete="off" value="${escapeHtml(String(dados.op || ''))}" /></div>
       <div class="form-group"><label>Produto *</label><input type="text" class="lm-produto-nome" placeholder="Nome do produto" required autocomplete="off" value="${escapeHtml(String(dados.produto_nome || ''))}" /></div>
-      <div class="form-group"><label>Cód. Produto</label><input type="text" class="lm-produto-codigo" placeholder="Opcional" autocomplete="off" value="${escapeHtml(String(dados.produto_codigo || ''))}" /></div>
+      <div class="form-group">
+        <label>Cód. Produto</label>
+        <input type="text" class="lm-produto-codigo" placeholder="Ex: 010.093" autocomplete="off"
+               onblur="buscarProdutoLoteManual(this)"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();buscarProdutoLoteManual(this);}"
+               value="${escapeHtml(String(dados.produto_codigo || ''))}" />
+        <small class="ff-manual-hint lm-produto-hint">Digite o código e aperte Tab/Enter para puxar o nome.</small>
+      </div>
       <div class="form-group"><label>Quantidade *</label><input type="number" class="lm-quantidade" min="0" step="0.0001" placeholder="Ex: 20" required value="${escapeHtml(String(dados.quantidade || ''))}" /></div>
       <div class="form-group">
         <label>Tipo *</label>
@@ -480,6 +487,67 @@ async function buscarClienteLoteManual() {
   }
 }
 
+// Puxa o nome do produto no banco a partir do código digitado, igual ao que o
+// campo de código do cliente já faz. Só preenche o nome quando ele está vazio
+// ou quando veio de uma busca anterior — nome digitado à mão não é sobrescrito.
+async function buscarProdutoLoteManual(input) {
+  const row = input?.closest('.ff-manual-lote-row');
+  if (!row) return;
+
+  const nomeEl = row.querySelector('.lm-produto-nome');
+  const hint = row.querySelector('.lm-produto-hint');
+  const codigo = String(input.value || '').trim();
+
+  if (!codigo) {
+    if (hint) hint.innerHTML = 'Digite o código e aperte Tab/Enter para puxar o nome.';
+    return;
+  }
+  if (row.dataset.ultimoCodigoBuscado === codigo) return;
+
+  try {
+    if (hint) hint.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando produto...';
+    const apiBase = ffResolveApiBase();
+    const url = `${apiBase}/api/produtos/lookup?codigo=${encodeURIComponent(codigo)}`;
+    const res = await fetch(url, { headers: ffAuthHeaders(false), cache: 'no-store' });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.ok) throw new Error(json.error || `Erro HTTP ${res.status}`);
+
+    row.dataset.ultimoCodigoBuscado = codigo;
+
+    if (!json.encontrado || !json.data) {
+      if (hint) hint.innerHTML = '<span style="color:#fcd34d">Código não encontrado. Digite o nome do produto à mão.</span>';
+      return;
+    }
+
+    const produto = json.data;
+    const nomeAtual = String(nomeEl?.value || '').trim();
+    const podeSobrescrever = !nomeAtual || nomeAtual === String(row.dataset.nomePreenchidoAuto || '');
+
+    if (nomeEl && podeSobrescrever) {
+      nomeEl.value = produto.nome || '';
+      row.dataset.nomePreenchidoAuto = nomeEl.value;
+    }
+
+    // Se a linha do produto ainda não foi escolhida e o cadastro tem uma
+    // equivalente na lista, já deixa selecionada.
+    const linhaEl = row.querySelector('.lm-linha-produto');
+    if (linhaEl && !linhaEl.value) {
+      const alvo = String(produto.linha || '').toLowerCase();
+      const opcao = [...linhaEl.options].find(o => o.value && alvo.includes(o.value.toLowerCase()));
+      if (opcao) linhaEl.value = opcao.value;
+    }
+
+    if (hint) {
+      hint.innerHTML = podeSobrescrever
+        ? `<span style="color:#86efac"><i class="fas fa-check-circle"></i> ${escapeHtml(produto.nome || '')}</span>`
+        : `<span style="color:#93c5fd">No cadastro: ${escapeHtml(produto.nome || '')} (mantive o nome que você digitou)</span>`;
+    }
+  } catch (err) {
+    console.warn('Buscar produto manual falhou:', err);
+    if (hint) hint.innerHTML = `<span style="color:#fca5a5">Não consegui buscar o produto: ${escapeHtml(err.message)}</span>`;
+  }
+}
+
 function setorInicialLoteManual(tipo) {
   const t = String(tipo || '').toLowerCase();
   if (t === 'amostra') return 'laboratorio_amostras';
@@ -493,6 +561,8 @@ function montarPayloadsLoteManual() {
   const prioridade = document.getElementById('lm_prioridade')?.value || 'normal';
   const clienteCodigo = document.getElementById('lm_cliente_codigo')?.value.trim() || '';
   const clienteNome = document.getElementById('lm_cliente_nome')?.value.trim() || '';
+  // Data de entrega do pedido inteiro: é ela que põe o pedido no calendário.
+  const dataEntrega = document.getElementById('lm_data_entrega')?.value.trim() || '';
 
   const clienteDados = {
     cliente_endereco: document.getElementById('lm_cliente_endereco')?.value || '',
@@ -519,6 +589,7 @@ function montarPayloadsLoteManual() {
       quantidade: Number.isFinite(quantidade) ? quantidade : 0,
       tipo_lote: tipo,
       linha_produto: row.querySelector('.lm-linha-produto')?.value || '',
+      previsao_entrega: dataEntrega || null,
       prioridade,
       setor_atual: setorInicialLoteManual(tipo),
       status: 'aguardando',
