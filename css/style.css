@@ -1788,30 +1788,6 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* =====================================================
-   TV MODE BUTTON in SIDEBAR
-   ===================================================== */
-.btn-tv-mode {
-  width: 100%;
-  background: rgba(139,92,246,.12);
-  border: 1px solid rgba(139,92,246,.3);
-  color: var(--purple);
-  padding: .55rem;
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: .82rem;
-  font-weight: 600;
-  margin-bottom: .5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .4rem;
-  transition: background .2s, transform .15s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.btn-tv-mode:hover { background: rgba(139,92,246,.22); transform: translateY(-1px); }
-
-/* =====================================================
    IMPORT PAGE STYLES
    ===================================================== */
 .import-info {

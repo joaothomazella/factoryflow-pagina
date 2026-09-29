@@ -1,4 +1,7 @@
-const CACHE_NAME = 'factoryflow-v2';
+// v3: o Modo TV (tv.html / tv2.html) saiu do sistema. Trocar o nome do cache
+// apaga o cache antigo no activate e derruba qualquer cópia dessas telas que
+// tenha ficado guardada no navegador de quem já as abriu.
+const CACHE_NAME = 'factoryflow-v3';
 const PRECACHE_URLS = [
   './index.html',
   './manifest.json',

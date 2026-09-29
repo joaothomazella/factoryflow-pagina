@@ -71,7 +71,6 @@ const ROLE_LABELS = {
   sector:      'Usuário de Setor',
   driver:      'Motorista',
   viewer:      'Visualizador',
-  tv:          'TV / Painel',
   pcp:         'PCP',
   pcp_lib:     'PCP (Liberação)',
   manager:     'Gerente',
@@ -1386,7 +1385,7 @@ function getProductFlow(pt){ return PRODUCT_FLOWS[pt]||PRODUCT_FLOWS['tinta']; }
 // USER HELPERS
 // ===================================================
 function getUserById(id){ return STATE.users.find(u=>u.id===id); }
-function isFullAccess(user){ return ['admin','diretoria','pcp','pcp_lib','manager','viewer','tv'].includes(user.role); }
+function isFullAccess(user){ return ['admin','diretoria','pcp','pcp_lib','manager','viewer'].includes(user.role); }
 function canEdit(user){ return ['admin','diretoria','pcp','pcp_lib','manager','sector'].includes(user.role); }
 
 function getLotsForUser(user) {

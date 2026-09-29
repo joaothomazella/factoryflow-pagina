@@ -114,7 +114,8 @@ function mapFactoryRole(role) {
     operador: 'sector',
     driver: 'driver',
     motorista: 'driver',
-    tv: 'tv',
+    tv: 'viewer',      // Modo TV removido — cadastro antigo vira visualizador
+    painel: 'viewer',
     viewer: 'viewer',
     visualizador: 'viewer',
     vendor: 'vendor',
@@ -194,8 +195,10 @@ function mapFactoryAccess(user) {
     return user;
   }
 
-  if (['tv', 'painel', 'modo tv'].includes(acessoFactory) || ['tv'].includes(roleOriginal)) {
-    user.role = 'tv';
+  // O Modo TV foi removido do sistema. Quem ainda está cadastrado como tv/painel
+  // no banco não pode perder o acesso: entra como visualizador de dashboards.
+  if (['tv', 'painel', 'modo tv'].includes(acessoFactory) || ['tv', 'painel'].includes(roleOriginal)) {
+    user.role = 'viewer';
     user.sector = '';
     return user;
   }
@@ -347,13 +350,6 @@ async function handleLogin(e) {
       return;
     }
 
-    // TV → tela de painel
-    if (user.role === 'tv') {
-      sessionStorage.setItem('ff_tv', JSON.stringify(user));
-      window.location.href = 'tv.html';
-      return;
-    }
-
     await showApp();
 
   } catch (err) {
@@ -404,14 +400,6 @@ async function checkSession() {
           sessionStorage.setItem('ff_driver', JSON.stringify(parsed));
           _sessionCheckFinished = true;
           window.location.href = 'driver.html';
-          return;
-        }
-
-        // TV logado tentando abrir o app principal → manda para a tela própria
-        if (parsed.role === 'tv') {
-          sessionStorage.setItem('ff_tv', JSON.stringify(parsed));
-          _sessionCheckFinished = true;
-          window.location.href = 'tv.html';
           return;
         }
 
@@ -612,16 +600,6 @@ function buildSidebar() {
       || '<i class="fas fa-sun"></i> Tema Claro';
   }
 
-  // Botão Modo TV – visível para admin, diretoria, pcp, manager
-  const tvBtn = document.getElementById('btnTVMode');
-  if (tvBtn) {
-    tvBtn.style.display = ['admin','diretoria','pcp','pcp_lib','manager'].includes(user.role) ? 'flex' : 'none';
-  }
-
-  // Botão TV Stats (removido da UI)
-  const tvStatsBtn = document.getElementById('btnTVStats');
-  if (tvStatsBtn) tvStatsBtn.style.display = 'none';
-
   // Botão reset – EXCLUSIVO do admin (diretoria não tem acesso)
   const resetBtn = document.getElementById('btnResetLots');
   if (resetBtn) resetBtn.style.display = user.role === 'admin' ? 'flex' : 'none';
@@ -766,14 +744,6 @@ function toggleSidebar() {
   } else {
     sidebar.classList.toggle('collapsed');
   }
-}
-
-function openTVMode() {
-  window.open('tv.html', '_blank');
-}
-
-function openTVStats() {
-  window.open('tv2.html', '_blank');
 }
 
 // ===================================================
