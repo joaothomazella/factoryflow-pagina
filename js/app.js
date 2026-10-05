@@ -62,6 +62,10 @@ document.addEventListener('click', (e) => {
 // ===================================================
 let _autoUpdateInterval = null;
 
+// Batida lenta de segurança para aba oculta — ver o setInterval em startAutoUpdate.
+const FF_HIDDEN_HEARTBEAT_MS = 300000;
+let _ffLastHiddenCycle = 0;
+
 function isModalOrEditingActive() {
   const loteManual = document.getElementById('modalLoteManual');
   const overlay = document.getElementById('modalOverlay');
@@ -177,9 +181,17 @@ function startAutoUpdate() {
     }
 
     // Aba em segundo plano (outra aba, janela minimizada): ninguém está olhando
-    // a tela, então o ciclo só gastaria banda. Ao voltar, o listener de
-    // visibilitychange atualiza na hora — o operador nunca vê dado velho.
-    if (document.hidden) return;
+    // a tela, então o ciclo normal só gastaria banda. Ao voltar para a frente, o
+    // listener de visibilitychange atualiza na hora.
+    //
+    // Mas não para de vez: mantém uma batida lenta. Se existir algum painel ou
+    // TV na fábrica que o navegador reporte como oculto mesmo estando à vista,
+    // o pior caso passa a ser "atrasa até 5 min" em vez de "congela até alguém
+    // mexer no mouse". O custo de banda disso é desprezível.
+    if (document.hidden) {
+      if (Date.now() - _ffLastHiddenCycle < FF_HIDDEN_HEARTBEAT_MS) return;
+      _ffLastHiddenCycle = Date.now();
+    }
 
     await runAutoUpdateCycle();
   }, lastInterval);
