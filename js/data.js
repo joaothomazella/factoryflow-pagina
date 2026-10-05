@@ -215,17 +215,88 @@ function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
   }).finally(() => clearTimeout(timer));
 }
 
+// ===================================================
+// GET CONDICIONAL (ETag / 304)
+// ===================================================
+// O backend já devolve ETag estável em toda rota de leitura. Guardando o ETag
+// por URL e reenviando em If-None-Match, um ciclo de auto-update sem mudança
+// nenhuma volta como 304 sem corpo: o dado continua sendo revalidado a cada
+// ciclo (nada fica velho), mas não gasta banda. Isto é o que derruba o egress.
+const _FF_COND_CACHE = new Map();
+const _FF_COND_MAX_ENTRIES = 40;
+
+// Conta quantos ciclos foram servidos por 304, para dar para medir o ganho.
+const FF_COND_STATS = { hits: 0, misses: 0, bytesSaved: 0 };
+
+function ffCondCacheClear() {
+  _FF_COND_CACHE.clear();
+}
+
+function ffCondClone(value) {
+  // Devolve sempre uma cópia: quem chama costuma mapear/mutar o resultado, e
+  // sem a cópia o próximo 304 devolveria o objeto já mexido.
+  try {
+    if (typeof structuredClone === 'function') return structuredClone(value);
+  } catch (_) { /* cai no JSON abaixo */ }
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch (_) {
+    return value;
+  }
+}
+
+/**
+ * GET com revalidação por ETag. Devolve { json, fromCache }.
+ * Em 304 reaproveita o último corpo recebido para aquela URL.
+ */
+async function ffCondFetchJson(url, headers = {}, timeoutMs = 8000) {
+  const prev = _FF_COND_CACHE.get(url);
+  const reqHeaders = { ...headers };
+  if (prev && prev.etag) reqHeaders['If-None-Match'] = prev.etag;
+
+  // no-store continua: a revalidação é nossa, explícita, e não dependemos da
+  // heurística de cache do navegador para saber se o dado mudou.
+  const res = await fetchWithTimeout(url, { headers: reqHeaders, cache: 'no-store' }, timeoutMs);
+
+  if (res.status === 304 && prev) {
+    FF_COND_STATS.hits++;
+    FF_COND_STATS.bytesSaved += prev.size || 0;
+    return { res, json: ffCondClone(prev.json), fromCache: true };
+  }
+
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const text = await res.text();
+  const json = text ? JSON.parse(text) : null;
+  FF_COND_STATS.misses++;
+
+  const etag = res.headers.get('ETag');
+  if (etag) {
+    if (!_FF_COND_CACHE.has(url) && _FF_COND_CACHE.size >= _FF_COND_MAX_ENTRIES) {
+      _FF_COND_CACHE.delete(_FF_COND_CACHE.keys().next().value);
+    }
+    _FF_COND_CACHE.set(url, { etag, json, size: text.length });
+  } else {
+    // Sem ETag não há como revalidar: não guarda, para nunca servir velho.
+    _FF_COND_CACHE.delete(url);
+  }
+
+  return { res, json: ffCondClone(json), fromCache: false };
+}
+
 async function apiGet(table, params = {}) {
   const tableName = normalizeFactoryFlowTable(table);
   const timeoutMs = Number(params._timeout || 8000);
   const cleanParams = { limit: 500, ...params };
   delete cleanParams._timeout;
   const qs = new URLSearchParams(cleanParams).toString();
-  const res = await fetchWithTimeout(`${resolveFactoryFlowApiBase()}/api/tables/${tableName}?${qs}`, {
-    headers: factoryFlowAuthHeaders(false)
-  }, timeoutMs);
-  if (!res.ok) throw new Error(`GET ${tableName} falhou: ${res.status}`);
-  return (await res.json()).data || [];
+  const url = `${resolveFactoryFlowApiBase()}/api/tables/${tableName}?${qs}`;
+  try {
+    const { json } = await ffCondFetchJson(url, factoryFlowAuthHeaders(false), timeoutMs);
+    return (json && json.data) || [];
+  } catch (err) {
+    throw new Error(`GET ${tableName} falhou: ${err.message}`);
+  }
 }
 async function apiPost(table, data) {
   const tableName = normalizeFactoryFlowTable(table);
@@ -2310,23 +2381,19 @@ async function bridgeApiGet(path, params = {}, options = {}) {
   const qs  = new URLSearchParams(params).toString();
   const url = `${BRIDGE_CONFIG.baseUrl}${path}${qs ? '?' + qs : ''}`;
 
+  // O timeout agora é aplicado dentro de ffCondFetchJson (fetchWithTimeout).
   const timeout = options.timeout ?? BRIDGE_CONFIG.timeout;
-  const controller = timeout > 0 ? new AbortController() : null;
-  const timer = controller ? setTimeout(() => controller.abort(), timeout) : null;
 
   try {
-    // no-store: lista de produção é dado vivo. Sem isto o navegador pode
-    // devolver uma resposta guardada e mostrar o lote no setor antigo.
-    const fetchOptions = { headers: bridgeAuthHeaders(false), cache: 'no-store' };
-    if (controller) fetchOptions.signal = controller.signal;
-    const res = await fetch(url, fetchOptions);
-    if (timer) clearTimeout(timer);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    // Revalidação por ETag (ffCondFetchJson). Continua no-store e continua
+    // batendo no servidor a cada ciclo — a lista de produção é dado vivo e não
+    // pode mostrar o lote no setor antigo. A diferença é que, quando nada
+    // mudou, o servidor responde 304 sem corpo em vez de reenviar tudo.
+    const { json } = await ffCondFetchJson(url, bridgeAuthHeaders(false), timeout > 0 ? timeout : 8000);
     BRIDGE_CONFIG._lastError = null;
     BRIDGE_CONFIG._errorAt   = 0;
-    return await res.json();
+    return json;
   } catch (err) {
-    if (timer) clearTimeout(timer);
     BRIDGE_CONFIG._lastError = err.message;
     BRIDGE_CONFIG._errorAt   = Date.now();
     console.warn('⚠️ Bridge indisponível:', err.message);

@@ -37,16 +37,30 @@ function ffDeliveriesHeaders(json = true) {
   return headers;
 }
 
+// Leitura com revalidação por ETag quando o helper global está disponível
+// (data.js). Em 304 reaproveita o corpo anterior em vez de rebaixar tudo.
+async function ffDeliveriesCondGet(url) {
+  if (typeof ffCondFetchJson === 'function') {
+    const { json } = await ffCondFetchJson(url, ffDeliveriesHeaders(false), 15000);
+    return json || {};
+  }
+  const res = await fetch(url, { headers: ffDeliveriesHeaders(false) });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status}: ${txt}`);
+  }
+  return await res.json().catch(() => ({}));
+}
+
 async function ffDeliveriesApiGet(table, params = {}) {
   const api = ffDeliveriesResolveApiBase();
   const qs = new URLSearchParams({ limit: 1000, ...params }).toString();
-  const res = await fetch(`${api}/api/tables/${table}?${qs}`, { headers: ffDeliveriesHeaders(false) });
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`GET ${table} falhou (${res.status}): ${txt}`);
+  try {
+    const json = await ffDeliveriesCondGet(`${api}/api/tables/${table}?${qs}`);
+    return json.data || [];
+  } catch (err) {
+    throw new Error(`GET ${table} falhou: ${err.message}`);
   }
-  const json = await res.json().catch(() => ({}));
-  return json.data || [];
 }
 
 async function ffDeliveriesApiPut(table, id, data) {
@@ -70,13 +84,12 @@ async function ffDeliveriesProductionGet(params = {}) {
   // lotes de produção (pesagem, produção, coloração etc.), que é o que tornava a aba lenta.
   const setoresEntrega = 'pronto,entrega,entregue,finalizado,finalizada,concluido,concluído,cancelado,cancelada,rejeitado,rejeitada';
   const qs = new URLSearchParams({ limit: 2000, setor: setoresEntrega, ...params }).toString();
-  const res = await fetch(`${api}/api/producao?${qs}`, { headers: ffDeliveriesHeaders(false) });
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`GET producao falhou (${res.status}): ${txt}`);
+  try {
+    const json = await ffDeliveriesCondGet(`${api}/api/producao?${qs}`);
+    return json.data || [];
+  } catch (err) {
+    throw new Error(`GET producao falhou: ${err.message}`);
   }
-  const json = await res.json().catch(() => ({}));
-  return json.data || [];
 }
 
 function ffDeliveriesDeserializeProductionLot(row) {

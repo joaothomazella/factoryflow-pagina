@@ -95,14 +95,32 @@ function getAutoUpdateIntervalByPage() {
   // Kanban: 20 segundos
   if (activePage === 'kanban') return 20000;
 
-  // Entregas: 20 segundos
-  if (activePage === 'entregas') return 20000;
+  // Entregas: 20 segundos.
+  // A chave real da página no PAGE_MAP é "deliveries" — escrito "entregas"
+  // esta condição nunca batia e a tela ficava no intervalo de 5 s.
+  if (activePage === 'deliveries') return 20000;
 
-  // Programação de entrega: 1 minuto
+  // Programação de entrega: 1 minuto.
+  // Mesma correção: a chave real é "programacao_entregas" (com underscore).
   if (
+    activePage === 'programacao_entregas' ||
     activePage === 'programacao-entregas' ||
     activePage === 'programacao' ||
     activePage === 'programacaoEntrega'
+  ) {
+    return 60000;
+  }
+
+  // Telas de relatório não consomem o auto-update (ver _silentRefresh): são
+  // carregadas sob demanda, então não precisam de ciclo de 5 s.
+  if (
+    activePage === 'reports' ||
+    activePage === 'relatorio_tempos' ||
+    activePage === 'relatorio_litragem' ||
+    activePage === 'litragem_setor' ||
+    activePage === 'ops_setor' ||
+    activePage === 'simulador_entrega' ||
+    activePage === 'import'
   ) {
     return 60000;
   }
@@ -158,9 +176,28 @@ function startAutoUpdate() {
       return;
     }
 
+    // Aba em segundo plano (outra aba, janela minimizada): ninguém está olhando
+    // a tela, então o ciclo só gastaria banda. Ao voltar, o listener de
+    // visibilitychange atualiza na hora — o operador nunca vê dado velho.
+    if (document.hidden) return;
+
     await runAutoUpdateCycle();
   }, lastInterval);
 }
+
+// Volta do segundo plano: atualiza imediatamente, sem esperar o próximo ciclo.
+let _ffVisibilityHooked = false;
+function ffHookVisibilityRefresh() {
+  if (_ffVisibilityHooked) return;
+  _ffVisibilityHooked = true;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    if (!_autoUpdateInterval) return;
+    if (typeof isModalOrEditingActive === 'function' && isModalOrEditingActive()) return;
+    runAutoUpdateCycle().catch(() => {});
+  });
+}
+ffHookVisibilityRefresh();
 function stopAutoUpdate() {
   if (_autoUpdateInterval) {
     clearInterval(_autoUpdateInterval);
