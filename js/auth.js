@@ -529,6 +529,7 @@ const PAGE_MAP = {
   relatorio_litragem:  { el:'pageRelatorioLitragem',  label:'Litragem Produzida',    icon:'fas fa-flask',          roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'relatorios' },
   litragem_setor:      { el:'pageLitragemSetor',      label:'Capacidade por Setor',  icon:'fas fa-industry',       roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'relatorios' },
   ops_setor:           { el:'pageOpsSetor',           label:'OPs por Setor',         icon:'fas fa-clipboard-list', roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'relatorios' },
+  prazo_entrega:       { el:'pagePrazoEntrega',        label:'Prazo de Entrega',      icon:'fas fa-hourglass-half', roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'relatorios' },
   fluxograma:          { el:'pageFluxograma',         label:'Fluxograma',            icon:'fas fa-sitemap',        roles:['admin','diretoria','pcp','pcp_lib','manager'], group:'relatorios' },
   reports:    { el:'pageReports',    label:'Relatórios',        icon:'fas fa-chart-bar',      roles:['admin','diretoria','pcp','pcp_lib','manager','viewer'], group:'relatorios' },
   factory:    { el:'pageFactory',    label:'Painel Geral',      icon:'fas fa-industry',       roles:['admin','diretoria','pcp','manager'], group:'relatorios', hidden:true },
@@ -704,6 +705,9 @@ function navigateTo(page) {
       break;
     case 'ops_setor':
       if (typeof renderOpsSetor === 'function') renderOpsSetor();
+      break;
+    case 'prazo_entrega':
+      if (typeof renderPrazoEntrega === 'function') renderPrazoEntrega();
       break;
     case 'fluxograma':
       if (typeof renderFluxograma === 'function') renderFluxograma();
