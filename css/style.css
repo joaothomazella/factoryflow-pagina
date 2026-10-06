@@ -5999,8 +5999,15 @@ input[type="date"].rt-filter-input {
 }
 
 /* filtros podem ser mais largos que a tela e rolar junto */
-.rt-filters,
-.rt-filters-card {
+/* Escopado para #pageRelatorioTempos em 06/10/2026. A classe .rt-filters-card
+   foi reaproveitada por OPs por Setor, Litragem por Setor e Relatório de
+   Litragem; sem o escopo, essas três telas também ganhavam min-width: 1180px e
+   estouravam a largura no celular (medido: o card chegava a 1194px numa tela de
+   500px). O Relatório de Tempos não perde nada: ele já define a largura dele
+   explicitamente mais abaixo, em "#pageRelatorioTempos > .rt-filters-card"
+   (1280px !important). */
+#pageRelatorioTempos .rt-filters,
+#pageRelatorioTempos .rt-filters-card {
   min-width: 1180px;
   overflow: visible;
 }
@@ -6067,7 +6074,10 @@ input[type="date"].rt-filter-input {
   .rt-header,
   .rt-page-header,
   .rt-filters,
-  .rt-filters-card {
+  /* escopado em 06/10/2026 pelo mesmo motivo da regra lá de cima: fora do
+     Relatório de Tempos, esta classe é usada por telas que precisam caber na
+     largura do celular, não rolar 1180px para o lado. */
+  #pageRelatorioTempos .rt-filters-card {
     min-width: 1180px;
   }
 }
@@ -7578,3 +7588,39 @@ input[type="date"].rt-filter-input {
 .am-result-selected{font-weight:700}
 .text-success{color:#22c55e}.text-danger{color:#ef4444}
 @media(max-width:640px){.am-list{grid-template-columns:1fr}.am-kpi{min-width:80px}.am-header{flex-direction:column}.am-search{width:100%}.am-detail-body{flex-direction:column}.am-result-btn{min-width:100%}}
+
+/* =====================================================
+   CELULAR — O CONTEÚDO USA A LARGURA INTEIRA DA TELA
+   =====================================================
+   Defeito corrigido (06/10/2026):
+
+   A regra ".sidebar:not(.collapsed) ~ .main-content" (acima, no bloco do
+   Relatório de Tempos) limita o conteúdo a "100vw menos a largura da sidebar".
+   Isso está certo no desktop, onde a sidebar ocupa 240px à esquerda.
+
+   No celular, porém, a sidebar NÃO recebe a classe .collapsed — ela sai de cena
+   com transform: translateX(-100%), continuando "não-colapsada". Então aquela
+   regra seguia valendo e descontava 240px que não existiam mais: numa tela de
+   500px o conteúdo ficava com 260px e sobrava uma faixa morta de 240px à
+   direita. Como .main-content também tem overflow-x: hidden, o que passava
+   disso era cortado em vez de rolar — a tela "quebrada".
+
+   Medido no Chrome antes da correção, viewport de 500px:
+     main-content 260px | maxWidth 260px | faixa morta 240px | 9 elementos
+     estourando (o card de filtros chegava a 1194px).
+
+   Este bloco fica no fim do arquivo de propósito: as regras que ele anula têm a
+   mesma especificidade e também usam !important, então quem vence é a última na
+   ordem do arquivo. Vale só até 768px, exatamente onde a sidebar vira gaveta
+   (mesmo ponto de corte do "margin-left: 0 !important" lá do bloco RESPONSIVE).
+   No desktop nada muda.
+===================================================== */
+@media (max-width: 768px) {
+  .main-content,
+  .sidebar:not(.collapsed) ~ .main-content,
+  .sidebar.collapsed ~ .main-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
