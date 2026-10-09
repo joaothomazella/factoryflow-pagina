@@ -4,6 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
   applyThemeFromStorage();
+  ffCardSizeDoStorage();
   await checkSession();
 });
 
@@ -341,6 +342,73 @@ function toggleTheme() {
 function ffRevalidarTema() {
   const atual = document.documentElement.getAttribute('data-theme') || 'dark';
   applyTheme(atual, false);
+}
+
+// ===================================================
+// TAMANHO DOS CARDS - preferencia de cada pessoa
+// ===================================================
+// Fica no localStorage e nao no banco de proposito: o tamanho bom
+// depende do monitor. A mesma pessoa no notebook e na TV da producao
+// quer tamanhos diferentes, e um campo no ff_users guardaria um valor
+// so para os dois lugares.
+// O CSS (css/cards-tamanho.css) so age quando o atributo
+// data-card-size existe. No tamanho padrao o atributo e REMOVIDO, de
+// forma que quem nunca mexeu continua vendo o layout original.
+
+const FF_CARD_SIZES = [
+  { chave: 'xs',  rotulo: 'Compacto' },
+  { chave: 'm',   rotulo: 'Medio' },
+  { chave: 'g',   rotulo: 'Grande' },
+  { chave: 'gg',  rotulo: 'Maior' },
+  { chave: 'ggg', rotulo: 'Maximo' },
+];
+const FF_CARD_SIZE_PADRAO = 'm';
+
+function ffCardSizeAtual() {
+  const v = localStorage.getItem('ff_card_size');
+  return FF_CARD_SIZES.some(t => t.chave === v) ? v : FF_CARD_SIZE_PADRAO;
+}
+
+function ffCardSizeAplicar(chave, salvar = true) {
+  if (!FF_CARD_SIZES.some(t => t.chave === chave)) chave = FF_CARD_SIZE_PADRAO;
+  if (chave === FF_CARD_SIZE_PADRAO) {
+    document.documentElement.removeAttribute('data-card-size');
+  } else {
+    document.documentElement.setAttribute('data-card-size', chave);
+  }
+  if (salvar) {
+    try { localStorage.setItem('ff_card_size', chave); } catch (_) {}
+  }
+  ffCardSizeAtualizarControle(chave);
+}
+
+function ffCardSizeAtualizarControle(chave) {
+  const i = FF_CARD_SIZES.findIndex(t => t.chave === chave);
+  const val = document.getElementById('ffCardSizeVal');
+  if (val) {
+    const t = FF_CARD_SIZES[i] || FF_CARD_SIZES[1];
+    val.textContent = t.chave === FF_CARD_SIZE_PADRAO ? t.rotulo + ' (padrao)' : t.rotulo;
+  }
+  const menos = document.getElementById('ffCardSizeMenos');
+  const mais  = document.getElementById('ffCardSizeMais');
+  if (menos) menos.disabled = i <= 0;
+  if (mais)  mais.disabled  = i >= FF_CARD_SIZES.length - 1;
+}
+
+// -1 diminui, +1 aumenta. Para nos extremos em vez de dar a volta:
+// girar do Maximo para o Compacto num clique assusta.
+function ffCardSizeStep(delta) {
+  const i = FF_CARD_SIZES.findIndex(t => t.chave === ffCardSizeAtual());
+  const j = Math.min(FF_CARD_SIZES.length - 1, Math.max(0, (i === -1 ? 1 : i) + delta));
+  ffCardSizeAplicar(FF_CARD_SIZES[j].chave);
+}
+
+function ffCardSizeRestaurar() {
+  ffCardSizeAplicar(FF_CARD_SIZE_PADRAO);
+}
+
+function ffCardSizeDoStorage() {
+  ffCardSizeAplicar(ffCardSizeAtual(), false);
 }
 
 // ===================================================

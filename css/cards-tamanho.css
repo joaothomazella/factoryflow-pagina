@@ -1,0 +1,179 @@
+/* ============================================================
+   TAMANHO DOS CARDS - preferencia de cada usuario
+   ------------------------------------------------------------
+   Tudo aqui esta preso ao atributo html[data-card-size]. O JS so
+   coloca esse atributo quando a pessoa escolhe um tamanho DIFERENTE
+   do padrao: no tamanho "Medio" o atributo nem existe, entao nenhuma
+   regra deste arquivo entra e o aplicativo fica exatamente como era.
+   E de proposito - assim ninguem ve o layout mudar sem ter pedido.
+
+   So mexe no desktop (min-width: 769px). No celular os cards ja
+   ocupam a largura inteira (1 coluna), entao aumentar a largura nao
+   faria nada, e o layout de celular foi ajustado fino demais para
+   eu arriscar reescalar por cima.
+
+   --ff-card     escala a LARGURA e o espacamento dos cards.
+   --ff-card-txt escala o TEXTO, de proposito mais devagar: num card
+                 50% mais largo a fonte 50% maior fica caricata.
+   ============================================================ */
+
+html[data-card-size="xs"]  { --ff-card: 0.85; --ff-card-txt: 0.93; }
+html[data-card-size="g"]   { --ff-card: 1.15; --ff-card-txt: 1.07; }
+html[data-card-size="gg"]  { --ff-card: 1.30; --ff-card-txt: 1.14; }
+html[data-card-size="ggg"] { --ff-card: 1.50; --ff-card-txt: 1.22; }
+
+@media (min-width: 769px) {
+
+  /* ===== 1. LARGURA: o piso de cada grade de cards =====
+     Grade com auto-fill: mexer no piso do minmax() muda quantos
+     cards cabem por linha, que e o que se sente na tela. */
+
+  html[data-card-size] .lots-grid       { grid-template-columns: repeat(auto-fill, minmax(calc(280px * var(--ff-card)), 1fr)); }
+  html[data-card-size] .cards-grid      { grid-template-columns: repeat(auto-fill, minmax(calc(220px * var(--ff-card)), 1fr)); }
+  html[data-card-size] .metrics-row     { grid-template-columns: repeat(auto-fit,  minmax(calc(140px * var(--ff-card)), 1fr)); }
+  html[data-card-size] .route-live-grid { grid-template-columns: repeat(auto-fill, minmax(calc(240px * var(--ff-card)), 1fr)); }
+  html[data-card-size] .alert-grid      { grid-template-columns: repeat(auto-fill, minmax(calc(220px * var(--ff-card)), 1fr)); }
+  html[data-card-size] .sim-queue-grid  { grid-template-columns: repeat(auto-fill, minmax(calc(220px * var(--ff-card)), 1fr)); }
+  html[data-card-size] .am-list         { grid-template-columns: repeat(auto-fill, minmax(calc(320px * var(--ff-card)), 1fr)); }
+  html[data-card-size] .ms-grid         { grid-template-columns: repeat(auto-fill, minmax(calc(300px * var(--ff-card)), 1fr)); }
+  html[data-card-size] .pn-grid         { grid-template-columns: repeat(auto-fill, minmax(calc(300px * var(--ff-card)), 1fr)); }
+
+  /* "Pedidos Novos" declara a propria grade com !important no
+     style.css (linhas ~3716 e ~3753, piso de 320px). Sem repetir o
+     !important com a mesma especificidade, nada aqui pegaria. */
+  html[data-card-size] #pagePedidosNovos .pn-grid {
+    grid-template-columns: repeat(auto-fill, minmax(calc(320px * var(--ff-card)), 1fr)) !important;
+  }
+
+  /* Kanban nao e grade: a coluna tem largura travada em quatro
+     propriedades com !important (#pageKanban .kanban-col). Escalo as
+     quatro juntas, senao o flex-basis briga com o max-width. */
+  html[data-card-size] .kanban-col {
+    min-width: calc(250px * var(--ff-card));
+    max-width: calc(270px * var(--ff-card));
+  }
+  html[data-card-size] #pageKanban .kanban-col {
+    flex: 0 0 calc(280px * var(--ff-card)) !important;
+    width:     calc(280px * var(--ff-card)) !important;
+    min-width: calc(280px * var(--ff-card)) !important;
+    max-width: calc(280px * var(--ff-card)) !important;
+  }
+
+  /* ===== 2. ESPACO ENTRE OS CARDS =====
+     Card maior com a mesma calha parece apertado. */
+  html[data-card-size] .lots-grid,
+  html[data-card-size] .cards-grid,
+  html[data-card-size] .metrics-row,
+  html[data-card-size] .am-list      { gap: calc(1rem   * var(--ff-card)); }
+  html[data-card-size] .ms-grid,
+  html[data-card-size] .pn-grid      { gap: calc(1.1rem * var(--ff-card)); }
+  html[data-card-size] .kanban-board { gap: calc(1rem   * var(--ff-card)); }
+
+  /* ===== 3. RESPIRO DENTRO DO CARD ===== */
+  html[data-card-size] .lot-card     { padding: calc(1.25rem * var(--ff-card)); }
+  html[data-card-size] .metric-card  { padding: calc(1.4rem * var(--ff-card)) calc(1.25rem * var(--ff-card)); }
+  html[data-card-size] .driver-card  { padding: calc(1.5rem * var(--ff-card)); }
+  html[data-card-size] .kanban-card  { padding: calc(.9rem * var(--ff-card)); }
+  html[data-card-size] .kanban-cards { padding: calc(.75rem * var(--ff-card)); gap: calc(.75rem * var(--ff-card)); }
+
+  /* O card do Kanban em uso (.kc2) zera o proprio padding e empurra
+     o recuo para os filhos; tem que ser escalado do mesmo jeito. */
+  html[data-card-size] .kanban-card.kc2 > *:not(.kc2-actions) { padding: 0 calc(.9rem * var(--ff-card)); }
+  html[data-card-size] .kanban-card.kc2 > .kc2-header         { padding-top: calc(.75rem * var(--ff-card)); }
+  html[data-card-size] .kanban-card.kc2 > .kc2-actions        { padding: calc(.65rem * var(--ff-card)) calc(.9rem * var(--ff-card)) calc(.75rem * var(--ff-card)); }
+  html[data-card-size] #pageKanban .kanban-card               { padding-bottom: calc(.95rem * var(--ff-card)) !important; }
+
+  /* ===== 4. TEXTO =====
+     Cada linha repete o valor original do style.css multiplicado.
+     E verboso, mas e explicito: da para conferir um por um e nada
+     vaza para fora do card. */
+  html[data-card-size] .metric-icon   { font-size: calc(1.4rem * var(--ff-card-txt)); }
+  html[data-card-size] .metric-num    { font-size: calc(2.1rem * var(--ff-card-txt)); }
+  html[data-card-size] .metric-label  { font-size: calc(.72rem * var(--ff-card-txt)); }
+
+  html[data-card-size] .lot-number    { font-size: calc(1rem   * var(--ff-card-txt)); }
+  html[data-card-size] .lot-client    { font-size: calc(.9rem  * var(--ff-card-txt)); }
+  html[data-card-size] .lot-paint     { font-size: calc(.85rem * var(--ff-card-txt)); }
+  html[data-card-size] .lot-meta      { font-size: calc(.78rem * var(--ff-card-txt)); }
+  html[data-card-size] .lot-city      { font-size: calc(.78rem * var(--ff-card-txt)); }
+  html[data-card-size] .lot-sector-badge { font-size: calc(.75rem * var(--ff-card-txt)); }
+  html[data-card-size] .priority-badge   { font-size: calc(.7rem  * var(--ff-card-txt)); }
+
+  html[data-card-size] .kanban-lot-num     { font-size: calc(.875rem * var(--ff-card-txt)); }
+  html[data-card-size] .kanban-card-client { font-size: calc(.85rem  * var(--ff-card-txt)); }
+  html[data-card-size] .kanban-card-paint  { font-size: calc(.8rem   * var(--ff-card-txt)); }
+  html[data-card-size] .kanban-card-qty    { font-size: calc(.78rem  * var(--ff-card-txt)); }
+  html[data-card-size] .kanban-card-date   { font-size: calc(.78rem  * var(--ff-card-txt)); }
+  html[data-card-size] .kanban-card-city   { font-size: calc(.75rem  * var(--ff-card-txt)); }
+  html[data-card-size] .kanban-card-time   { font-size: calc(.75rem  * var(--ff-card-txt)); }
+  html[data-card-size] .kanban-col-title   { font-size: calc(.85rem  * var(--ff-card-txt)); }
+}
+
+/* ============================================================
+   O CONTROLE, no rodape do menu lateral
+   ============================================================ */
+.ff-card-size {
+  margin-bottom: .5rem;
+}
+.ff-card-size-lbl {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text3);
+  margin-bottom: .35rem;
+}
+.ff-card-size-ctl {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+.ff-card-size-ctl button {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text2);
+  font-size: .9rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.ff-card-size-ctl button:hover:not(:disabled) {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.ff-card-size-ctl button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+.ff-card-size-val {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: .74rem;
+  font-weight: 600;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Com o menu recolhido (60px) nao cabe o controle. */
+.sidebar.collapsed .ff-card-size { display: none; }
+
+/* No celular a preferencia nao tem efeito, entao o controle nao
+   aparece - botao que nao faz nada e pior do que botao nenhum. */
+@media (max-width: 768px) {
+  .ff-card-size { display: none; }
+}

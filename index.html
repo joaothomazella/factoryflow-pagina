@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="css/fluxograma.css?v=1">
 <link rel="stylesheet" href="css/imersao-coloracao.css?v=1">
 <link rel="stylesheet" href="css/tema-suave.css?v=6">
+<link rel="stylesheet" href="css/cards-tamanho.css?v=1">
 </head>
 <body>
 
@@ -396,6 +397,16 @@
         <button id="btnExpedienteSetor" onclick="toggleExpedienteSetor()" class="btn-expediente is-closed">
           <i class="fas fa-play-circle"></i> Iniciar expediente
         </button>
+      </div>
+
+      <!-- Tamanho dos cards: preferencia por aparelho, ver css/cards-tamanho.css -->
+      <div class="ff-card-size">
+        <span class="ff-card-size-lbl"><i class="fas fa-expand"></i> Tamanho dos cards</span>
+        <div class="ff-card-size-ctl">
+          <button type="button" id="ffCardSizeMenos" onclick="ffCardSizeStep(-1)" title="Cards menores" aria-label="Diminuir os cards">&minus;</button>
+          <span class="ff-card-size-val" id="ffCardSizeVal" ondblclick="ffCardSizeRestaurar()" title="Clique duas vezes para voltar ao padrao">Medio</span>
+          <button type="button" id="ffCardSizeMais" onclick="ffCardSizeStep(1)" title="Cards maiores" aria-label="Aumentar os cards">+</button>
+        </div>
       </div>
 
       <button id="themeToggleBtn" onclick="toggleTheme()" class="btn-theme-toggle">
@@ -967,7 +978,7 @@
 <script src="js/dashboard.js?v=10"></script>
 <script src="js/reports.js"></script>
 <script src="js/expediente-alerts.js?v=1"></script>
-<script src="js/app.js?v=13"></script>
+<script src="js/app.js?v=14"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
