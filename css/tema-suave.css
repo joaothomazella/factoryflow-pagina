@@ -44,14 +44,13 @@
   --shadow: 0 1px 2px rgba(24,18,38,.05), 0 10px 30px rgba(24,18,38,.07);
 
   /* Tokens só deste tema */
-  --sv-topo:        #1f0b36;   /* faixa escura do topo */
+  --sv-topo:        #144196;   /* azul da marca: faixa do topo e fundo do menu */
   --sv-menu:        #ebeaec;   /* painel do menu lateral */
-  --sv-roxo:        #673de6;
+  --sv-roxo:        #144196;   /* destaque: item ativo, botao principal */
   --sv-pill:        #ffffff;
   --sv-altura-topo: 60px;
   --sv-curva:       16px;      /* curva do painel do menu */
-  --sv-traco:       4px;       /* traço azul da borda esquerda do menu */
-  --sv-calha:       10px;      /* folga entre o traço azul e o painel cinza */
+  --sv-calha:       10px;      /* folga do azul em volta do painel do menu */
 
   color-scheme: light;
 }
@@ -76,7 +75,7 @@
   letter-spacing: -0.01em;
 }
 [data-theme="suave"] .sidebar-header i.sidebar-hdr-icon {
-  background: var(--sv-roxo);
+  background: rgba(255,255,255,.14);
   color: #ffffff;
   box-shadow: none;
   border-radius: 10px;
@@ -110,10 +109,16 @@
 [data-theme="suave"] .sidebar-toggle:hover { color: #ffffff; }
 [data-theme="suave"] .topbar .alert-bell i { color: rgba(255,255,255,.8); }
 [data-theme="suave"] .topbar .btn-primary {
-  background: var(--sv-roxo);
+  background: #ffffff;
+  border: none;
+  color: var(--sv-topo);
   border-radius: 999px;
   font-weight: 600;
   box-shadow: none;
+}
+[data-theme="suave"] .topbar .btn-primary:hover {
+  background: #eef2fa;
+  color: var(--sv-topo);
 }
 /* Os outros botoes da faixa escura sao capsulas vazadas de contorno branco,
    como no print. So aqui: fora da faixa, botao e retangulo de canto suave. */
@@ -137,12 +142,12 @@
    Cinza claro, recuado da borda da janela, com as curvas do lado esquerdo
    e a borda direita reta encostando no conteúdo – como no print inteiro. */
 [data-theme="suave"] .sidebar {
-  background: #ffffff;           /* a "calha" entre o traço e o painel cinza */
+  /* O azul fica ATRAS do painel claro. A folga de var(--sv-calha) em volta
+     do painel e que deixa esse azul aparecer – inclusive na borda esquerda,
+     que era o traço azul pedido antes, agora correndo os quatro lados. */
+  background: var(--sv-topo);
   border-right: none;
-  /* Traço azul da marca na borda esquerda, correndo a altura toda do menu.
-     Como o * { box-sizing: border-box } é global, a borda vem de dentro dos
-     240px da sidebar: o menu não empurra o conteúdo nem muda de largura. */
-  border-left: var(--sv-traco) solid var(--blue);
+  border-left: none;
 }
 [data-theme="suave"] .sidebar-nav,
 [data-theme="suave"] .sidebar-footer {
@@ -153,17 +158,34 @@
   padding: .9rem .7rem .4rem;
   gap: .12rem;
 }
-/* No print, o painel cinza é destacado da borda da janela e as curvas ficam
-   do lado ESQUERDO; a borda direita é reta, encostando no conteúdo.
+/* O painel flutua sobre o azul: folga nos quatro lados e canto arredondado
+   em cima (no .sidebar-nav) e embaixo (no .sidebar-footer). Como os dois são
+   irmãos encostados, o conjunto lê como um cartão só.
    Só no desktop: no celular a sidebar vira gaveta e isso ficaria torto. */
 @media (min-width: 769px) {
   [data-theme="suave"] .sidebar-nav,
   [data-theme="suave"] .sidebar-footer {
     margin-left: var(--sv-calha);
-    border-right: 1px solid #e3e1e6;
+    margin-right: var(--sv-calha);
+    border-right: none;
   }
-  [data-theme="suave"] .sidebar-nav    { border-top-left-radius: var(--sv-curva); }
-  [data-theme="suave"] .sidebar-footer { border-bottom-left-radius: var(--sv-curva); }
+  [data-theme="suave"] .sidebar-nav {
+    margin-top: var(--sv-calha);
+    border-top-left-radius:  var(--sv-curva);
+    border-top-right-radius: var(--sv-curva);
+  }
+  [data-theme="suave"] .sidebar-footer {
+    margin-bottom: var(--sv-calha);
+    border-bottom-left-radius:  var(--sv-curva);
+    border-bottom-right-radius: var(--sv-curva);
+  }
+  /* Recolhida, a sidebar tem 60px: 10px de folga de cada lado comeriam o
+     ícone. Aí o painel encosta e só os cantos continuam arredondados. */
+  [data-theme="suave"] .sidebar.collapsed .sidebar-nav,
+  [data-theme="suave"] .sidebar.collapsed .sidebar-footer {
+    margin-left: 4px;
+    margin-right: 4px;
+  }
 }
 
 [data-theme="suave"] .nav-group-label {
@@ -331,5 +353,5 @@
    O login aparece antes de saber quem é o usuário, então na prática
    só cai aqui se o tema já estiver salvo neste navegador. */
 [data-theme="suave"] .login-page {
-  background: linear-gradient(160deg, #efedf3 0%, #f6f5f8 55%, #ece9f4 100%);
+  background: linear-gradient(160deg, #eef1f7 0%, #f7f7f8 55%, #e9eef7 100%);
 }
