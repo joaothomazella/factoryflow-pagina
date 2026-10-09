@@ -19,12 +19,12 @@
 [data-theme="suave"] {
   /* Fundo da página num cinza bem claro, para os cartões brancos
      terem contorno sem precisar de borda forte. */
-  --bg:       #f6f5f8;
+  --bg:       #f7f7f8;
   --bg2:      #ffffff;
   --bg3:      #eeecf1;
   --surface:  #ffffff;
   --surface2: #faf9fb;
-  --border:   #e5e2ea;
+  --border:   #e9e8eb;
 
   --text:  #1d1b20;
   --text2: #6b6774;
@@ -40,7 +40,7 @@
   --purple: #673de6;
   --cyan:   #0891b2;
 
-  --radius: 14px;
+  --radius: 10px;
   --shadow: 0 1px 2px rgba(24,18,38,.05), 0 10px 30px rgba(24,18,38,.07);
 
   /* Tokens só deste tema */
@@ -49,20 +49,17 @@
   --sv-roxo:        #673de6;
   --sv-pill:        #ffffff;
   --sv-altura-topo: 60px;
-  --sv-curva:       22px;      /* curva do painel do menu */
+  --sv-curva:       16px;      /* curva do painel do menu */
   --sv-traco:       4px;       /* traço azul da borda esquerda do menu */
+  --sv-calha:       10px;      /* folga entre o traço azul e o painel cinza */
 
   color-scheme: light;
 }
 
-/* A família já era DM Sans, a mesma do print. O que mudou aqui é o
-   acabamento: sem apertar o espaçamento entre letras e com o traçado mais
-   fino, que é o que dá o ar leve do exemplo. */
 [data-theme="suave"] body {
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  letter-spacing: normal;
+  letter-spacing: -0.005em;
 }
 
 /* ===== FAIXA ESCURA DO TOPO =====
@@ -118,12 +115,29 @@
   font-weight: 600;
   box-shadow: none;
 }
+/* Os outros botoes da faixa escura sao capsulas vazadas de contorno branco,
+   como no print. So aqui: fora da faixa, botao e retangulo de canto suave. */
+[data-theme="suave"] .topbar .btn:not(.btn-primary),
+[data-theme="suave"] .topbar .btn-sm:not(.btn-primary) {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.28);
+  color: #ffffff;
+  border-radius: 999px;
+  font-weight: 500;
+  box-shadow: none;
+}
+[data-theme="suave"] .topbar .btn:not(.btn-primary):hover,
+[data-theme="suave"] .topbar .btn-sm:not(.btn-primary):hover {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.45);
+  color: #ffffff;
+}
 
 /* ===== PAINEL DO MENU LATERAL =====
-   Cinza claro, sem borda à direita, com o canto superior direito
-   arredondado – exatamente o recorte do print. */
+   Cinza claro, recuado da borda da janela, com as curvas do lado esquerdo
+   e a borda direita reta encostando no conteúdo – como no print inteiro. */
 [data-theme="suave"] .sidebar {
-  background: var(--sv-topo);    /* aparece só atrás da faixa do topo */
+  background: #ffffff;           /* a "calha" entre o traço e o painel cinza */
   border-right: none;
   /* Traço azul da marca na borda esquerda, correndo a altura toda do menu.
      Como o * { box-sizing: border-box } é global, a borda vem de dentro dos
@@ -139,42 +153,37 @@
   padding: .9rem .7rem .4rem;
   gap: .12rem;
 }
-/* A curva só no desktop: no celular a sidebar vira gaveta e um canto
-   arredondado ali ficaria torto. */
+/* No print, o painel cinza é destacado da borda da janela e as curvas ficam
+   do lado ESQUERDO; a borda direita é reta, encostando no conteúdo.
+   Só no desktop: no celular a sidebar vira gaveta e isso ficaria torto. */
 @media (min-width: 769px) {
-  [data-theme="suave"] .sidebar-nav { border-top-right-radius: var(--sv-curva); }
-  [data-theme="suave"] .sidebar-footer { border-bottom-right-radius: var(--sv-curva); }
+  [data-theme="suave"] .sidebar-nav,
+  [data-theme="suave"] .sidebar-footer {
+    margin-left: var(--sv-calha);
+    border-right: 1px solid #e3e1e6;
+  }
+  [data-theme="suave"] .sidebar-nav    { border-top-left-radius: var(--sv-curva); }
+  [data-theme="suave"] .sidebar-footer { border-bottom-left-radius: var(--sv-curva); }
 }
 
-/* ===== TIPOGRAFIA DO MENU =====
-   No print da Hostinger os itens são de peso NORMAL e um pouco maiores, não
-   seminegrito. Era isso que fazia o menu do FactoryFlow parecer mais pesado
-   que o exemplo, não a família da fonte – DM Sans já é a mesma dos dois. */
 [data-theme="suave"] .nav-group-label {
-  color: #8b8792;
-  font-size: .8rem;
-  font-weight: 400;
+  color: #86828f;
+  font-size: .76rem;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;          /* "Relatórios", não "RELATÓRIOS" */
-  padding: 1.1rem .7rem .35rem;
+  padding: 1rem .7rem .3rem;
 }
 
 [data-theme="suave"] .nav-item {
-  color: #2e2b35;
-  font-size: .95rem;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1.35;             /* itens de duas linhas não ficam colados */
+  color: #3c3845;
+  font-size: .9rem;
+  font-weight: 500;
   border-radius: 10px;
-  padding: .68rem .7rem;
-  gap: .8rem;
+  padding: .58rem .7rem;
+  gap: .7rem;
 }
-[data-theme="suave"] .nav-item i {
-  color: #5c5866;
-  width: 20px;
-  font-size: .95rem;
-  flex-shrink: 0;
-}
+[data-theme="suave"] .nav-item i { color: #635f6d; width: 20px; }
 
 [data-theme="suave"] .nav-item:hover,
 [data-theme="suave"] .nav-item:active {
@@ -187,7 +196,7 @@
 [data-theme="suave"] .nav-item.active:active {
   background: var(--sv-pill);
   color: #1d1b20;
-  font-weight: 500;              /* no print o item ativo mal engrossa */
+  font-weight: 600;
   box-shadow: 0 1px 2px rgba(24,18,38,.07);
 }
 [data-theme="suave"] .nav-item.active i { color: var(--sv-roxo); }
@@ -230,15 +239,17 @@
 [data-theme="suave"] .loading-box,
 [data-theme="suave"] .alert-dropdown,
 [data-theme="suave"] .toast {
-  border-radius: 16px;
+  border-radius: 12px;
 }
 [data-theme="suave"] .modal,
 [data-theme="suave"] .modal-large,
 [data-theme="suave"] .pn-modal,
 [data-theme="suave"] .am-modal,
 [data-theme="suave"] .login-card {
-  border-radius: 20px;
+  border-radius: 14px;
 }
+/* No print os botões do conteúdo são retângulos de canto suave, não cápsulas.
+   Cápsula fica só nos botões da faixa escura do topo, logo abaixo. */
 [data-theme="suave"] .btn,
 [data-theme="suave"] .btn-sm,
 [data-theme="suave"] .btn-xs,
@@ -247,7 +258,7 @@
 [data-theme="suave"] .kc2-btn,
 [data-theme="suave"] .sim-btn,
 [data-theme="suave"] .am-btn-refresh {
-  border-radius: 999px;
+  border-radius: 8px;
 }
 [data-theme="suave"] .form-group input,
 [data-theme="suave"] .form-group select,
@@ -261,7 +272,7 @@
 [data-theme="suave"] .pn-select,
 [data-theme="suave"] .pn-search-input,
 [data-theme="suave"] .orders-search-input {
-  border-radius: 12px;
+  border-radius: 8px;
   background: #ffffff;
 }
 [data-theme="suave"] .form-group label {
@@ -271,15 +282,16 @@
   color: var(--text2);
 }
 
-/* Cartões: sombra leve no lugar de borda dura. */
+/* No print os cartões são chapados: branco, borda fina de 1px e nenhuma
+   sombra em repouso. A sombra aparece só no hover, como resposta ao mouse. */
 [data-theme="suave"] .metric-card,
 [data-theme="suave"] .section-card,
 [data-theme="suave"] .chart-card {
   border-color: var(--border);
-  box-shadow: 0 1px 2px rgba(24,18,38,.04);
+  box-shadow: none;
 }
 [data-theme="suave"] .metric-card:hover {
-  box-shadow: 0 6px 20px rgba(24,18,38,.09);
+  box-shadow: 0 4px 14px rgba(24,18,38,.07);
 }
 
 /* Tabelas: cabeçalho claro, sem caixa alta agressiva. */
