@@ -3,11 +3,16 @@
 //
 // Backend: GET /api/producao/prazo-entrega
 //
-// O que mede: quantos dias existem entre a ENTRADA do pedido (a criação do
-// primeiro lote dele) e a DATA DE ENTREGA.
+// O que mede: quantos dias ÚTEIS existem entre a ENTRADA do pedido (a criação
+// do primeiro lote dele) e a DATA DE ENTREGA.
 //
-//   4 dias ou mais  -> ideal
-//   3 dias ou menos -> crítico
+//   4 dias úteis ou mais  -> ideal
+//   3 dias úteis ou menos -> crítico
+//
+//  - Sábado, domingo e feriado NÃO entram na conta, porque não se produz
+//    neles. A lista de feriados mora no backend (PRAZO_FERIADOS) e a tela
+//    mostra quais foram aplicados no período, para um erro na lista aparecer
+//    em vez de ficar escondido dentro do número.
 //
 // Pontos que importam entender antes de olhar os números:
 //
@@ -230,11 +235,11 @@ function _peiRenderContent() {
     <div class="metrics-row">
       <div class="metric-card metric-green">
         <div class="metric-num">${peiFmt(r.ideal)}</div>
-        <div class="metric-label">Ideal — ${d.criterio.ideal_minimo_dias} dias ou mais</div>
+        <div class="metric-label">Ideal — ${d.criterio.ideal_minimo_dias} dias úteis ou mais</div>
       </div>
       <div class="metric-card metric-orange">
         <div class="metric-num">${peiFmt(r.critico)}</div>
-        <div class="metric-label">Crítico — ${d.criterio.ideal_minimo_dias - 1} dias ou menos</div>
+        <div class="metric-label">Crítico — ${d.criterio.ideal_minimo_dias - 1} dias úteis ou menos</div>
       </div>
       <div class="metric-card metric-blue">
         <div class="metric-num">${peiFmt(r.percentual_ideal, 1)}%</div>
@@ -242,7 +247,7 @@ function _peiRenderContent() {
       </div>
       <div class="metric-card metric-purple">
         <div class="metric-num">${peiFmt(r.mediana_dias, 1)}</div>
-        <div class="metric-label">dias de prazo (mediana)</div>
+        <div class="metric-label">dias úteis de prazo (mediana)</div>
       </div>
     </div>
 
@@ -257,7 +262,7 @@ function _peiRenderContent() {
         </div>
       </div>
       <div style="display:flex;gap:1.5rem;flex-wrap:wrap;color:#64748b;font-size:.85rem">
-        <span><strong style="color:#0f172a">${peiFmt(r.media_dias_sem_fora_de_curva, 1)}</strong> dias de média</span>
+        <span><strong style="color:#0f172a">${peiFmt(r.media_dias_sem_fora_de_curva, 1)}</strong> dias úteis de média</span>
         <span>menor prazo: <strong style="color:#0f172a">${peiFmt(r.menor_prazo_dias)}</strong> d</span>
         <span>maior prazo: <strong style="color:#0f172a">${peiFmt(r.maior_prazo_dias)}</strong> d</span>
         <span><strong style="color:#0f172a">${peiFmt(r.datas_vindas_do_calendario)}</strong> com data ajustada no calendário</span>
@@ -312,7 +317,7 @@ function _peiRenderContent() {
     <div class="section-card">
       <h3><i class="fas fa-chart-simple"></i> Quantos pedidos em cada prazo</h3>
       <p style="color:#64748b;font-size:.85rem;margin:-.25rem 0 1rem">
-        Verde é ideal, vermelho é crítico. A linha do 4º dia é o corte.
+        Verde é ideal, vermelho é crítico. O corte é no 4º dia útil.
       </p>
       ${_peiBarras(d.distribuicao || [], d.criterio.ideal_minimo_dias)}
     </div>
@@ -332,7 +337,7 @@ function _peiRenderContent() {
               <th>Cliente</th>
               <th style="text-align:center">Entrada</th>
               <th style="text-align:center">Entrega</th>
-              <th style="text-align:right">Dias</th>
+              <th style="text-align:right">Dias úteis</th>
               <th style="text-align:center">Situação</th>
               <th style="text-align:center">OPs</th>
               <th>Origem da data</th>
@@ -359,10 +364,25 @@ function _peiRenderContent() {
         <li><strong>Entrega</strong>: ${peiEscape(d.criterio.data_entrega)}. A data é lida na hora —
             alterar no calendário da Programação de Entregas muda este indicador na próxima busca.</li>
         <li><strong>Ideal</strong>: ${peiEscape(d.criterio.ideal)}.</li>
+        <li><strong>Sábado, domingo e feriado não contam</strong>, porque não se produz neles.
+            Conta-se o dia da entrega e não o da entrada — de uma segunda a uma sexta dá 4 dias úteis.</li>
         <li><strong>Base não é contabilizada.</strong></li>
         <li>Pedido com entrega marcada antes da entrada fica fora do percentual, no filtro
             <em>Fora da conta</em>: é resquício da carga inicial de lotes antigos, não atraso.</li>
       </ul>
+      ${(d.feriados_aplicados || []).length ? `
+        <div style="margin-top:.9rem;padding-top:.75rem;border-top:1px solid #e2e8f0">
+          <div style="font-weight:600;color:#475569;font-size:.82rem;margin-bottom:.4rem">
+            Feriados descontados neste período (${peiFmt(d.feriados_aplicados.length)})
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+            ${d.feriados_aplicados.map(f => `<span class="badge" style="background:#eef2ff;color:#3730a3;font-weight:500"
+              title="${peiEscape(f.dia_da_semana)}">${peiDataBR(f.data)} · ${peiEscape(f.nome)}</span>`).join('')}
+          </div>
+          <div style="color:#94a3b8;font-size:.76rem;margin-top:.5rem">
+            Faltando algum feriado aqui? Ele precisa ser acrescentado na lista do servidor.
+          </div>
+        </div>` : ''}
     </div>
   `;
 }
@@ -409,7 +429,10 @@ function _peiLinhaPedido(p) {
     <td>${peiEscape(p.cliente)}</td>
     <td style="text-align:center;white-space:nowrap">${peiDataBR(p.entrada)}</td>
     <td style="text-align:center;white-space:nowrap">${peiDataBR(p.entrega)}</td>
-    <td style="text-align:right;font-weight:700">${peiFmt(p.dias)}</td>
+    <td style="text-align:right;font-weight:700;white-space:nowrap">${peiFmt(p.dias)}${
+      Number(p.dias_nao_uteis) > 0
+        ? `<div style="font-weight:400;font-size:.72rem;color:#94a3b8">${peiFmt(p.dias_corridos)} corridos − ${peiFmt(p.dias_nao_uteis)}</div>`
+        : ''}</td>
     <td style="text-align:center">${badge}</td>
     <td style="text-align:center">${peiFmt(p.ops)}</td>
     <td style="font-size:.82rem">${origem}</td>
@@ -418,10 +441,10 @@ function _peiLinhaPedido(p) {
 
 function exportPrazoEntregaCSV() {
   if (!_peiData) return;
-  const linhas = [['Pedido', 'Cliente', 'Entrada', 'Entrega', 'Dias', 'Situacao', 'OPs', 'Origem da data', 'Alterada no calendario']];
+  const linhas = [['Pedido', 'Cliente', 'Entrada', 'Entrega', 'Dias uteis', 'Dias corridos', 'Dias nao uteis', 'Situacao', 'OPs', 'Origem da data', 'Alterada no calendario']];
   for (const p of (_peiData.pedidos || [])) {
     linhas.push([
-      p.pedido, p.cliente, p.entrada, p.entrega, p.dias,
+      p.pedido, p.cliente, p.entrada, p.entrega, p.dias, p.dias_corridos, p.dias_nao_uteis,
       p.prazo_invalido ? 'fora da conta' : p.classificacao,
       p.ops, p.origem_data_entrega, p.data_alterada_no_calendario ? 'sim' : 'nao'
     ]);
