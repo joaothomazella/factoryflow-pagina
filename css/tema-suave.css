@@ -50,14 +50,19 @@
   --sv-pill:        #ffffff;
   --sv-altura-topo: 60px;
   --sv-curva:       22px;      /* curva do painel do menu */
+  --sv-traco:       4px;       /* traço azul da borda esquerda do menu */
 
   color-scheme: light;
 }
 
+/* A família já era DM Sans, a mesma do print. O que mudou aqui é o
+   acabamento: sem apertar o espaçamento entre letras e com o traçado mais
+   fino, que é o que dá o ar leve do exemplo. */
 [data-theme="suave"] body {
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.005em;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: normal;
 }
 
 /* ===== FAIXA ESCURA DO TOPO =====
@@ -120,6 +125,10 @@
 [data-theme="suave"] .sidebar {
   background: var(--sv-topo);    /* aparece só atrás da faixa do topo */
   border-right: none;
+  /* Traço azul da marca na borda esquerda, correndo a altura toda do menu.
+     Como o * { box-sizing: border-box } é global, a borda vem de dentro dos
+     240px da sidebar: o menu não empurra o conteúdo nem muda de largura. */
+  border-left: var(--sv-traco) solid var(--blue);
 }
 [data-theme="suave"] .sidebar-nav,
 [data-theme="suave"] .sidebar-footer {
@@ -137,24 +146,35 @@
   [data-theme="suave"] .sidebar-footer { border-bottom-right-radius: var(--sv-curva); }
 }
 
+/* ===== TIPOGRAFIA DO MENU =====
+   No print da Hostinger os itens são de peso NORMAL e um pouco maiores, não
+   seminegrito. Era isso que fazia o menu do FactoryFlow parecer mais pesado
+   que o exemplo, não a família da fonte – DM Sans já é a mesma dos dois. */
 [data-theme="suave"] .nav-group-label {
-  color: #86828f;
-  font-size: .76rem;
-  font-weight: 600;
+  color: #8b8792;
+  font-size: .8rem;
+  font-weight: 400;
   letter-spacing: 0;
   text-transform: none;          /* "Relatórios", não "RELATÓRIOS" */
-  padding: 1rem .7rem .3rem;
+  padding: 1.1rem .7rem .35rem;
 }
 
 [data-theme="suave"] .nav-item {
-  color: #3c3845;
-  font-size: .9rem;
-  font-weight: 500;
+  color: #2e2b35;
+  font-size: .95rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.35;             /* itens de duas linhas não ficam colados */
   border-radius: 10px;
-  padding: .58rem .7rem;
-  gap: .7rem;
+  padding: .68rem .7rem;
+  gap: .8rem;
 }
-[data-theme="suave"] .nav-item i { color: #635f6d; width: 20px; }
+[data-theme="suave"] .nav-item i {
+  color: #5c5866;
+  width: 20px;
+  font-size: .95rem;
+  flex-shrink: 0;
+}
 
 [data-theme="suave"] .nav-item:hover,
 [data-theme="suave"] .nav-item:active {
@@ -167,7 +187,7 @@
 [data-theme="suave"] .nav-item.active:active {
   background: var(--sv-pill);
   color: #1d1b20;
-  font-weight: 600;
+  font-weight: 500;              /* no print o item ativo mal engrossa */
   box-shadow: 0 1px 2px rgba(24,18,38,.07);
 }
 [data-theme="suave"] .nav-item.active i { color: var(--sv-roxo); }
