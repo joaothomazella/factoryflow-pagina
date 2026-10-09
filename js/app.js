@@ -256,14 +256,63 @@ function applyThemeFromStorage() {
   applyTheme(theme, false);
 }
 
-const FF_THEME_CYCLE = ['dark', 'light', 'induscolor'];
+// Tema "suave" (claro, cantos arredondados – css/tema-suave.css) ainda está em
+// teste: só entra no rodízio para os logins desta lista. Para liberar para toda
+// a empresa, deixe a lista vazia; para tirar do ar, remova o nome de volta.
+const FF_TEMA_SUAVE_LOGINS = ['thomazella'];
+
+function ffPodeTemaSuave() {
+  if (!FF_TEMA_SUAVE_LOGINS.length) return true;
+  const u = (typeof STATE === 'object' && STATE && STATE.currentUser) || null;
+  if (!u) return false;
+  const nomes = [u.login, u.username, u.usuario]
+    .map(v => String(v || '').trim().toLowerCase())
+    .filter(Boolean);
+  return nomes.some(n => FF_TEMA_SUAVE_LOGINS.includes(n));
+}
+
+const FF_THEME_CYCLE_BASE = ['dark', 'light', 'induscolor'];
+
+// O rodízio é calculado na hora, porque depende de quem está logado.
+function ffThemeCycle() {
+  return ffPodeTemaSuave() ? [...FF_THEME_CYCLE_BASE, 'suave'] : [...FF_THEME_CYCLE_BASE];
+}
+
+// Mantido como variável para não quebrar nada que já leia FF_THEME_CYCLE.
+const FF_THEME_CYCLE = FF_THEME_CYCLE_BASE;
+
 const FF_THEME_BTN_LABEL = {
   dark:       '<i class="fas fa-sun"></i> Tema Claro',
   light:      '<i class="fas fa-palette"></i> Tema Induscolor',
   induscolor: '<i class="fas fa-moon"></i> Tema Escuro',
+  suave:      '<i class="fas fa-moon"></i> Tema Escuro',
 };
 
+// O botão anuncia o PRÓXIMO tema do rodízio. Como o rodízio muda de tamanho
+// conforme o usuário tenha ou não o tema em teste, o rótulo é calculado aqui
+// em vez de vir de um mapa fixo – senão o botão diria "Tema Escuro" e cairia
+// no suave.
+const FF_THEME_PROX_LABEL = {
+  dark:       '<i class="fas fa-moon"></i> Tema Escuro',
+  light:      '<i class="fas fa-sun"></i> Tema Claro',
+  induscolor: '<i class="fas fa-palette"></i> Tema Induscolor',
+  suave:      '<i class="fas fa-feather"></i> Tema Suave',
+};
+
+function ffProximoTema(atual) {
+  const ciclo = ffThemeCycle();
+  const i = ciclo.indexOf(atual);
+  return ciclo[(i === -1 ? 0 : i + 1) % ciclo.length];
+}
+
+function ffRotuloBotaoTema(atual) {
+  return FF_THEME_PROX_LABEL[ffProximoTema(atual)] || FF_THEME_PROX_LABEL.light;
+}
+
 function applyTheme(theme, save = true) {
+  // Se o tema em teste chegar num usuário que não está liberado (navegador
+  // compartilhado, por exemplo), cai no claro em vez de aplicar meio torto.
+  if (theme === 'suave' && !ffPodeTemaSuave()) theme = 'light';
   document.documentElement.setAttribute('data-theme', theme);
   if (save) {
     localStorage.setItem('ff_theme', theme);
@@ -278,15 +327,20 @@ function applyTheme(theme, save = true) {
   }
   const btn = document.getElementById('themeToggleBtn');
   if (btn) {
-    btn.innerHTML = FF_THEME_BTN_LABEL[theme] || FF_THEME_BTN_LABEL.dark;
+    btn.innerHTML = ffRotuloBotaoTema(theme);
   }
 }
 
 function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') || 'dark';
-  const idx = FF_THEME_CYCLE.indexOf(current);
-  const next = FF_THEME_CYCLE[(idx === -1 ? 0 : idx + 1) % FF_THEME_CYCLE.length];
-  applyTheme(next);
+  applyTheme(ffProximoTema(current));
+}
+
+// Chamada depois do login: o tema é lido do localStorage antes de existir
+// usuário, então é aqui que o tema em teste é confirmado ou revertido.
+function ffRevalidarTema() {
+  const atual = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(atual, false);
 }
 
 // ===================================================

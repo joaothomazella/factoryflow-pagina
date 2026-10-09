@@ -1,0 +1,303 @@
+/* ===================================================
+   TEMA SUAVE – FactoryFlow
+   ---------------------------------------------------
+   Tema claro, de cantos arredondados, inspirado no painel
+   da Hostinger: faixa escura no topo, menu lateral num painel
+   cinza-claro destacado, item selecionado virando uma "pílula"
+   branca, e tipografia em caixa normal (sem CAIXA ALTA no menu).
+
+   TUDO neste arquivo está dentro de [data-theme="suave"].
+   Nenhum seletor aqui alcança os temas dark / light / induscolor,
+   então ligar ou desligar este tema não muda nada para quem não
+   está usando ele.
+
+   Por enquanto o tema só é oferecido aos logins listados em
+   FF_TEMA_SUAVE_LOGINS, em js/app.js. Para liberar para todos,
+   basta esvaziar aquela lista.
+   =================================================== */
+
+[data-theme="suave"] {
+  /* Fundo da página num cinza bem claro, para os cartões brancos
+     terem contorno sem precisar de borda forte. */
+  --bg:       #f6f5f8;
+  --bg2:      #ffffff;
+  --bg3:      #eeecf1;
+  --surface:  #ffffff;
+  --surface2: #faf9fb;
+  --border:   #e5e2ea;
+
+  --text:  #1d1b20;
+  --text2: #6b6774;
+  --text3: #9a96a4;
+
+  /* Azul da marca continua sendo a cor de ação e dos gráficos;
+     o roxo entra só na moldura (topo e menu), como no print. */
+  --blue:   #144196;
+  --green:  #16a34a;
+  --yellow: #b8860b;   /* #FFF000 some em fundo claro */
+  --red:    #dc2626;
+  --orange: #ea580c;
+  --purple: #673de6;
+  --cyan:   #0891b2;
+
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(24,18,38,.05), 0 10px 30px rgba(24,18,38,.07);
+
+  /* Tokens só deste tema */
+  --sv-topo:        #1f0b36;   /* faixa escura do topo */
+  --sv-menu:        #ebeaec;   /* painel do menu lateral */
+  --sv-roxo:        #673de6;
+  --sv-pill:        #ffffff;
+  --sv-altura-topo: 60px;
+  --sv-curva:       22px;      /* curva do painel do menu */
+
+  color-scheme: light;
+}
+
+[data-theme="suave"] body {
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+}
+
+/* ===== FAIXA ESCURA DO TOPO =====
+   O cabeçalho da sidebar e a topbar formam uma faixa só, contínua,
+   atravessando a tela inteira – é o que dá a leitura do print. */
+[data-theme="suave"] .sidebar-header {
+  background: var(--sv-topo);
+  border-bottom: none;
+  border-top: none;              /* tira a listra amarela do tema padrão */
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: none;          /* o print não usa caixa alta */
+  letter-spacing: -0.01em;
+}
+[data-theme="suave"] .sidebar-header i.sidebar-hdr-icon {
+  background: var(--sv-roxo);
+  color: #ffffff;
+  box-shadow: none;
+  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  font-size: .95rem;
+}
+
+[data-theme="suave"] .topbar {
+  background: var(--sv-topo);
+  border-bottom: none;
+  box-shadow: none;
+  color: #ffffff;
+}
+
+/* Altura da faixa só no desktop. No celular a topbar tem altura própria
+   (54px / 50px), já acertada no style.css – mexer nela aqui desalinharia
+   o layout de celular que foi ajustado antes. */
+@media (min-width: 769px) {
+  [data-theme="suave"] .topbar {
+    min-height: var(--sv-altura-topo);
+    padding: 0 1.5rem;
+  }
+  [data-theme="suave"] .sidebar-header {
+    min-height: var(--sv-altura-topo);
+    padding: 0 1.1rem;
+  }
+}
+[data-theme="suave"] .topbar-title { color: #ffffff; font-weight: 600; }
+[data-theme="suave"] .sidebar-toggle { color: rgba(255,255,255,.75); }
+[data-theme="suave"] .sidebar-toggle:hover { color: #ffffff; }
+[data-theme="suave"] .topbar .alert-bell i { color: rgba(255,255,255,.8); }
+[data-theme="suave"] .topbar .btn-primary {
+  background: var(--sv-roxo);
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+/* ===== PAINEL DO MENU LATERAL =====
+   Cinza claro, sem borda à direita, com o canto superior direito
+   arredondado – exatamente o recorte do print. */
+[data-theme="suave"] .sidebar {
+  background: var(--sv-topo);    /* aparece só atrás da faixa do topo */
+  border-right: none;
+}
+[data-theme="suave"] .sidebar-nav,
+[data-theme="suave"] .sidebar-footer {
+  background: var(--sv-menu);
+  border-top: none;
+}
+[data-theme="suave"] .sidebar-nav {
+  padding: .9rem .7rem .4rem;
+  gap: .12rem;
+}
+/* A curva só no desktop: no celular a sidebar vira gaveta e um canto
+   arredondado ali ficaria torto. */
+@media (min-width: 769px) {
+  [data-theme="suave"] .sidebar-nav { border-top-right-radius: var(--sv-curva); }
+  [data-theme="suave"] .sidebar-footer { border-bottom-right-radius: var(--sv-curva); }
+}
+
+[data-theme="suave"] .nav-group-label {
+  color: #86828f;
+  font-size: .76rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;          /* "Relatórios", não "RELATÓRIOS" */
+  padding: 1rem .7rem .3rem;
+}
+
+[data-theme="suave"] .nav-item {
+  color: #3c3845;
+  font-size: .9rem;
+  font-weight: 500;
+  border-radius: 10px;
+  padding: .58rem .7rem;
+  gap: .7rem;
+}
+[data-theme="suave"] .nav-item i { color: #635f6d; width: 20px; }
+
+[data-theme="suave"] .nav-item:hover,
+[data-theme="suave"] .nav-item:active {
+  background: rgba(255,255,255,.65);
+  color: #1d1b20;
+}
+/* Item ativo = pílula branca. Sem a barrinha lateral do tema padrão. */
+[data-theme="suave"] .nav-item.active,
+[data-theme="suave"] .nav-item.active:hover,
+[data-theme="suave"] .nav-item.active:active {
+  background: var(--sv-pill);
+  color: #1d1b20;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(24,18,38,.07);
+}
+[data-theme="suave"] .nav-item.active i { color: var(--sv-roxo); }
+
+[data-theme="suave"] .user-info { border-bottom-color: #dedbe3; }
+[data-theme="suave"] .user-avatar i { color: #8d8996; }
+[data-theme="suave"] .sidebar-action-divider { border-top-color: #dedbe3; }
+[data-theme="suave"] .sidebar-footer button,
+[data-theme="suave"] .sidebar-footer .btn-expediente { border-radius: 10px; }
+[data-theme="suave"] .btn-logout {
+  background: #ffffff;
+  border: 1px solid #e8c4c4;
+  color: #c0392b;
+}
+[data-theme="suave"] .btn-logout:hover { background: #fdf2f2; }
+
+/* ===== CANTOS ARREDONDADOS NO CONTEÚDO =====
+   A maior parte dos componentes já usa var(--radius), então subir o
+   token já arredondou quase tudo. Aqui ficam os que têm valor fixo. */
+[data-theme="suave"] .metric-card,
+[data-theme="suave"] .section-card,
+[data-theme="suave"] .chart-card,
+[data-theme="suave"] .kanban-col,
+[data-theme="suave"] .kanban-card,
+[data-theme="suave"] .lot-card,
+[data-theme="suave"] .order-card,
+[data-theme="suave"] .route-card,
+[data-theme="suave"] .ms-card,
+[data-theme="suave"] .am-card,
+[data-theme="suave"] .pn-card,
+[data-theme="suave"] .sim-card,
+[data-theme="suave"] .sim-form-card,
+[data-theme="suave"] .sim-kpi-card,
+[data-theme="suave"] .rt-filters-card,
+[data-theme="suave"] .rt-summary-card,
+[data-theme="suave"] .table-container,
+[data-theme="suave"] .rt-table-container,
+[data-theme="suave"] .rt-table-wrap,
+[data-theme="suave"] .sim-table-wrap,
+[data-theme="suave"] .loading-box,
+[data-theme="suave"] .alert-dropdown,
+[data-theme="suave"] .toast {
+  border-radius: 16px;
+}
+[data-theme="suave"] .modal,
+[data-theme="suave"] .modal-large,
+[data-theme="suave"] .pn-modal,
+[data-theme="suave"] .am-modal,
+[data-theme="suave"] .login-card {
+  border-radius: 20px;
+}
+[data-theme="suave"] .btn,
+[data-theme="suave"] .btn-sm,
+[data-theme="suave"] .btn-xs,
+[data-theme="suave"] .tab-btn,
+[data-theme="suave"] .ms-btn,
+[data-theme="suave"] .kc2-btn,
+[data-theme="suave"] .sim-btn,
+[data-theme="suave"] .am-btn-refresh {
+  border-radius: 999px;
+}
+[data-theme="suave"] .form-group input,
+[data-theme="suave"] .form-group select,
+[data-theme="suave"] .form-group textarea,
+[data-theme="suave"] .search-input,
+[data-theme="suave"] .rt-filter-input,
+[data-theme="suave"] .sim-input,
+[data-theme="suave"] .sim-textarea,
+[data-theme="suave"] .am-input,
+[data-theme="suave"] .am-textarea,
+[data-theme="suave"] .pn-select,
+[data-theme="suave"] .pn-search-input,
+[data-theme="suave"] .orders-search-input {
+  border-radius: 12px;
+  background: #ffffff;
+}
+[data-theme="suave"] .form-group label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: .82rem;
+  color: var(--text2);
+}
+
+/* Cartões: sombra leve no lugar de borda dura. */
+[data-theme="suave"] .metric-card,
+[data-theme="suave"] .section-card,
+[data-theme="suave"] .chart-card {
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(24,18,38,.04);
+}
+[data-theme="suave"] .metric-card:hover {
+  box-shadow: 0 6px 20px rgba(24,18,38,.09);
+}
+
+/* Tabelas: cabeçalho claro, sem caixa alta agressiva. */
+[data-theme="suave"] .data-table th,
+[data-theme="suave"] .rt-th {
+  background: #f4f2f6;
+  color: var(--text2);
+  letter-spacing: .02em;
+}
+[data-theme="suave"] .data-table tr:hover td { background: #faf9fb; }
+
+/* Modal e sobreposições */
+[data-theme="suave"] .modal-header { background: var(--surface); border-bottom: 1px solid var(--border); }
+[data-theme="suave"] .modal-overlay,
+[data-theme="suave"] .pn-modal-overlay,
+[data-theme="suave"] .am-modal-overlay { background: rgba(24,18,38,.38); }
+
+/* Scrollbar discreta, combinando com o cinza do menu */
+[data-theme="suave"] ::-webkit-scrollbar-track { background: transparent; }
+[data-theme="suave"] ::-webkit-scrollbar-thumb { background: #d6d3dc; border-radius: 3px; }
+
+/* ===== MOBILE =====
+   Só cor; a geometria da gaveta e da barra inferior continua
+   sendo a do style.css, que já foi ajustada para celular. */
+[data-theme="suave"] .topbar-logo-mobile,
+[data-theme="suave"] .sidebar-logo-img { filter: brightness(0) invert(1); }
+[data-theme="suave"] .sidebar-mobile-close { color: rgba(255,255,255,.85); }
+[data-theme="suave"] .mobile-bottom-nav {
+  background: #ffffff;
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 16px rgba(24,18,38,.07);
+}
+[data-theme="suave"] .mbn-item { color: var(--text2); }
+[data-theme="suave"] .mbn-item.active { color: var(--sv-roxo); }
+
+/* ===== LOGIN =====
+   O login aparece antes de saber quem é o usuário, então na prática
+   só cai aqui se o tema já estiver salvo neste navegador. */
+[data-theme="suave"] .login-page {
+  background: linear-gradient(160deg, #efedf3 0%, #f6f5f8 55%, #ece9f4 100%);
+}

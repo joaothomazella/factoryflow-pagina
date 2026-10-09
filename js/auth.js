@@ -593,12 +593,18 @@ function buildSidebar() {
       <div class="user-role">${ROLE_LABELS[user.role] || user.role}${user.sector ? ' – ' + (SECTOR_LABELS[user.sector] || user.sector) : ''}</div>
     </div>`;
 
-  // Botão de tema
-  const themeBtn = document.getElementById('themeToggleBtn');
-  if (themeBtn) {
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    themeBtn.innerHTML = (typeof FF_THEME_BTN_LABEL === 'object' && FF_THEME_BTN_LABEL[current])
-      || '<i class="fas fa-sun"></i> Tema Claro';
+  // Botão de tema. Agora que já se sabe quem entrou, revalida o tema: isso
+  // confirma (ou desfaz) um tema em teste salvo neste navegador e acerta o
+  // rótulo do botão de acordo com o rodízio deste usuário.
+  if (typeof ffRevalidarTema === 'function') {
+    ffRevalidarTema();
+  } else {
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      themeBtn.innerHTML = (typeof FF_THEME_BTN_LABEL === 'object' && FF_THEME_BTN_LABEL[current])
+        || '<i class="fas fa-sun"></i> Tema Claro';
+    }
   }
 
   // Botão reset – EXCLUSIVO do admin (diretoria não tem acesso)
