@@ -193,12 +193,25 @@
      a faixa para baixo em vez de criar uma emenda. */
   [data-theme="suave"] .main-content { background: var(--sv-topo); }
 
+  /* A moldura azul não pode rolar junto com o conteúdo, senão as bordas e os
+     cantos saem da tela. Então o .main-content trava na altura da janela e
+     quem rola é o painel, por dentro.
+     O !important é obrigatório: o style.css tem um
+     ".main-content { overflow: visible !important }" (um reset antigo de
+     modal) que venceria mesmo com especificidade menor. Os modais ficam
+     fora do #appPage no HTML, então este overflow não chega a recortá-los. */
+  [data-theme="suave"] .main-content {
+    height: 100vh;
+    overflow: hidden !important;
+  }
   [data-theme="suave"] .page.active {
     background: var(--bg);
     margin: var(--sv-calha) var(--sv-calha) var(--sv-calha) 0;
     border-top-right-radius:    var(--sv-curva);
     border-bottom-right-radius: var(--sv-curva);
-    flex: 1;                       /* preenche a altura quando o conteúdo é curto */
+    flex: 1;
+    min-height: 0;                 /* sem isto o item flex nao encolhe e nao rola */
+    overflow-y: auto;
   }
 
   /* "Pedidos Novos" é a exceção: no style.css ela é position:absolute com

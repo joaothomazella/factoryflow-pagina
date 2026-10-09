@@ -2727,8 +2727,19 @@ function preserveScrollAndRender(renderFn) {
   if (typeof renderFn !== 'function') return;
   const x = window.scrollX;
   const y = window.scrollY;
+  // Quando o painel rola por dentro (tema suave no desktop), window.scrollY
+  // e sempre 0: sem guardar a rolagem do proprio painel, cada atualizacao
+  // automatica jogaria a pessoa de volta para o topo.
+  const painel = document.querySelector('.page.active');
+  const py = painel ? painel.scrollTop : 0;
   renderFn();
-  requestAnimationFrame(() => window.scrollTo(x, y));
+  requestAnimationFrame(() => {
+    window.scrollTo(x, y);
+    if (py) {
+      const p = document.querySelector('.page.active');
+      if (p) p.scrollTop = py;
+    }
+  });
 }
 
 async function smartAutoUpdate(activePage) {
