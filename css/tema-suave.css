@@ -138,13 +138,12 @@
   color: #ffffff;
 }
 
-/* ===== PAINEL DO MENU LATERAL =====
-   Cinza claro, recuado da borda da janela, com as curvas do lado esquerdo
-   e a borda direita reta encostando no conteúdo – como no print inteiro. */
+/* ===== PAINEL DO MENU LATERAL ===== */
 [data-theme="suave"] .sidebar {
-  /* O azul fica ATRAS do painel claro. A folga de var(--sv-calha) em volta
-     do painel e que deixa esse azul aparecer – inclusive na borda esquerda,
-     que era o traço azul pedido antes, agora correndo os quatro lados. */
+  /* O azul fica ATRAS do painel claro. A folga de var(--sv-calha) à
+     esquerda, em cima e embaixo é que deixa esse azul aparecer – a borda
+     esquerda, que era o traço azul pedido antes, virou essa folga. À
+     direita não há folga: ali o painel encosta no conteúdo. */
   background: var(--sv-topo);
   border-right: none;
   border-left: none;
@@ -158,33 +157,92 @@
   padding: .9rem .7rem .4rem;
   gap: .12rem;
 }
-/* O painel flutua sobre o azul: folga nos quatro lados e canto arredondado
-   em cima (no .sidebar-nav) e embaixo (no .sidebar-footer). Como os dois são
-   irmãos encostados, o conjunto lê como um cartão só.
-   Só no desktop: no celular a sidebar vira gaveta e isso ficaria torto. */
+/* O painel flutua sobre o azul por três lados e encosta no conteúdo pelo
+   quarto. Só os cantos de fora são arredondados: o de cima no .sidebar-nav
+   e o de baixo no .sidebar-footer, que são irmãos encostados e leem como um
+   cartão só. Só no desktop: no celular a sidebar vira gaveta. */
 @media (min-width: 769px) {
   [data-theme="suave"] .sidebar-nav,
   [data-theme="suave"] .sidebar-footer {
     margin-left: var(--sv-calha);
-    margin-right: var(--sv-calha);
+    margin-right: 0;               /* encosta no painel de conteúdo */
     border-right: none;
   }
   [data-theme="suave"] .sidebar-nav {
     margin-top: var(--sv-calha);
-    border-top-left-radius:  var(--sv-curva);
-    border-top-right-radius: var(--sv-curva);
+    border-top-left-radius: var(--sv-curva);
   }
   [data-theme="suave"] .sidebar-footer {
     margin-bottom: var(--sv-calha);
-    border-bottom-left-radius:  var(--sv-curva);
-    border-bottom-right-radius: var(--sv-curva);
+    border-bottom-left-radius: var(--sv-curva);
   }
-  /* Recolhida, a sidebar tem 60px: 10px de folga de cada lado comeriam o
-     ícone. Aí o painel encosta e só os cantos continuam arredondados. */
+  /* Recolhida, a sidebar tem 60px: 10px de folga comeriam o ícone. */
   [data-theme="suave"] .sidebar.collapsed .sidebar-nav,
   [data-theme="suave"] .sidebar.collapsed .sidebar-footer {
     margin-left: 4px;
-    margin-right: 4px;
+  }
+}
+
+/* ===== PAINEL DE CONTEÚDO =====
+   A sidebar e o conteúdo formam um bloco só, encostados, flutuando sobre o
+   azul: a folga azul aparece em volta do conjunto (esquerda da sidebar,
+   direita e embaixo do conteúdo) e os cantos de fora são arredondados.
+   Só no desktop: no celular a sidebar é gaveta e isto não faria sentido. */
+@media (min-width: 769px) {
+  /* O azul que emoldura. A faixa do topo já é desta cor, então ele continua
+     a faixa para baixo em vez de criar uma emenda. */
+  [data-theme="suave"] .main-content { background: var(--sv-topo); }
+
+  [data-theme="suave"] .page.active {
+    background: var(--bg);
+    margin: var(--sv-calha) var(--sv-calha) var(--sv-calha) 0;
+    border-top-right-radius:    var(--sv-curva);
+    border-bottom-right-radius: var(--sv-curva);
+    flex: 1;                       /* preenche a altura quando o conteúdo é curto */
+  }
+
+  /* "Pedidos Novos" é a exceção: no style.css ela é position:absolute com
+     left:250px e uma pilha de !important, então não obedece a regra acima.
+     Aqui ela é recolocada na mesma moldura – encostada na sidebar (240px)
+     e começando abaixo da faixa do topo, que antes ela cobria. */
+  [data-theme="suave"] #pagePedidosNovos.active {
+    top: var(--sv-altura-topo) !important;
+    left: 240px !important;
+    right: var(--sv-calha) !important;
+    bottom: var(--sv-calha) !important;
+    width: auto !important;
+    min-height: 0 !important;
+    margin: var(--sv-calha) 0 0 0 !important;
+    background: var(--bg) !important;
+    border-top-right-radius:    var(--sv-curva);
+    border-bottom-right-radius: var(--sv-curva);
+  }
+  /* Os cartões desta página têm fundo escuro fixo no style.css; sobre o
+     painel claro eles precisam acompanhar o tema. */
+  [data-theme="suave"] #pagePedidosNovos .pn-card {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    color: var(--text) !important;
+  }
+  /* O miolo do cartão foi desenhado para fundo escuro: caixinhas de branco
+     translúcido e números em azul claro. Sobre o branco isso some. */
+  [data-theme="suave"] #pagePedidosNovos .pn-stat {
+    background: var(--bg3);
+    border-color: var(--border);
+  }
+  [data-theme="suave"] #pagePedidosNovos .pn-stat-num { color: var(--blue); }
+  [data-theme="suave"] #pagePedidosNovos .pn-card-footer { border-top-color: var(--border); }
+  [data-theme="suave"] #pagePedidosNovos .pn-btn-liberar {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #ffffff;
+  }
+  [data-theme="suave"] #pagePedidosNovos .pn-btn-liberar:hover {
+    background: #0f3576;
+    border-color: #0f3576;
+    color: #ffffff;
+    box-shadow: none;
   }
 }
 
