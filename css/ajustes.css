@@ -1,0 +1,414 @@
+/* ============================================================
+   AJUSTES - personalizacao do aplicativo (js/ajustes.js)
+   ------------------------------------------------------------
+   Duas partes:
+
+   A) OS EFEITOS das preferencias. Todos presos a um atributo no
+      <html> que SO existe quando a pessoa escolheu algo diferente
+      do padrao: html[data-fonte], html[data-densidade],
+      html[data-cantos], html[data-anim], html[data-destaque].
+      Com tudo no padrao, nenhum seletor deste arquivo casa com
+      nada, e o app fica exatamente como era. Mesma disciplina do
+      css/cards-tamanho.css.
+
+   B) A APARENCIA DO PAINEL, toda sob .ff-aj-* / #modalAjustes /
+      #ffAjCorLivre, que existem apenas dentro do painel.
+
+   Nenhum seletor daqui pega em elemento existente fora do painel
+   sem um desses atributos. Nada do style.css foi alterado.
+   ============================================================ */
+
+
+/* ============================================================
+   A1) TAMANHO DA LETRA
+   ------------------------------------------------------------
+   O app e escrito em rem (mais de 1500 ocorrencias) e nao tem
+   regra html{font-size}, entao mexer na raiz escala a interface
+   quase toda. As media queries sao em px, entao os pontos de
+   quebra do layout nao se movem.
+
+   So no computador: o layout de celular foi ajustado fino e
+   escalar a letra lá desarruma o que ja esta bom.
+   ============================================================ */
+@media (min-width: 769px) {
+  html[data-fonte="p"]  { font-size: 15px; }
+  html[data-fonte="g"]  { font-size: 17px; }
+  html[data-fonte="gg"] { font-size: 18px; }
+}
+
+
+/* ============================================================
+   A2) ESPACO DA TELA (densidade)
+   ------------------------------------------------------------
+   Mexe so no respiro em volta do conteudo, do menu e da barra de
+   cima - NAO no tamanho dos cards, que tem controle proprio no
+   css/cards-tamanho.css. Dois controles disputando o mesmo pixel
+   seria confusao.
+
+   O !important nas tres paginas corrigidas (Pedidos Novos,
+   Programacao de Entregas, Meu Setor) e para empatar com o
+   "padding: 1.5rem !important" que elas ja carregam no style.css;
+   o seletor daqui e mais especifico, entao ganha.
+   ============================================================ */
+@media (min-width: 769px) {
+  html[data-densidade="compacta"] .page { padding: .85rem; }
+  html[data-densidade="compacta"] #pageMeuSetor,
+  html[data-densidade="compacta"] #pageProgramacaoEntregas { padding-top: .85rem !important; }
+  html[data-densidade="compacta"] #pagePedidosNovos.active,
+  html[data-densidade="compacta"] #pageProgramacaoEntregas.active,
+  html[data-densidade="compacta"] #pageMeuSetor.active { padding: .85rem !important; }
+  html[data-densidade="compacta"] .nav-item { padding: .4rem .6rem; }
+  html[data-densidade="compacta"] .topbar { padding: .55rem 1rem; }
+  html[data-densidade="compacta"] .modal-body { padding: 1rem; }
+  html[data-densidade="compacta"] .page-header { margin-bottom: .9rem; }
+
+  html[data-densidade="folgada"] .page { padding: 2.25rem; }
+  html[data-densidade="folgada"] #pageMeuSetor,
+  html[data-densidade="folgada"] #pageProgramacaoEntregas { padding-top: 2.25rem !important; }
+  html[data-densidade="folgada"] #pagePedidosNovos.active,
+  html[data-densidade="folgada"] #pageProgramacaoEntregas.active,
+  html[data-densidade="folgada"] #pageMeuSetor.active { padding: 2.25rem !important; }
+  html[data-densidade="folgada"] .nav-item { padding: .85rem .95rem; }
+  html[data-densidade="folgada"] .topbar { padding: 1.15rem 2rem; }
+  html[data-densidade="folgada"] .modal-body { padding: 2rem; }
+}
+
+
+/* ============================================================
+   A3) CANTOS
+   ------------------------------------------------------------
+   --radius e usado em 20 lugares do style.css. html[data-cantos]
+   tem especificidade maior do que [data-theme="x"], entao a
+   escolha vale tambem nos temas que redefinem o raio.
+   ============================================================ */
+html[data-cantos="reto"]    { --radius: 2px; }
+html[data-cantos="suave"]   { --radius: 6px; }
+html[data-cantos="redondo"] { --radius: 16px; }
+
+
+/* ============================================================
+   A4) ANIMACOES DESLIGADAS
+   ------------------------------------------------------------
+   Transicoes e animacoes decorativas saem. Os indicadores de
+   carregando FICAM girando: um spinner congelado parece tela
+   travada, que e pior do que a animacao que a pessoa quis tirar.
+   ============================================================ */
+html[data-anim="off"] *,
+html[data-anim="off"] *::before,
+html[data-anim="off"] *::after {
+  transition: none !important;
+  animation: none !important;
+}
+html[data-anim="off"] .loading-spinner {
+  animation: spinLoader .75s linear infinite !important;
+}
+html[data-anim="off"] .rt-loading i {
+  animation: rtSpin 1s linear infinite !important;
+}
+html[data-anim="off"] .fa-spin {
+  animation: fa-spin 2s linear infinite !important;
+}
+
+
+/* ============================================================
+   A5) COR DE DESTAQUE
+   ------------------------------------------------------------
+   O js/ajustes.js escreve --blue e --ff-destaque direto no estilo
+   do <html>, o que ja resolve os 69 lugares que usam var(--blue).
+   O que sobra sao os lugares do style.css onde o azul foi escrito
+   na mao (#144196) e por isso nao escutam a variavel.
+
+   O style.css NAO foi tocado de proposito: trocar aqueles valores
+   por var(--blue) mudaria HOJE a aparencia do tema Suave, que
+   define --blue como roxo. Entao as correcoes moram aqui, sob
+   html[data-destaque], que so existe quando ha cor escolhida.
+   ============================================================ */
+html[data-destaque] .sidebar-header i          { background: var(--ff-destaque); }
+html[data-destaque] .kc2-btn-advance           { background: var(--ff-destaque); }
+html[data-destaque] .pn-spin-icon              { color: var(--ff-destaque); }
+html[data-destaque] .pn-card-num i             { color: var(--ff-destaque); }
+html[data-destaque] .pe-panel-date i           { color: var(--ff-destaque); }
+html[data-destaque] .ms-card-num i             { color: var(--ff-destaque); }
+html[data-destaque] .mbn-item.active           { color: var(--ff-destaque); }
+html[data-destaque] .pe-today .pe-cal-day-num::after { background: var(--ff-destaque); }
+html[data-destaque] .nav-item.active           { border-right-color: var(--ff-destaque); }
+html[data-destaque] .tab-btn.active            { background: var(--ff-destaque); }
+html[data-destaque] #pnModalOverlay .pn-modal  { border-color: var(--ff-destaque) !important; }
+html[data-destaque] .sim-decision-recommended-with-reorder { border-top-color: var(--ff-destaque) !important; }
+html[data-destaque] .sim-decision-recommended-with-reorder .sim-decision-icon { color: var(--ff-destaque); }
+html[data-destaque] .logo-icon-3d     { background: linear-gradient(135deg, var(--ff-destaque), var(--purple, #8b5cf6)); }
+html[data-destaque] .btn-login-3d     { background: linear-gradient(135deg, var(--ff-destaque), var(--purple, #6366f1)); }
+html[data-destaque] .input-line-anim  { background: linear-gradient(90deg, var(--ff-destaque), var(--purple, #8b5cf6)); }
+/* O degrade original ia do azul para um azul claro; aqui o segundo
+   ponto e a propria cor clareada, para nao voltar ao azul fixo. */
+html[data-destaque] .pn-card::before  { background: linear-gradient(90deg, var(--ff-destaque), rgba(255,255,255,.45)); }
+
+
+/* ============================================================
+   B) O PAINEL
+   ============================================================ */
+#modalAjustes {
+  max-width: 680px;
+  width: 92vw;
+}
+#modalAjustes .modal-body {
+  max-height: 72vh;
+  overflow-y: auto;
+}
+
+.ff-aj-secao {
+  padding-bottom: 1.1rem;
+  margin-bottom: 1.1rem;
+  border-bottom: 1px solid var(--border, #334155);
+}
+.ff-aj-secao:last-of-type {
+  border-bottom: 0;
+  margin-bottom: .5rem;
+}
+.ff-aj-secao h4 {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: 0 0 .75rem;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--text, #f1f5f9);
+}
+.ff-aj-secao h4 i {
+  color: var(--blue, #144196);
+  font-size: .9rem;
+}
+.ff-aj-nota {
+  margin: -.35rem 0 .75rem;
+  font-size: .78rem;
+  line-height: 1.5;
+  color: var(--text3, #64748b);
+}
+
+/* --- temas --- */
+.ff-aj-temas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: .6rem;
+}
+.ff-aj-tema {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .3rem;
+  padding: .7rem;
+  background: var(--bg2, #1e293b);
+  border: 2px solid var(--border, #334155);
+  border-radius: var(--radius, 10px);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .15s, transform .15s;
+}
+.ff-aj-tema:hover { transform: translateY(-2px); }
+.ff-aj-tema.ativo { border-color: var(--blue, #144196); }
+.ff-aj-tema-amostra {
+  display: flex;
+  gap: 3px;
+  margin-bottom: .2rem;
+}
+.ff-aj-tema-amostra i {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1px solid rgba(0,0,0,.25);
+}
+.ff-aj-tema-nome {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--text, #f1f5f9);
+}
+.ff-aj-tema-dica {
+  font-size: .7rem;
+  line-height: 1.35;
+  color: var(--text3, #64748b);
+}
+
+/* --- cores --- */
+.ff-aj-cores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: .45rem;
+}
+.ff-aj-cor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  padding: .5rem .25rem;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--radius, 10px);
+  cursor: pointer;
+}
+.ff-aj-cor:hover  { background: var(--bg2, #1e293b); }
+.ff-aj-cor.ativo  { border-color: var(--blue, #144196); background: var(--bg2, #1e293b); }
+.ff-aj-cor-bola {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border, #334155);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ff-aj-cor-bola.automatica {
+  background: var(--bg3, #263249);
+  color: var(--text3, #64748b);
+  font-size: .7rem;
+}
+.ff-aj-cor-nome {
+  font-size: .68rem;
+  font-weight: 600;
+  color: var(--text2, #94a3b8);
+  text-align: center;
+  line-height: 1.2;
+}
+.ff-aj-cor-livre {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-top: .8rem;
+  padding-top: .8rem;
+  border-top: 1px dashed var(--border, #334155);
+}
+.ff-aj-cor-livre label {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text2, #94a3b8);
+  margin: 0;
+}
+#ffAjCorLivre {
+  width: 46px;
+  height: 30px;
+  padding: 2px;
+  background: var(--bg2, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ff-aj-cor-livre code {
+  font-size: .75rem;
+  color: var(--text3, #64748b);
+}
+
+/* --- linhas de opcao --- */
+.ff-aj-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .6rem 0;
+  border-bottom: 1px dashed var(--border, #334155);
+}
+.ff-aj-linha:last-child { border-bottom: 0; }
+.ff-aj-linha-txt {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+}
+.ff-aj-linha-txt strong {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text, #f1f5f9);
+}
+.ff-aj-linha-txt span {
+  font-size: .72rem;
+  color: var(--text3, #64748b);
+  line-height: 1.35;
+}
+
+.ff-aj-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  flex-shrink: 0;
+}
+.ff-aj-pill {
+  padding: .35rem .65rem;
+  background: var(--bg2, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: 999px;
+  color: var(--text2, #94a3b8);
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.ff-aj-pill:hover { color: var(--text, #f1f5f9); }
+.ff-aj-pill.ativo {
+  background: var(--blue, #144196);
+  border-color: var(--blue, #144196);
+  color: #fff;
+}
+
+.ff-aj-select {
+  flex-shrink: 0;
+  max-width: 55%;
+  padding: .4rem .6rem;
+  background: var(--bg2, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+  color: var(--text, #f1f5f9);
+  font-size: .8rem;
+  cursor: pointer;
+}
+
+/* Aviso de que tres ajustes valem so no computador. */
+.ff-aj-so-celular {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  margin-top: .8rem;
+  padding: .6rem .7rem;
+  background: var(--bg3, #263249);
+  border-radius: 8px;
+  font-size: .72rem;
+  line-height: 1.5;
+  color: var(--text3, #64748b);
+}
+.ff-aj-so-celular i { margin-top: .15rem; }
+
+.ff-aj-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: .9rem;
+  border-top: 1px solid var(--border, #334155);
+}
+.ff-aj-rodape span {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .72rem;
+  color: var(--text3, #64748b);
+}
+
+/* ============================================================
+   No celular: os tres ajustes que nao tem efeito ali saem de
+   cena, e o resto vira uma coluna. Controle que nao faz nada e
+   pior do que controle nenhum.
+   ============================================================ */
+@media (max-width: 768px) {
+  .ff-aj-desktop { display: none; }
+  .ff-aj-linha {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .5rem;
+  }
+  .ff-aj-select { max-width: 100%; }
+  .ff-aj-temas  { grid-template-columns: 1fr 1fr; }
+  .ff-aj-cores  { grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); }
+  #modalAjustes .modal-body { max-height: 68vh; }
+}

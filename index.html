@@ -27,6 +27,7 @@
 <link rel="stylesheet" href="css/tema-suave.css?v=6">
 <link rel="stylesheet" href="css/cards-tamanho.css?v=1">
 <link rel="stylesheet" href="css/lotes-selecao.css?v=1">
+  <link rel="stylesheet" href="css/ajustes.css?v=1">
 </head>
 <body>
 
@@ -400,15 +401,12 @@
         </button>
       </div>
 
-      <!-- Tamanho dos cards: preferencia por aparelho, ver css/cards-tamanho.css -->
-      <div class="ff-card-size">
-        <span class="ff-card-size-lbl"><i class="fas fa-expand"></i> Tamanho dos cards</span>
-        <div class="ff-card-size-ctl">
-          <button type="button" id="ffCardSizeMenos" onclick="ffCardSizeStep(-1)" title="Cards menores" aria-label="Diminuir os cards">&minus;</button>
-          <span class="ff-card-size-val" id="ffCardSizeVal" ondblclick="ffCardSizeRestaurar()" title="Clique duas vezes para voltar ao padrao">Medio</span>
-          <button type="button" id="ffCardSizeMais" onclick="ffCardSizeStep(1)" title="Cards maiores" aria-label="Aumentar os cards">+</button>
-        </div>
-      </div>
+      <!-- Painel de personalizacao (js/ajustes.js). O controle de tamanho
+           dos cards morava aqui e foi para dentro do painel, com os mesmos
+           ids - quem manda nele continua sendo o js/app.js. -->
+      <button id="btnAjustes" onclick="ffAjAbrir()" class="btn-theme-toggle">
+        <i class="fas fa-sliders-h"></i> Ajustes
+      </button>
 
       <button id="themeToggleBtn" onclick="toggleTheme()" class="btn-theme-toggle">
         <i class="fas fa-sun"></i> Tema Claro
@@ -479,6 +477,15 @@
 
 <!-- ===== MODALS ===== -->
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
+
+  <!-- Modal: personalizacao do aplicativo (js/ajustes.js) -->
+  <div id="modalAjustes" class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-sliders-h"></i> Ajustes do aplicativo</h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modalAjustesBody"></div>
+  </div>
 
   <!-- Modal: acao em massa nos lotes selecionados (js/lotes-selecao.js) -->
   <div id="modalSelecaoMassa" class="modal" onclick="event.stopPropagation()">
@@ -943,10 +950,11 @@
 <script src="js/imersao-coloracao.js?v=1"></script>
 <script src="js/simulador-entrega.js?v=3"></script>
 <script src="js/optimizer.js?v=1"></script>
-<script src="js/auth.js?v=5011"></script>
+<script src="js/auth.js?v=5012"></script>
 <script src="js/lots.js?v=26"></script>
 <script src="js/kanban.js?v=21"></script>
 <script src="js/lotes-selecao.js?v=1"></script>
+<script src="js/ajustes.js?v=1"></script>
 <script src="js/sounds.js?v=1"></script>
 <script src="js/meu-setor.js?v=6"></script>
 <script src="js/push.js?v=2"></script>

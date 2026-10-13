@@ -447,7 +447,17 @@ async function showApp() {
 
   // Render inicial rápida
   buildSidebar();
-  navigateTo('dashboard');
+
+  // Pagina inicial escolhida nos Ajustes (js/ajustes.js). ffAjPaginaInicial
+  // confere a escolha contra as permissoes do perfil e devolve 'dashboard' se
+  // a pagina nao existir mais ou o perfil nao puder ver - preferencia velha
+  // guardada no navegador nao pode abrir tela proibida nem tela em branco.
+  navigateTo(typeof ffAjPaginaInicial === 'function'
+    ? ffAjPaginaInicial(STATE.currentUser)
+    : 'dashboard');
+
+  // Menu lateral aberto ou so com icones, conforme os Ajustes
+  if (typeof ffAjAplicarDepoisDoLogin === 'function') ffAjAplicarDepoisDoLogin();
 
   // Auto-update e alertas começam já
   startAlertTimer();
