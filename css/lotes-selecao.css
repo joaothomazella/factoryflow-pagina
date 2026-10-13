@@ -1,0 +1,216 @@
+/* ===================================================
+   SELECAO EM MASSA NA PAGINA DE LOTES
+   ---------------------------------------------------
+   Tudo aqui esta preso a uma destas raizes:
+     .lot-sel-modo / .lot-sel-marcado  (card no modo de selecao)
+     .lots-grid-selecao                (a grade no modo de selecao)
+     .ff-sel-*                         (barra, modal e progresso novos)
+   Fora do modo de selecao este arquivo nao gera nenhuma regra que
+   pegue em elemento existente - entao quem nao usar o recurso ve a
+   tela exatamente como antes.
+   Usa as variaveis de tema que o style.css ja define, para funcionar
+   nos quatro temas (escuro, claro, induscolor e suave).
+   =================================================== */
+
+/* ---------- o card durante a selecao ---------- */
+.lot-card.lot-sel-modo {
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.lot-card.lot-sel-modo:hover {
+  border-color: var(--purple, #7c3aed);
+}
+
+.lot-card.lot-sel-marcado {
+  border-color: var(--purple, #7c3aed) !important;
+  box-shadow: 0 0 0 2px var(--purple, #7c3aed) inset, 0 6px 18px rgba(0, 0, 0, .25);
+}
+
+/* A marca de conferido. Fica escondida ate o card ser marcado, em vez
+   de so aparecer, para o card nao "pular" de tamanho no clique. */
+.lot-card.lot-sel-modo .lot-sel-marca {
+  position: absolute;
+  top: .6rem;
+  right: .6rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .7rem;
+  border: 2px solid var(--border, #334155);
+  background: var(--bg2, #1e293b);
+  color: transparent;
+  z-index: 2;
+}
+
+.lot-card.lot-sel-marcado .lot-sel-marca {
+  background: var(--purple, #7c3aed);
+  border-color: var(--purple, #7c3aed);
+  color: #fff;
+}
+
+/* Espaco para a barra flutuante nao cobrir o ultimo card. */
+.lots-grid.lots-grid-selecao {
+  padding-bottom: 5.5rem;
+}
+
+/* ---------- barra flutuante ---------- */
+.ff-sel-barra {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%) translateY(140%);
+  z-index: 250;              /* abaixo do .modal-overlay, que e 300 */
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100vw - 2rem);
+  padding: .7rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--border, #334155);
+  background: var(--bg2, #1e293b);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .45);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .18s ease, opacity .18s ease;
+}
+
+.ff-sel-barra.visivel {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ff-sel-conta {
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--text, #e2e8f0);
+  white-space: nowrap;
+}
+
+.ff-sel-botoes {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+
+.ff-sel-barra .btn[disabled] {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* ---------- modal do avanco em massa ---------- */
+.ff-sel-modal-intro {
+  font-size: .88rem;
+  color: var(--text2, #94a3b8);
+  margin: 0 0 .9rem;
+}
+
+.ff-sel-grupo {
+  border: 1px solid var(--border, #334155);
+  border-radius: 10px;
+  padding: .75rem;
+  margin-bottom: .75rem;
+  background: var(--bg, #0f172a);
+}
+
+.ff-sel-grupo-topo {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  flex-wrap: wrap;
+  font-size: .85rem;
+  margin-bottom: .35rem;
+}
+
+.ff-sel-grupo-lotes {
+  font-size: .76rem;
+  color: var(--text2, #94a3b8);
+  margin-bottom: .55rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.ff-sel-destino,
+#ffSelNota {
+  width: 100%;
+  padding: .6rem .7rem;
+  border-radius: 8px;
+  border: 1px solid var(--border, #334155);
+  background: var(--bg2, #1e293b);
+  color: var(--text, #e2e8f0);
+  font-family: inherit;
+  font-size: .86rem;
+}
+
+.ff-sel-destino:focus,
+#ffSelNota:focus {
+  outline: none;
+  border-color: var(--purple, #7c3aed);
+}
+
+.ff-sel-nota-lbl {
+  display: block;
+  font-size: .78rem;
+  color: var(--text2, #94a3b8);
+  margin: .5rem 0 .3rem;
+}
+
+.ff-sel-aviso {
+  margin-top: .8rem;
+  padding: .65rem .75rem;
+  border-radius: 8px;
+  border: 1px solid var(--yellow, #f59e0b);
+  background: rgba(245, 158, 11, .12);
+  color: var(--text, #e2e8f0);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+/* ---------- aviso de progresso da gravacao ---------- */
+.ff-sel-progresso {
+  position: fixed;
+  left: 50%;
+  top: 1rem;
+  transform: translateX(-50%);
+  z-index: 9998;             /* acima do modal (300); so o toast (9999) passa */
+  padding: .6rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border, #334155);
+  background: var(--bg2, #1e293b);
+  color: var(--text, #e2e8f0);
+  font-size: .85rem;
+  font-weight: 600;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .4);
+  display: none;
+}
+
+.ff-sel-progresso.visivel { display: block; }
+
+/* ---------- celular ---------- */
+/* A barra passa a ocupar a largura inteira: cinco botoes lado a lado
+   nao caberiam em 360px, e o layout de celular foi ajustado fino. */
+@media (max-width: 768px) {
+  .ff-sel-barra {
+    left: .5rem;
+    right: .5rem;
+    bottom: .5rem;
+    max-width: none;
+    transform: translateX(0) translateY(140%);
+    flex-direction: column;
+    align-items: stretch;
+    gap: .5rem;
+  }
+  .ff-sel-barra.visivel { transform: translateX(0) translateY(0); }
+  .ff-sel-conta { text-align: center; }
+  .ff-sel-botoes { display: grid; grid-template-columns: 1fr 1fr; }
+  .ff-sel-botoes .btn { width: 100%; }
+  .lots-grid.lots-grid-selecao { padding-bottom: 11rem; }
+}

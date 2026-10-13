@@ -420,8 +420,12 @@ function buildRejectedLotCard(lot) {
     </div>`;
 }
 
-function buildLotCard(lot) {
+// opcoes.selecionavel = true desenha o card no modo de selecao (vem da
+// pagina de Lotes). A pagina de Pedidos chama sem opcoes, de proposito.
+function buildLotCard(lot, opcoes = {}) {
   if (lot.rejected) return buildRejectedLotCard(lot);
+  const selecionavel = !!opcoes.selecionavel;
+  const marcado = selecionavel && typeof ffSelEstaMarcado === 'function' && ffSelEstaMarcado(lot.id);
   const user = STATE.currentUser;
   const late  = isLate(lot);
   const today = isToday(lot.deliveryDate);
@@ -455,7 +459,9 @@ function buildLotCard(lot) {
   const currentIdx = flowSteps.indexOf(lot.sector);
 
   return `
-    <div class="lot-card ${late?'late':''} ${alertThreshold?'alert-lot':''} priority-border-${lot.priority}" onclick="openLotDetail('${lot.id}')">
+    <div class="lot-card ${late?'late':''} ${alertThreshold?'alert-lot':''} priority-border-${lot.priority}${selecionavel?' lot-sel-modo':''}${marcado?' lot-sel-marcado':''}"
+         ${selecionavel ? `data-lot-sel-id="${lot.id}" onclick="ffSelAlternarLote('${lot.id}')"` : `onclick="openLotDetail('${lot.id}')"`}>
+      ${selecionavel ? `<span class="lot-sel-marca" aria-hidden="true"><i class="fas fa-check"></i></span>` : ''}
       <div class="lot-card-header">
         <div class="lot-number">#${lot.number}</div>
         <div class="priority-badge" style="background:${pColor}">${PRIORITY_LABELS[lot.priority]}</div>
@@ -485,7 +491,7 @@ function buildLotCard(lot) {
       </div>
       ${lot.city ? `<div class="lot-city"><i class="fas fa-map-pin"></i> ${escapeHtml(lot.city)}</div>` : ''}
       ${alertThreshold ? `<div class="alert-banner"><i class="fas fa-exclamation-triangle"></i> Atenção: possível atraso</div>` : ''}
-      <div class="lot-actions" onclick="event.stopPropagation()">
+      <div class="lot-actions" onclick="event.stopPropagation()" ${selecionavel ? 'style="display:none"' : ''}>
         <button class="btn btn-sm btn-outline" onclick="openLotDetail('${lot.id}')">
           <i class="fas fa-eye"></i> Detalhes
         </button>
@@ -555,6 +561,10 @@ function renderLots() {
       <h2><i class="fas fa-boxes"></i> Lotes em Produção</h2>
       <div class="header-actions">
         <input type="text" id="lotSearch" placeholder="Buscar lote, cliente, tinta..." oninput="filterLots()" class="search-input" />
+        ${(typeof ffPodeSelecaoEmMassa === 'function' && ffPodeSelecaoEmMassa()) ? `
+          <button id="btnLotSelecionar" onclick="ffSelAlternarModo()" class="btn btn-outline">
+            <i class="fas fa-check-square"></i> Selecionar
+          </button>` : ''}
         ${canCreate ? `<button onclick="openNewOrderModal()" class="btn btn-primary"><i class="fas fa-plus"></i> Novo Pedido</button>` : ''}
       </div>
     </div>
@@ -569,6 +579,9 @@ function renderLots() {
     <div id="lotsGrid" class="lots-grid"></div>
   `;
   renderLotsGrid(activeLots);
+  // renderLots() refaz o page.innerHTML, então o botao "Selecionar"
+  // volta no estado neutro: o modulo reaplica o que estava valendo.
+  if (typeof ffSelAposRenderDaPagina === 'function') ffSelAposRenderDaPagina();
 }
 
 let _lotsFilter = 'all';
@@ -607,11 +620,21 @@ function filterLots() {
 function renderLotsGrid(lots) {
   const grid = document.getElementById('lotsGrid');
   if (!grid) return;
+
+  // O modulo de selecao precisa saber exatamente quais lotes estao na
+  // tela agora: "selecionar todos" marca o resultado da busca, nao o
+  // sistema inteiro.
+  if (typeof ffSelRegistrarVisiveis === 'function') ffSelRegistrarVisiveis(lots);
+  const selecionavel = typeof ffSelModoAtivo === 'function' && ffSelModoAtivo();
+  grid.classList.toggle('lots-grid-selecao', selecionavel);
+
   if (lots.length === 0) {
     grid.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>Nenhum lote encontrado</p></div>';
+    if (typeof ffSelAtualizarBarra === 'function') ffSelAtualizarBarra();
     return;
   }
-  grid.innerHTML = lots.map(lot => buildLotCard(lot)).join('');
+  grid.innerHTML = lots.map(lot => buildLotCard(lot, { selecionavel })).join('');
+  if (typeof ffSelAtualizarBarra === 'function') ffSelAtualizarBarra();
 }
 
 // ===== LOT DETAIL =====
@@ -1143,29 +1166,22 @@ function openSendSector(lotId) {
   }
 }
 
-async function confirmSendToSector() {
-  const lot = STATE.lots.find(l => l.id === _pendingSendLotId);
-  if (!_pendingSendLotId || !lot) return;
+// ===================================================
+// NUCLEO DO AVANCO DE SETOR - usado pelo envio de um lote so
+// (confirmSendToSector) e pela acao em massa (js/lotes-selecao.js).
+// ---------------------------------------------------------------
+// So mexe no objeto do lote: nao salva no backend, nao toca na tela.
+// Quem chama e que decide quando chamar apiUpdateLot() e redesenhar.
+// Foi extraido de confirmSendToSector() sem alterar uma linha de
+// regra, de proposito: as correcoes de verniz, base e envase sao
+// delicadas e nao podem existir em duas copias.
+// Devolve { previousSector, savedSector } - savedSector pode ser
+// DIFERENTE do destino pedido, porque as regras corrigem o destino.
+// ===================================================
+function ffAplicarEnvioDeSetor(lot, destino, user, note = '') {
+  if (!lot || !destino || !user) return null;
 
-  if (!_pendingSendSector) {
-    const setorAtual = ffGetLotCurrentSector(lot);
-    if (['envase', 'envase_produzir', 'envase_enlatamento', 'envase_producao'].includes(setorAtual)) {
-      _pendingSendSector = 'pronto';
-    }
-  }
-
-  if (!_pendingSendSector) {
-    alert('Selecione o destino do lote.');
-    return;
-  }
-
-  const user = STATE.currentUser;
-  const note = document.getElementById('sendSectorNote').value.trim();
-  const btn  = document.getElementById('btnConfirmSend');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-
-  if (_pendingSendSector === 'laboratorio' && ffGetLotCurrentSector(lot) === 'producao') lot.skipColor = true;
+  if (destino === 'laboratorio' && ffGetLotCurrentSector(lot) === 'producao') lot.skipColor = true;
 
   // Segurança extra: verniz nunca pode sair do Laboratório direto como entregue/pronto.
   const _ptCheck = String(lot.productType || lot.tipo || '').trim().toLowerCase();
@@ -1176,17 +1192,17 @@ async function confirmSendToSector() {
   if (
     _isVernizLot &&
     ffGetLotCurrentSector(lot) === 'laboratorio' &&
-    ['entregue', 'entrega', 'pronto', 'retirada', 'finalizado'].includes(String(_pendingSendSector || '').toLowerCase())
+    ['entregue', 'entrega', 'pronto', 'retirada', 'finalizado'].includes(String(destino || '').toLowerCase())
   ) {
-    _pendingSendSector = 'envase_enlatamento';
+    destino = 'envase_enlatamento';
   }
 
   if (
     _isVernizLot &&
     ['envase', 'envase_produzir', 'envase_enlatamento', 'envase_producao'].includes(ffGetLotCurrentSector(lot)) &&
-    ['entregue', 'entrega', 'retirada', 'finalizado'].includes(String(_pendingSendSector || '').toLowerCase())
+    ['entregue', 'entrega', 'retirada', 'finalizado'].includes(String(destino || '').toLowerCase())
   ) {
-    _pendingSendSector = 'pronto';
+    destino = 'pronto';
   }
 
   // BASE: nunca vai para Coloração, Envase ou Pronto.
@@ -1197,11 +1213,11 @@ async function confirmSendToSector() {
     _nameCheck.includes('base');
 
   if (_isBaseLot && ffGetLotCurrentSector(lot) === 'producao') {
-    _pendingSendSector = 'laboratorio';
+    destino = 'laboratorio';
   }
 
   if (_isBaseLot && ffGetLotCurrentSector(lot) === 'laboratorio') {
-    _pendingSendSector = 'entregue';
+    destino = 'entregue';
   }
 
   // ===================================================
@@ -1214,9 +1230,9 @@ async function confirmSendToSector() {
   // tudo que sair do Laboratório para Envase precisa cair em Envase – Enlatamento.
   if (
     ffGetLotCurrentSector(lot) === 'laboratorio' &&
-    ['envase', 'envase_produzir', 'envase_producao', 'envase_antigo'].includes(String(_pendingSendSector || '').toLowerCase())
+    ['envase', 'envase_produzir', 'envase_producao', 'envase_antigo'].includes(String(destino || '').toLowerCase())
   ) {
-    _pendingSendSector = 'envase_enlatamento';
+    destino = 'envase_enlatamento';
   }
 
   // Salva o setor em TODOS os campos que o app usa.
@@ -1239,7 +1255,7 @@ async function confirmSendToSector() {
     });
   }
 
-  const savedSector = ffApplySectorToLot(lot, _pendingSendSector);
+  const savedSector = ffApplySectorToLot(lot, destino);
   lot.sectorEnteredAt = now; // ← CRITICAL: reset timer when lot moves to new sector
   lot.tempoSetor      = null;       // o tempo vindo do backend era do setor anterior
   lot.lotStatus       = 'idle';     // reset work status on sector change
@@ -1252,6 +1268,42 @@ async function confirmSendToSector() {
     timestamp: now
   });
   lot.history = history;
+
+  return { previousSector, savedSector };
+}
+
+
+async function confirmSendToSector() {
+  const lot = STATE.lots.find(l => l.id === _pendingSendLotId);
+  if (!_pendingSendLotId || !lot) return;
+
+  if (!_pendingSendSector) {
+    const setorAtual = ffGetLotCurrentSector(lot);
+    if (['envase', 'envase_produzir', 'envase_enlatamento', 'envase_producao'].includes(setorAtual)) {
+      _pendingSendSector = 'pronto';
+    }
+  }
+
+  if (!_pendingSendSector) {
+    alert('Selecione o destino do lote.');
+    return;
+  }
+
+  const user = STATE.currentUser;
+  const note = document.getElementById('sendSectorNote').value.trim();
+  const btn  = document.getElementById('btnConfirmSend');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+  // O miolo vive em ffAplicarEnvioDeSetor() porque a acao em massa
+  // precisa das mesmas regras de correcao de destino.
+  const resultado = ffAplicarEnvioDeSetor(lot, _pendingSendSector, user, note);
+  if (!resultado) {
+    alert('Nao foi possivel preparar o envio deste lote.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Confirmar Envio';
+    return;
+  }
 
   try {
     await apiUpdateLot(lot);
@@ -1565,14 +1617,14 @@ function showOrderTab(tab, btn) {
 
 
 // ===== CLIENTE RETIROU / FINALIZAR SEM ROTA =====
-async function confirmClientPickup(lotId) {
-  const lot = STATE.lots.find(l => l.id === lotId);
-  const user = STATE.currentUser;
-
-  if (!lot || !user) return;
-
-  const ok = confirm(`Confirmar retirada pelo cliente?\n\nLote #${lot.number} – ${lot.client}\n\nEle será finalizado e sairá do Kanban.`);
-  if (!ok) return;
+// ===================================================
+// NUCLEO DA RETIRADA PELO CLIENTE - usado pela acao de um lote so
+// (confirmClientPickup) e pela acao em massa (js/lotes-selecao.js).
+// So mexe no objeto do lote: nao salva no backend, nao toca na tela.
+// O corpo e o mesmo que estava em confirmClientPickup, sem alteracao.
+// ===================================================
+function ffAplicarRetiradaCliente(lot, user) {
+  if (!lot || !user) return null;
 
   const now = Date.now();
 
@@ -1591,6 +1643,20 @@ async function confirmClientPickup(lotId) {
     action: 'Cliente retirou o pedido – lote finalizado sem rota de motorista',
     timestamp: now
   });
+
+  return { savedSector: 'entregue', timestamp: now };
+}
+
+async function confirmClientPickup(lotId) {
+  const lot = STATE.lots.find(l => l.id === lotId);
+  const user = STATE.currentUser;
+
+  if (!lot || !user) return;
+
+  const ok = confirm(`Confirmar retirada pelo cliente?\n\nLote #${lot.number} – ${lot.client}\n\nEle será finalizado e sairá do Kanban.`);
+  if (!ok) return;
+
+  ffAplicarRetiradaCliente(lot, user);
 
   try {
     await apiUpdateLot(lot);

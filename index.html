@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="css/imersao-coloracao.css?v=1">
 <link rel="stylesheet" href="css/tema-suave.css?v=6">
 <link rel="stylesheet" href="css/cards-tamanho.css?v=1">
+<link rel="stylesheet" href="css/lotes-selecao.css?v=1">
 </head>
 <body>
 
@@ -479,6 +480,21 @@
 <!-- ===== MODALS ===== -->
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
 
+  <!-- Modal: acao em massa nos lotes selecionados (js/lotes-selecao.js) -->
+  <div id="modalSelecaoMassa" class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-layer-group"></i> Enviar lotes selecionados</h3>
+      <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modalSelMassaBody"></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="ffSelConfirmarAvanco()">
+        <i class="fas fa-paper-plane"></i> Confirmar envio
+      </button>
+    </div>
+  </div>
+
   <!-- Modal: New Order (with multiple lots) -->
   <div id="modalNewOrder" class="modal modal-large" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -910,7 +926,7 @@
 <!-- Chart.js não estava sendo usado no login; carregado aqui para não bloquear LCP -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-<script src="js/data.js?v=9031"></script>
+<script src="js/data.js?v=9032"></script>
 <script src="js/pedidos-novos.js?v=7012"></script>
 <script src="js/programacao-entregas.js?v=1001"></script>
 <!-- SheetJS – exportação Excel -->
@@ -928,8 +944,9 @@
 <script src="js/simulador-entrega.js?v=3"></script>
 <script src="js/optimizer.js?v=1"></script>
 <script src="js/auth.js?v=5011"></script>
-<script src="js/lots.js?v=25"></script>
+<script src="js/lots.js?v=26"></script>
 <script src="js/kanban.js?v=21"></script>
+<script src="js/lotes-selecao.js?v=1"></script>
 <script src="js/sounds.js?v=1"></script>
 <script src="js/meu-setor.js?v=6"></script>
 <script src="js/push.js?v=2"></script>

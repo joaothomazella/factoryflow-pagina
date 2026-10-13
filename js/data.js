@@ -880,7 +880,16 @@ async function apiCreateLot(lot) {
 
   return created;
 }
+// Freio de redesenho. A acao em massa de lotes (js/lotes-selecao.js)
+// levanta esta variavel enquanto grava lote por lote, para a tela nao ser
+// reconstruida a cada apiUpdateLot() - o que, na pagina de Lotes, apagaria
+// o texto da busca e a selecao da pessoa a cada volta do laco. Quem levanta
+// e obrigado a abaixar num finally e redesenhar uma vez no fim.
+let FF_REDESENHO_SUSPENSO = false;
+function ffSuspenderRedesenhoDeLote(v) { FF_REDESENHO_SUSPENSO = !!v; }
+
 function ffRenderAfterLotChange(lot) {
+  if (FF_REDESENHO_SUSPENSO) return;
   // Atualiza a tela imediatamente depois que um lote muda de setor/status.
   // Isso evita ter que trocar de aba para o card sumir do setor antigo
   // e aparecer no próximo setor.
