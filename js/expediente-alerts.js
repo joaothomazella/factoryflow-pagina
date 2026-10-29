@@ -294,8 +294,9 @@ function ffOpenEncerrarExpedienteGeral() {
       </div>
       <div class="ff-alert-title" style="color:#ef4444">ENCERRAR EXPEDIENTE GERAL</div>
       <div class="ff-alert-message">
-        Tem certeza que deseja encerrar o expediente de <strong>todos os setores</strong>?<br>
-        <span style="color:#f87171;font-size:.85rem">Esta ação será registrada no sistema com o horário atual.</span>
+        Encerrar o expediente de <strong>todos os setores que estiverem abertos</strong>, agora?<br>
+        <span style="font-size:.85rem">O fechamento é registrado com o horário atual e o tempo dos lotes desses setores para de contar.</span><br>
+        <span style="color:#f87171;font-size:.85rem">Setor que já está fechado não é alterado.</span>
       </div>
       <div style="display:flex;gap:12px;margin-top:1.5rem;justify-content:center">
         <button class="ff-alert-btn ff-alert-btn-cancel" onclick="document.getElementById('ffEncerrarExpOverlay').remove()">
@@ -311,78 +312,166 @@ function ffOpenEncerrarExpedienteGeral() {
   requestAnimationFrame(() => overlay.classList.add('ff-alert-visible'));
 }
 
+// Envia o encerramento para o backend.
+//
+// Usa o expedienteApiPost do js/data.js, que e o MESMO caminho que o botao
+// de expediente de setor usa (mesma base de URL, mesmo cabecalho de
+// autenticacao). A versao anterior montava o fetch na mao, com outra base e
+// outra procura de token, e por isso nao chegava no servidor.
+async function ffPostEncerrarExpedienteGeral() {
+  const user = (typeof STATE !== 'undefined' && STATE) ? STATE.currentUser : null;
+  const corpo = { encerradoPor: user?.name || user?.login || 'admin', timestamp: Date.now() };
+
+  if (typeof expedienteApiPost === 'function') {
+    return expedienteApiPost('/api/expediente/encerrar-geral', corpo);
+  }
+
+  // Caminho reserva, caso este arquivo carregue sem o data.js.
+  const base = (typeof BRIDGE_CONFIG !== 'undefined' && BRIDGE_CONFIG.baseUrl)
+    ? BRIDGE_CONFIG.baseUrl
+    : (typeof resolveFactoryFlowApiBase === 'function' ? resolveFactoryFlowApiBase() : '');
+  const headers = (typeof bridgeAuthHeaders === 'function')
+    ? bridgeAuthHeaders(true)
+    : (typeof factoryFlowAuthHeaders === 'function' ? factoryFlowAuthHeaders(true) : { 'Content-Type': 'application/json' });
+
+  const res  = await fetch(`${base}/api/expediente/encerrar-geral`, {
+    method: 'POST', headers, body: JSON.stringify(corpo)
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.ok === false) {
+    throw new Error(json.error || json.detail || `O servidor respondeu ${res.status}`);
+  }
+  return json;
+}
+
 async function ffConfirmarEncerrarExpedienteGeral(btn) {
-  if (!btn) return;
+  if (!btn || btn.disabled) return;
+
+  const rotuloBotao = '<i class="fas fa-power-off"></i> Sim, encerrar todos';
+  const msgEl = document.querySelector('#ffEncerrarExpOverlay .ff-alert-message');
+  const diga  = html => { if (msgEl) msgEl.innerHTML = html; };
+
   btn.disabled  = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Encerrando...';
 
   try {
-    const user = (typeof STATE !== 'undefined') ? STATE.currentUser : null;
-    const now  = Date.now();
+    diga('Fechando o expediente dos setores...');
 
-    // Tenta endpoint dedicado primeiro
-    const base = (typeof API_BASE !== 'undefined' ? API_BASE : '')
-               || (typeof resolveFactoryFlowApiBase === 'function' ? resolveFactoryFlowApiBase() : '');
+    const json = await ffPostEncerrarExpedienteGeral();
+    const fechados = Array.isArray(json.fechados) ? json.fechados : [];
+    const ignorados = Array.isArray(json.ignorados) ? json.ignorados : [];
 
-    let sucesso = false;
-
-    if (base) {
-      const headers = { 'Content-Type': 'application/json' };
-      const jwt = user?.token || sessionStorage.getItem('ff_token') || localStorage.getItem('ff_token') || '';
-      if (jwt) headers['Authorization'] = `Bearer ${jwt}`;
-
-      const res = await fetch(`${base}/api/expediente/encerrar-geral`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ encerradoPor: user?.name || 'admin', timestamp: now })
-      });
-      if (res.ok) sucesso = true;
+    // Nenhum setor estava aberto: isso NAO e sucesso nem erro, e so nao ter
+    // o que fazer. Dizer "encerrado com sucesso" aqui seria mentir.
+    if (!fechados.length) {
+      document.getElementById('ffEncerrarExpOverlay')?.remove();
+      if (typeof showToast === 'function') {
+        showToast('Nenhum setor estava com o expediente aberto.', 'error');
+      }
+      return;
     }
 
-    // Fallback: encerra expediente localmente via sectorShifts se disponível
-    if (!sucesso && typeof sectorShifts !== 'undefined') {
-      Object.keys(sectorShifts).forEach(setor => {
-        if (sectorShifts[setor] && sectorShifts[setor].expediente_aberto) {
-          sectorShifts[setor].expediente_aberto  = 0;
-          sectorShifts[setor].finalizado_em       = new Date(now).toISOString();
+    // O expediente ja esta fechado no banco. O que vem agora e consequencia:
+    // congelar o tempo dos lotes de cada setor, exatamente como o botao de
+    // setor faz quando alguem fecha o proprio expediente.
+    diga(`Expediente fechado em <strong>${fechados.length} setor(es)</strong>.<br>Congelando o tempo dos lotes...`);
+
+    const normaliza = (typeof normalizeShiftGroup === 'function')
+      ? normalizeShiftGroup
+      : (s => String(s || ''));
+
+    // Atualiza o estado local com o que o servidor realmente gravou, antes de
+    // congelar - freezeLotsForShiftClose le STATE.sectorShifts.
+    if (typeof STATE !== 'undefined' && STATE) {
+      STATE.sectorShifts = STATE.sectorShifts || {};
+      fechados.forEach(row => {
+        const grupo = normaliza(row.setor);
+        if (grupo) STATE.sectorShifts[grupo] = { ...row, setor: grupo };
+      });
+    }
+    if (typeof updateExpedienteButton === 'function') updateExpedienteButton();
+
+    // Cada lote salvo dispara um redesenho da pagina; com varios setores isso
+    // seria a tela inteira sendo reconstruida dezenas de vezes. O freio e o
+    // mesmo usado pela acao em massa de lotes.
+    let lotesCongelados = 0;
+    if (typeof ffSuspenderRedesenhoDeLote === 'function') ffSuspenderRedesenhoDeLote(true);
+    try {
+      for (let i = 0; i < fechados.length; i++) {
+        const row   = fechados[i];
+        const grupo = normaliza(row.setor);
+        if (!grupo) continue;
+
+        const fechadoMs = (typeof parseFactoryFlowDateMs === 'function')
+          ? parseFactoryFlowDateMs(row.finalizado_em || row.finalizadoEm)
+          : Date.parse(row.finalizado_em || '');
+        const closeMs = Number.isFinite(fechadoMs) ? fechadoMs : Date.now();
+
+        diga(`Expediente fechado em <strong>${fechados.length} setor(es)</strong>.<br>Congelando o tempo dos lotes (${i + 1}/${fechados.length})...`);
+
+        if (typeof getLotsByShiftGroup === 'function') {
+          lotesCongelados += (getLotsByShiftGroup(grupo) || []).length;
         }
-      });
-      sucesso = true;
+        if (typeof freezeLotsForShiftClose === 'function') {
+          try { await freezeLotsForShiftClose(grupo, closeMs); }
+          catch (e) { console.warn(`[expediente] falha ao congelar lotes de ${grupo}:`, e.message); }
+        }
+      }
+    } finally {
+      if (typeof ffSuspenderRedesenhoDeLote === 'function') ffSuspenderRedesenhoDeLote(false);
     }
 
-    // Fecha o modal de confirmação
+    // Reler do servidor: dai em diante a tela mostra a verdade gravada, nao o
+    // que este navegador acha que gravou.
+    if (typeof loadSectorShifts === 'function') {
+      await loadSectorShifts().catch(() => {});
+    }
+    if (typeof reloadData === 'function') {
+      await reloadData().catch(() => {});
+    }
+    if (typeof updateExpedienteButton === 'function') updateExpedienteButton();
+    if (typeof refreshActiveFactoryFlowPage === 'function') {
+      try { await refreshActiveFactoryFlowPage(); } catch (_) {}
+    }
+
     document.getElementById('ffEncerrarExpOverlay')?.remove();
 
-    if (sucesso) {
-      if (typeof showToast === 'function') {
-        showToast('✅ Expediente geral encerrado com sucesso.', 'success');
-      }
-      // Atualiza a tela
-      if (typeof reloadData === 'function') {
-        await reloadData().catch(() => {});
-      }
-      const activePage = document.querySelector('.nav-item.active')?.dataset.page;
-      if (activePage && typeof _silentRefresh === 'function') {
-        _silentRefresh(activePage);
-      }
-      if (typeof updateExpedienteButton === 'function') {
-        updateExpedienteButton();
-      }
-    } else {
-      if (typeof showToast === 'function') {
-        showToast('Não foi possível encerrar o expediente geral. Verifique a conexão.', 'error');
-      }
+    if (typeof showToast === 'function') {
+      const quantos = `${fechados.length} setor${fechados.length > 1 ? 'es' : ''}`;
+      const lotes   = lotesCongelados ? `, ${lotesCongelados} lote(s) congelado(s)` : '';
+      showToast(`✅ Expediente encerrado em ${quantos}${lotes}.`, 'success');
+    }
+
+    // Setor que estava com outra alteracao em andamento nao foi tocado. Isso
+    // precisa ser dito, senao a pessoa vai embora achando que fechou tudo.
+    if (ignorados.length) {
+      const nomes = ignorados.map(s => {
+        if (typeof SECTOR_LABELS !== 'undefined' && SECTOR_LABELS[s]) return SECTOR_LABELS[s];
+        return s;
+      }).join(', ');
+      alert(
+        'Atencao: estes setores NAO foram encerrados porque tinham uma alteracao de expediente em andamento no momento:\n\n' +
+        nomes +
+        '\n\nEspere alguns segundos e clique em "Encerrar Exp. Geral" de novo para fechar esses.'
+      );
     }
 
   } catch (e) {
     console.error('[expediente-alerts] Erro ao encerrar expediente geral:', e);
+    // O modal FICA ABERTO no erro, com o motivo na tela: fechar o modal e
+    // mostrar um toast que desaparece faria o encerramento parecer feito.
+    diga(
+      '<span style="color:#f87171"><strong>Nao foi possivel encerrar o expediente.</strong></span><br>' +
+      '<span style="font-size:.85rem">' + String(e.message || e).replace(/</g, '&lt;') + '</span><br>' +
+      '<span style="font-size:.8rem;color:#94a3b8">Nada foi alterado. Confira a conexao e tente de novo.</span>'
+    );
     if (typeof showToast === 'function') {
-      showToast('Erro ao encerrar expediente geral: ' + e.message, 'error');
+      showToast('Erro ao encerrar o expediente geral: ' + (e.message || e), 'error');
     }
   } finally {
-    if (btn) {
+    if (btn && document.body.contains(btn)) {
       btn.disabled  = false;
-      btn.innerHTML = '<i class="fas fa-power-off"></i> Sim, encerrar todos';
+      btn.innerHTML = rotuloBotao;
     }
   }
 }
